@@ -1065,6 +1065,14 @@ function createGameStore() {
                 )
             };
         }),
+        completeExpeditionInstantly: (petId: string) => update(state => {
+            return {
+                ...state,
+                activeExpeditions: state.activeExpeditions.map(e => 
+                    e.petId === petId ? { ...e, startTime: Date.now() - e.durationMs - 1000 } : e
+                )
+            };
+        }),
         claimExpedition: (petId: string) => update(state => {
             return {
                 ...state,
@@ -1587,7 +1595,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     });
 
     if (recipe) {
-        // ✅ Correct recipe — consume and reward
+        // Correct recipe - consume and reward
         ingredientsCount.update(c => {
             const next = { ...c };
             for (const ing of slots) {
@@ -1611,7 +1619,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
         };
     }
 
-    // ❌ Wrong recipe — calculate Alchemical Resonance
+    // Wrong recipe - calculate Alchemical Resonance
     let maxMatches = 0;
     for (const r of RECIPES) {
         let matches = 0;
@@ -1636,7 +1644,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     const maxFailures = 3 + alchemyLevel;
 
     if (next >= maxFailures) {
-        // 🔥 Burn ingredients — award consolation Stardust!
+        // Burn ingredients - award consolation Stardust!
         ingredientsCount.update(c => {
             const nextC = { ...c };
             for (const ing of slots) {
@@ -1725,6 +1733,27 @@ export function buyRecipeHint(recipeId: string): boolean {
     crystals.update(n => n - cost);
     unlockedRecipes.update(r => ({ ...r, [recipeId]: level + 1 }));
     return true;
+}
+
+/**
+ * Unlock one recipe hint for free (e.g. after watching a rewarded ad).
+ */
+export function unlockRecipeHintFree(recipeId: string): boolean {
+    const hints = get(unlockedRecipes);
+    const level = hints[recipeId] ?? 0;
+    if (level >= 3) return false;
+
+    unlockedRecipes.update(r => ({ ...r, [recipeId]: level + 1 }));
+    return true;
+}
+
+/**
+ * Calculate dynamic crystal cost to instantly complete an expedition based on remaining time.
+ * Formula: 1 crystal per 12 minutes (720,000 ms), minimum 1 crystal.
+ */
+export function getExpeditionSkipCost(timeRemainingMs: number): number {
+    if (timeRemainingMs <= 0) return 0;
+    return Math.max(1, Math.ceil(timeRemainingMs / (12 * 60 * 1000)));
 }
 
 /**

@@ -2,9 +2,10 @@
     import { tick } from 'svelte';
     import gsap from 'gsap';
     import {
+        gameStore,
         ingredientsCount, crystals, failedBrewAttempts, unlockedRecipes,
         AVAILABLE_INGREDIENTS, AVAILABLE_POTIONS, RECIPES, HINT_COSTS,
-        brewPotion as doBrewPotion, quickBrewRecipe, coolDownCauldron, buyRecipeHint,
+        brewPotion as doBrewPotion, quickBrewRecipe, coolDownCauldron, buyRecipeHint, unlockRecipeHintFree,
         type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
@@ -144,6 +145,16 @@
         } else {
             showToast('Недостаточно кристаллов для подсказки!', 'warning');
         }
+    }
+
+    function handleHintAd(recipeId: string) {
+        showRewardedAd(() => {
+            if (unlockRecipeHintFree(recipeId)) {
+                gameStore.updateQuestProgress('watch_ads', 1);
+                showToast('Ингредиент рецепта раскрыт за просмотр рекламы!', 'success', 2500);
+                saveGame();
+            }
+        }, () => {});
     }
 
     function canQuickBrew(recipe: AlchemyRecipe): { can: boolean; missingName?: string } {
@@ -390,13 +401,26 @@
                     </div>
 
                     {#if hints < 3}
-                        <button class="hint-btn" disabled={$crystals < HINT_COSTS[hints]}
-                            on:click={() => handleHint(recipe.id)}>
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff">
-                                <polygon points="12,2 21,9 12,22 3,9"/>
-                            </svg>
-                            {HINT_COSTS[hints]} — Раскрыть ингр. {hints+1}/3
-                        </button>
+                        <div class="hint-actions-row">
+                            <button class="hint-btn crystal-hint-btn" disabled={$crystals < HINT_COSTS[hints]}
+                                on:click={() => handleHint(recipe.id)}
+                                title="Раскрыть ингредиент за кристаллы">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#74b9ff">
+                                    <polygon points="12,2 21,9 12,22 3,9"/>
+                                </svg>
+                                <span>{HINT_COSTS[hints]}</span>
+                                <span class="hint-step-tag">({hints+1}/3)</span>
+                            </button>
+                            <button class="hint-btn ad-hint-btn"
+                                on:click={() => handleHintAd(recipe.id)}
+                                title="Раскрыть ингредиент за просмотр рекламы">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                                <span>Раскрыть</span>
+                                <span class="hint-ad-pill">AD</span>
+                            </button>
+                        </div>
                     {:else}
                         <div class="r-desc">{potion.description}</div>
                         <!-- 1-Click Quick Craft Button -->
@@ -683,23 +707,70 @@
 .r-ing-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center}
 .r-result{width:34px;height:42px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px rgba(162,155,254,0.4))}
 
-.hint-btn{
-    padding:7px 12px;
-    background:rgba(116,185,255,0.08);
-    border:1px solid rgba(116,185,255,0.35);
-    border-radius:10px;
-    color:#74b9ff;
-    font-size:.76rem;
-    font-weight:bold;
-    cursor:pointer;
-    transition:background .2s,box-shadow .2s;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    align-self:flex-start
+.hint-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-self: flex-start;
 }
-.hint-btn:hover:not(:disabled){background:rgba(116,185,255,0.18);box-shadow:0 0 12px rgba(116,185,255,0.3)}
-.hint-btn:disabled{opacity:.28;cursor:not-allowed}
+
+.hint-btn {
+    padding: 6px 11px;
+    border-radius: 10px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.hint-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.crystal-hint-btn {
+    background: rgba(116, 185, 255, 0.1);
+    border: 1px solid rgba(116, 185, 255, 0.35);
+    color: #74b9ff;
+}
+.crystal-hint-btn:hover:not(:disabled) {
+    background: rgba(116, 185, 255, 0.2);
+    box-shadow: 0 0 12px rgba(116, 185, 255, 0.35);
+    transform: translateY(-1px);
+}
+.crystal-hint-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ad-hint-btn {
+    background: linear-gradient(135deg, rgba(255, 107, 129, 0.16), rgba(255, 71, 87, 0.12));
+    border: 1px solid rgba(255, 107, 129, 0.45);
+    color: #ff7675;
+}
+.ad-hint-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 129, 0.26), rgba(255, 71, 87, 0.22));
+    box-shadow: 0 0 12px rgba(255, 107, 129, 0.4);
+    transform: translateY(-1px);
+}
+
+.hint-ad-pill {
+    background: #ff4757;
+    color: #ffffff;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.hint-step-tag {
+    font-size: 0.68rem;
+    opacity: 0.75;
+}
 
 .r-desc{font-size:.72rem;color:rgba(255,255,255,0.6);font-style:italic;padding:4px 8px;background:rgba(0,184,148,0.08);border-left:2px solid #00b894;border-radius:0 6px 6px 0}
 

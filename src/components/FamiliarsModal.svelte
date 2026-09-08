@@ -8,9 +8,10 @@
         type Pet, 
         type ActiveExpedition, 
         openChest, 
-        formatNumber 
+        formatNumber,
+        getExpeditionSkipCost
     } from '../store';
-    import { showRewardedAd } from '../yandex-sdk';
+    import { showRewardedAd, saveGame } from '../yandex-sdk';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -141,6 +142,7 @@
 
         gameStore.startExpedition(petId, hours);
         showToast(`${pet.name} отправлен в экспедицию!`);
+        saveGame();
     }
 
     function speedUpExpedition(petId: string) {
@@ -148,7 +150,21 @@
             gameStore.speedUpExpedition(petId, 2); // Reduce by 2 hours
             gameStore.updateQuestProgress('watch_ads', 1);
             showToast('Время экспедиции сокращено на 2 часа!');
+            saveGame();
         }, () => {});
+    }
+
+    function instantSkipExpedition(petId: string, timeRem: number) {
+        const cost = getExpeditionSkipCost(timeRem);
+        if ($crystals < cost) {
+            showToast(`Недостаточно кристаллов! Нужно: ${cost}`);
+            return;
+        }
+
+        crystals.update(c => c - cost);
+        gameStore.completeExpeditionInstantly(petId);
+        showToast('Экспедиция мгновенно завершена!');
+        saveGame();
     }
 
     function claimExpedition(petId: string) {
@@ -163,6 +179,7 @@
         openChest(chestType);
         gameStore.update(s => ({ ...s, stardust: s.stardust + 10 }));
         showToast('Добыча и +10 звёздной пыли получены!');
+        saveGame();
     }
 
     const RARITY_NAMES: Record<string, string> = {
@@ -309,12 +326,32 @@
                                             </div>
                                         </div>
 
-                                        <button class="action-btn speed-btn" on:click={() => speedUpExpedition(pet.id)}>
-                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                                                <polygon points="5,3 19,12 5,21"/>
-                                            </svg>
-                                            <span>-2ч за просмотр рекламы</span>
-                                        </button>
+                                        {@const skipCost = getExpeditionSkipCost(timeRem)}
+                                        <div class="exp-actions-row">
+                                            <button 
+                                                class="action-btn speed-btn" 
+                                                on:click={() => speedUpExpedition(pet.id)}
+                                                title="Ускорить экспедицию на 2 часа за просмотр рекламы"
+                                            >
+                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                                                    <polygon points="5,3 19,12 5,21"/>
+                                                </svg>
+                                                <span>-2ч</span>
+                                                <span class="exp-ad-tag">AD</span>
+                                            </button>
+
+                                            <button 
+                                                class="action-btn skip-crystal-btn" 
+                                                disabled={$crystals < skipCost}
+                                                on:click={() => instantSkipExpedition(pet.id, timeRem)}
+                                                title="Мгновенно завершить экспедицию за кристаллы"
+                                            >
+                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#74b9ff">
+                                                    <polygon points="12,2 21,9 12,22 3,9"/>
+                                                </svg>
+                                                <span>Пропуск ({skipCost})</span>
+                                            </button>
+                                        </div>
                                     {:else}
                                         <button class="action-btn start-btn" on:click={() => startExpedition(pet.id)}>
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -781,10 +818,50 @@
         box-shadow: 0 3px 10px rgba(9, 132, 227, 0.3);
     }
 
+    .exp-actions-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+    }
+    .exp-actions-row .action-btn {
+        margin-top: 0;
+    }
+
     .speed-btn {
         background: linear-gradient(135deg, #e17055, #d63031);
         color: white;
         box-shadow: 0 3px 10px rgba(225, 112, 85, 0.3);
+    }
+
+    .exp-ad-tag {
+        background: rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        font-size: 0.6rem;
+        font-weight: 900;
+        padding: 1px 5px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .skip-crystal-btn {
+        background: linear-gradient(135deg, rgba(9, 132, 227, 0.85), rgba(108, 92, 231, 0.85));
+        border: 1px solid rgba(116, 185, 255, 0.4);
+        color: #ffffff;
+        box-shadow: 0 3px 10px rgba(9, 132, 227, 0.3);
+    }
+    .skip-crystal-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #0984e3, #6c5ce7);
+        box-shadow: 0 4px 14px rgba(108, 92, 231, 0.5);
+    }
+    .skip-crystal-btn:disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+        box-shadow: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #8395a7;
     }
 
     .claim-btn {

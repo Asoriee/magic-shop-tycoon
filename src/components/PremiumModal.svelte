@@ -9,6 +9,8 @@
         gameStore, 
         crystals, 
         isVip, 
+        vipDaysLeft,
+        isVipDailyRewardAvailable,
         formatNumber 
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
@@ -149,11 +151,11 @@
 
                 <!-- VIP status indicator -->
                 {#if $isVip}
-                    <div class="vip-status-chip" title="VIP-статус активен навсегда">
+                    <div class="vip-status-chip" title="VIP-статус активен ({$vipDaysLeft} дн.)">
                         <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
                             <path d="M3 14 L17 14 L19 6 L14 10 L10 3 L6 10 L1 6 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.2"/>
                         </svg>
-                        <span>VIP x2</span>
+                        <span>VIP {$vipDaysLeft}д</span>
                     </div>
                 {/if}
             </div>
@@ -179,7 +181,9 @@
                     </svg>
                 </div>
                 <span class="tab-label">Сокровищница</span>
-                {#if isDragonGiftReady}
+                {#if $isVipDailyRewardAvailable}
+                    <span class="tab-badge badge-ready">+10 VIP</span>
+                {:else if isDragonGiftReady}
                     <span class="tab-badge badge-free">ДАР</span>
                 {/if}
             </button>

@@ -163,6 +163,8 @@ export interface GameState {
     lastFreeChestTime?: number;
     lastDragonGiftTime?: number;
     lastFreeTimeSkipTime?: number;
+    vipExpiresAt?: number;
+    vipLastDailyClaimDate?: string;
 }
 
 // ============================================================
@@ -1073,12 +1075,74 @@ const defaultState: GameState = {
     unlockedCollections: [],
     lastFreeChestTime: 0,
     lastDragonGiftTime: 0,
-    lastFreeTimeSkipTime: 0
+    lastFreeTimeSkipTime: 0,
+    vipExpiresAt: 0,
+    vipLastDailyClaimDate: ''
 };
 
 // --- Premium stores ---
 export const crystals = writable<number>(0);
-export const isVip    = writable<boolean>(false);
+export const vipExpiresAt = writable<number>(0);
+export const vipLastDailyClaimDate = writable<string>('');
+
+export const vipDaysLeft = derived(vipExpiresAt, $exp => {
+    if (!$exp || $exp <= Date.now()) return 0;
+    return Math.ceil(($exp - Date.now()) / (24 * 60 * 60 * 1000));
+});
+
+export const vipHoursLeft = derived(vipExpiresAt, $exp => {
+    if (!$exp || $exp <= Date.now()) return 0;
+    return Math.ceil(($exp - Date.now()) / (60 * 60 * 1000));
+});
+
+const _isVipDerived = derived(vipExpiresAt, $exp => ($exp || 0) > Date.now());
+
+export const isVip = {
+    subscribe: _isVipDerived.subscribe,
+    set: (val: boolean) => {
+        if (val) {
+            activateVip30Days();
+        } else {
+            vipExpiresAt.set(0);
+        }
+    },
+    update: (fn: (current: boolean) => boolean) => {
+        const current = get(_isVipDerived);
+        const next = fn(current);
+        if (next) {
+            activateVip30Days();
+        } else {
+            vipExpiresAt.set(0);
+        }
+    }
+};
+
+export const isVipDailyRewardAvailable = derived([_isVipDerived, vipLastDailyClaimDate], ([$isVip, $lastClaim]) => {
+    if (!$isVip) return false;
+    const today = new Date().toISOString().split('T')[0];
+    return $lastClaim !== today;
+});
+
+export function activateVip30Days(): void {
+    const now = Date.now();
+    const currentExpiry = get(vipExpiresAt) || 0;
+    const base = currentExpiry > now ? currentExpiry : now;
+    const newExpiry = base + 30 * 24 * 60 * 60 * 1000;
+    vipExpiresAt.set(newExpiry);
+    // Instant bonus: +50 crystals upon activation or renewal
+    crystals.update(c => c + 50);
+}
+
+export function claimVipDailyReward(): boolean {
+    const today = new Date().toISOString().split('T')[0];
+    const lastClaim = get(vipLastDailyClaimDate);
+    const active = get(isVip);
+    if (!active || lastClaim === today) return false;
+
+    vipLastDailyClaimDate.set(today);
+    crystals.update(c => c + 10);
+    return true;
+}
 
 /**
  * Dynamic gold reward scaling with current idle income.
@@ -1518,8 +1582,8 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     return Math.max(1, multiplier);
 });
 
-// Update max offline time to account for new artifacts and hearth upgrade
-export const maxOfflineTimeHours = derived(gameStore, $gameStore => {
+// Update max offline time to account for new artifacts, hearth upgrade, and VIP (+5 hours)
+export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $isVip]) => {
     let hours = 2; // base
     const upgs = $gameStore?.upgrades || [];
     const arts = $gameStore?.artifacts || [];
@@ -1529,6 +1593,7 @@ export const maxOfflineTimeHours = derived(gameStore, $gameStore => {
     }
     if (arts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
     if (arts.includes(5)) hours += 2; // Archmage Hat (+2 hours)
+    if ($isVip) hours += 5; // VIP Bonus: +5 hours offline limit
     return hours;
 });
 
@@ -1934,9 +1999,10 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     const current = get(failedBrewAttempts);
     const next = current + 1;
     
-    // Secret Upgrade: Повелитель Котлов (+1 max attempt per level, max 2)
+    // Secret Upgrade: Повелитель Котлов (+1 max attempt per level, max 2) + VIP (+1 attempt)
     const alchemyLevel = get(gameStore).secretUpgrades.find(u => u.id === 'alchemy')?.level || 0;
-    const maxFailures = 3 + alchemyLevel;
+    const vipBonus = get(isVip) ? 1 : 0;
+    const maxFailures = 3 + alchemyLevel + vipBonus;
 
     if (next >= maxFailures) {
         // Burn ingredients - award consolation Stardust!

@@ -1,5 +1,17 @@
 import { get } from 'svelte/store';
-import { gameStore, crystals, isVip, ingredientsCount, potionsCount, unlockedRecipes, failedBrewAttempts, type GameState } from './store';
+import { 
+    gameStore, 
+    crystals, 
+    isVip, 
+    vipExpiresAt, 
+    vipLastDailyClaimDate, 
+    activateVip30Days, 
+    ingredientsCount, 
+    potionsCount, 
+    unlockedRecipes, 
+    failedBrewAttempts, 
+    type GameState 
+} from './store';
 
 declare global {
     interface Window {
@@ -62,10 +74,16 @@ async function checkPurchases() {
     if (!payments) return;
     try {
         const purchasesList = await payments.getPurchases();
-        // Restore non-consumable purchases (VIP)
+        // Consume any pending consumable purchases and activate VIP
         for (const purchase of purchasesList) {
-            if (purchase.productID === 'vip_status') {
-                isVip.set(true);
+            if (purchase.productID === 'vip_status' || purchase.productID === 'vip_month') {
+                activateVip30Days();
+                saveGame();
+                try {
+                    await payments.consumePurchase(purchase.purchaseToken);
+                } catch (e) {
+                    console.warn('Failed to consume pending VIP purchase', e);
+                }
             }
         }
     } catch (e) {
@@ -92,8 +110,8 @@ export async function purchaseItem(itemId: string): Promise<void> {
         } else if (itemId === 'pack_crystals_1000') {
             crystals.update(n => n + 1250);
             saveGame();
-        } else if (itemId === 'vip_status') {
-            isVip.set(true);
+        } else if (itemId === 'vip_status' || itemId === 'vip_month') {
+            activateVip30Days();
             saveGame();
         }
         return;
@@ -104,8 +122,7 @@ export async function purchaseItem(itemId: string): Promise<void> {
     // Handle purchase result
     if (itemId === 'pack_crystals_100') {
         crystals.update(n => n + 100);
-        saveGame(); // persist crystals immediately after purchase
-        // Consumable — must be consumed so it can be bought again
+        saveGame();
         try {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
@@ -127,10 +144,14 @@ export async function purchaseItem(itemId: string): Promise<void> {
         } catch (e) {
             console.warn('Failed to consume purchase', e);
         }
-    } else if (itemId === 'vip_status') {
-        // Non-consumable — just activate and save
-        isVip.set(true);
+    } else if (itemId === 'vip_status' || itemId === 'vip_month') {
+        activateVip30Days();
         saveGame();
+        try {
+            await payments.consumePurchase(purchase.purchaseToken);
+        } catch (e) {
+            console.warn('Failed to consume VIP purchase', e);
+        }
     }
 }
 
@@ -143,6 +164,8 @@ export async function saveGame() {
         lastSaveTime: Date.now(),
         crystals: get(crystals),
         isVip: get(isVip),
+        vipExpiresAt: get(vipExpiresAt),
+        vipLastDailyClaimDate: get(vipLastDailyClaimDate),
         ingredientsCount: get(ingredientsCount),
         potionsCount: get(potionsCount),
         unlockedRecipes: get(unlockedRecipes),
@@ -226,12 +249,18 @@ export async function loadGame(): Promise<void> {
             return merged;
         });
 
-        // Restore premium currency separately
+        // Restore premium currency and VIP status separately
         if ((savedData as any).crystals !== undefined) {
             crystals.set((savedData as any).crystals);
         }
-        if ((savedData as any).isVip !== undefined) {
-            isVip.set(!!(savedData as any).isVip);
+        if ((savedData as any).vipExpiresAt !== undefined) {
+            vipExpiresAt.set((savedData as any).vipExpiresAt);
+        } else if ((savedData as any).isVip) {
+            // Legacy VIP fallback: activate 30 days
+            vipExpiresAt.set(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        }
+        if ((savedData as any).vipLastDailyClaimDate !== undefined) {
+            vipLastDailyClaimDate.set((savedData as any).vipLastDailyClaimDate);
         }
 
         // Restore alchemy inventory

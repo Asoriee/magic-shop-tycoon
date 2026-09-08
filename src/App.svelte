@@ -7,6 +7,8 @@
         formatNumber, 
         crystals, 
         isVip,
+        vipDaysLeft,
+        isVipDailyRewardAvailable,
         readyOrdersCount,
         unclaimedQuestsCount,
         finishedExpeditionsCount
@@ -127,14 +129,19 @@
             <span class="value">{formatNumber($crystals)}</span>
         </div>
         {#if $isVip}
-        <div class="resource-box vip-box" title="VIP">
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div class="resource-box vip-box" title="VIP-статус (осталось {$vipDaysLeft} дн.)" on:click={() => isPremiumOpen = true}>
             <span class="icon">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
                     <path d="M4 17 L20 17 L22 8 L17 12 L12 4 L7 12 L2 8 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
                     <circle cx="12" cy="17" r="1.5" fill="#e74c3c"/>
                 </svg>
             </span>
-            <span class="value">VIP</span>
+            <span class="value">VIP {$vipDaysLeft}д</span>
+            {#if $isVipDailyRewardAvailable}
+                <span class="vip-reward-dot" title="Доступна ежедневная награда VIP"></span>
+            {/if}
         </div>
         {/if}
     </div>
@@ -172,6 +179,11 @@
         </button>
 
         <button class="hub-btn premium-btn" on:click={() => isPremiumOpen = true} title="Премиум">
+            {#if $isVipDailyRewardAvailable}
+                <div class="hub-badge pulse" title="Доступна ежедневная награда VIP">
+                    !
+                </div>
+            {/if}
             <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
                 <path d="M12,2L1,12H4V21H20V12H23L12,2M12,11A3,3 0 0,1 15,14A3,3 0 0,1 12,17A3,3 0 0,1 9,14A3,3 0 0,1 12,11M12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5Z" />
             </svg>
@@ -337,8 +349,33 @@
     .vip-box {
         border: 1px solid rgba(241, 196, 15, 0.5);
         background: linear-gradient(135deg, rgba(241, 196, 15, 0.15), rgba(230, 126, 34, 0.15));
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.15s, border-color 0.15s;
+    }
+    .vip-box:hover {
+        transform: translateY(-2px);
+        border-color: #f1c40f;
     }
     .vip-box .value { color: #f1c40f; }
+
+    .vip-reward-dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 10px;
+        height: 10px;
+        background: #00cec9;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #00cec9;
+        animation: pulseRewardDot 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseRewardDot {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.7; }
+    }
 
     .hub-badge {
         position: absolute;

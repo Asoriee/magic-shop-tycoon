@@ -1,6 +1,15 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import { crystals, isVip, gameStore, formatNumber } from '../store';
+    import { 
+        crystals, 
+        isVip, 
+        vipDaysLeft, 
+        vipHoursLeft, 
+        isVipDailyRewardAvailable, 
+        claimVipDailyReward, 
+        gameStore, 
+        formatNumber 
+    } from '../store';
     import { purchaseItem, showRewardedAd, saveGame } from '../yandex-sdk';
 
     export let isOpen = false;
@@ -55,8 +64,8 @@
                 showMessage('Вы получили 350 Кристаллов (с бонусом)!');
             } else if (itemId === 'pack_crystals_1000') {
                 showMessage('Вы получили 1250 Кристаллов (с бонусом)!');
-            } else if (itemId === 'vip_status') {
-                showMessage('VIP-статус успешно активирован навсегда!');
+            } else if (itemId === 'vip_status' || itemId === 'vip_month') {
+                showMessage('VIP-статус успешно активирован на 30 дней! (+50 Кристаллов начислено)');
             }
         } catch (e: any) {
             const errMsg = e?.message || '';
@@ -68,6 +77,14 @@
             }
         } finally {
             isPurchasing = false;
+        }
+    }
+
+    function handleClaimVipDaily() {
+        const success = claimVipDailyReward();
+        if (success) {
+            saveGame();
+            showMessage('Ежедневный алтарь VIP: получено +10 Кристаллов!');
         }
     }
 
@@ -129,7 +146,7 @@
 
         <div class="treasury-container">
 
-            <!-- 1. VIP Flagship Card -->
+            <!-- 1. VIP Flagship Card (30 days pass) -->
             <div class="vip-card" class:vip-active={$isVip}>
                 <div class="vip-glow"></div>
                 <div class="vip-content">
@@ -165,15 +182,31 @@
 
                     <div class="vip-info">
                         <div class="vip-header-row">
-                            <h3 class="vip-title">Статус VIP-Алхимика</h3>
-                            <span class="vip-badge-tag">Навсегда</span>
+                            <h3 class="vip-title">VIP-Пропуск Алхимика</h3>
+                            {#if $isVip}
+                                <span class="vip-badge-tag vip-active-tag">Активен: {$vipDaysLeft} дн.</span>
+                            {:else}
+                                <span class="vip-badge-tag">30 дней</span>
+                            {/if}
                         </div>
                         <ul class="vip-perks">
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span>Без межстраничной рекламы (награды сразу)</span>
+                                <span><strong>+50 кристаллов сразу</strong> при покупке или продлении</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
+                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span><strong>+10 кристаллов каждый день</strong> в алтаре лавки</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
+                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>Без межстраничной рекламы (награды выдаются сразу)</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
@@ -185,19 +218,61 @@
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span>Золотая корона и статус почетного жителя лавки</span>
+                                <span><strong>+5 часов к офлайн-доходу</strong> (увеличенный предел накопления)</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
+                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span><strong>+1 право на ошибку</strong> при варке в котле алхимии</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
+                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>Золотая корона VIP и статус почётного жителя лавки</span>
                             </li>
                         </ul>
                     </div>
 
                     <div class="vip-action">
                         {#if $isVip}
-                            <div class="vip-activated-pill">
-                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
-                                    <circle cx="10" cy="10" r="8" fill="#27ae60"/>
-                                    <path d="M6 10 L9 13 L14 7" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <span>АКТИВИРОВАН</span>
+                            <div class="vip-active-actions">
+                                {#if $isVipDailyRewardAvailable}
+                                    <button 
+                                        type="button" 
+                                        class="claim-vip-daily-btn" 
+                                        on:click={handleClaimVipDaily}
+                                        title="Получить ежедневную награду VIP"
+                                    >
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" class="claim-gem-icon">
+                                            <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#ffffff" stroke="#74b9ff" stroke-width="1.5"/>
+                                        </svg>
+                                        <span>Забрать +10</span>
+                                    </button>
+                                {:else}
+                                    <div class="vip-daily-collected-pill">
+                                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                                            <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        <span>День взят</span>
+                                    </div>
+                                {/if}
+
+                                <button 
+                                    type="button" 
+                                    class="extend-vip-btn" 
+                                    on:click={() => handleBuy('vip_status')} 
+                                    disabled={isPurchasing}
+                                    title="Продлить VIP ещё на 30 дней"
+                                >
+                                    {#if isPurchasing}
+                                        <span class="btn-spinner-sm"></span>
+                                    {:else}
+                                        <span class="btn-yan-small">249 ЯН</span>
+                                        <span class="btn-cta-small">Продлить (+30 д.)</span>
+                                    {/if}
+                                </button>
                             </div>
                         {:else}
                             <button 
@@ -209,8 +284,8 @@
                                 {#if isPurchasing}
                                     <span class="btn-spinner"></span>
                                 {:else}
-                                    <span class="btn-yan">350 ЯН</span>
-                                    <span class="btn-cta">Активировать</span>
+                                    <span class="btn-yan">249 ЯН</span>
+                                    <span class="btn-cta">На 30 дней</span>
                                 {/if}
                             </button>
                         {/if}
@@ -550,6 +625,11 @@
         letter-spacing: 0.5px;
     }
 
+    .vip-badge-tag.vip-active-tag {
+        background: linear-gradient(90deg, #27ae60, #2ecc71);
+        box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+    }
+
     .vip-perks {
         list-style: none;
         padding: 0;
@@ -606,18 +686,106 @@
         text-transform: uppercase;
     }
 
-    .vip-activated-pill {
+    .vip-active-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+        min-width: 140px;
+    }
+
+    .claim-vip-daily-btn {
+        background: linear-gradient(135deg, #0984e3, #00cec9);
+        border: 1px solid #74b9ff;
+        border-radius: 10px;
+        padding: 9px 12px;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        background: rgba(39, 174, 96, 0.25);
-        border: 1px solid #2ecc71;
-        padding: 8px 12px;
-        border-radius: 10px;
+        box-shadow: 0 4px 14px rgba(9, 132, 227, 0.4);
+        animation: pulseVipBtn 2s infinite ease-in-out;
+        transition: transform 0.15s, filter 0.15s;
+    }
+
+    .claim-vip-daily-btn:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.15);
+    }
+
+    @keyframes pulseVipBtn {
+        0%, 100% {
+            box-shadow: 0 4px 14px rgba(9, 132, 227, 0.4);
+        }
+        50% {
+            box-shadow: 0 4px 20px rgba(0, 206, 201, 0.7);
+        }
+    }
+
+    .claim-gem-icon {
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 4px rgba(255,255,255,0.7));
+    }
+
+    .vip-daily-collected-pill {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: rgba(46, 204, 113, 0.15);
+        border: 1px solid rgba(46, 204, 113, 0.45);
+        padding: 7px 10px;
+        border-radius: 8px;
         color: #2ecc71;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 800;
-        letter-spacing: 0.5px;
+    }
+
+    .extend-vip-btn {
+        background: rgba(241, 196, 15, 0.12);
+        border: 1px solid rgba(241, 196, 15, 0.45);
+        border-radius: 8px;
+        padding: 6px 10px;
+        color: #f1c40f;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+
+    .extend-vip-btn:hover:not(:disabled) {
+        background: rgba(241, 196, 15, 0.22);
+        border-color: #f1c40f;
+        transform: translateY(-1px);
+    }
+
+    .btn-yan-small {
+        font-size: 0.88rem;
+        font-weight: 900;
+        line-height: 1.1;
+    }
+
+    .btn-cta-small {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        opacity: 0.9;
+    }
+
+    .btn-spinner-sm {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(241, 196, 15, 0.3);
+        border-top-color: #f1c40f;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
     }
 
     /* 2. Free Dragon Gift */
@@ -837,7 +1005,17 @@
             justify-content: center;
         }
         .vip-perks li {
-            justify-content: center;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        .vip-action {
+            width: 100%;
+        }
+        .vip-active-actions {
+            width: 100%;
+        }
+        .buy-vip-btn {
+            width: 100%;
         }
         .crystal-packs-grid {
             grid-template-columns: 1fr;

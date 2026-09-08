@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { gameStore } from '../store';
+    import { gameStore, isVip, formatNumber } from '../store';
     import { showRewardedAd } from '../yandex-sdk';
 
     export let isOpen = false;
@@ -20,8 +20,6 @@
             onClose();
         });
     }
-
-    import { formatNumber } from '../store';
 </script>
 
 {#if isOpen}
@@ -68,8 +66,17 @@
         <div class="actions">
             <button class="btn-double" on:click={handleDoubleClaim}>
                 <span class="btn-glow"></span>
-                Удвоить (Реклама)
-                <span class="video-icon">▶</span>
+                {#if $isVip}
+                    Удвоить (VIP)
+                    <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                        <path d="M3 14 L17 14 L19 6 L14 10 L10 3 L6 10 L1 6 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.2"/>
+                    </svg>
+                {:else}
+                    Удвоить (Реклама)
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="#ffffff">
+                        <polygon points="4,2 14,8 4,14"/>
+                    </svg>
+                {/if}
             </button>
             <button class="btn-claim" on:click={handleClaim}>
                 Просто забрать
@@ -260,10 +267,6 @@
         100% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0); }
     }
 
-    .video-icon {
-        font-size: 1.1rem;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-    }
 
     .btn-claim {
         background: transparent;

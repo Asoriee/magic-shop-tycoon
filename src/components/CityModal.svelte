@@ -55,73 +55,86 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-content" bind:this={modalEl} on:click|stopPropagation>
-        <button class="close-btn" on:click={close} aria-label="Закрыть">✕</button>
+        <!-- Master Header -->
+        <div class="master-header">
+            <button class="close-btn" on:click={close} aria-label="Закрыть">✕</button>
 
-        <!-- Master Tab Header -->
-        <div class="tab-header">
-            <div class="tab-title-row">
-                <div class="header-icon">
-                    <svg viewBox="0 0 40 40" width="36" height="36" fill="none">
+            <div class="header-main">
+                <div class="master-icon-wrap">
+                    <svg viewBox="0 0 56 56" width="48" height="48" class="master-svg-icon">
                         <defs>
-                            <radialGradient id="cityPortal" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stop-color="#ffeaa7"/>
-                                <stop offset="60%" stop-color="#f39c12"/>
-                                <stop offset="100%" stop-color="#8e44ad"/>
+                            <radialGradient id="cityAura" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#ffeaa7" stop-opacity="0.9"/>
+                                <stop offset="50%" stop-color="#f39c12" stop-opacity="0.6"/>
+                                <stop offset="100%" stop-color="#8e44ad" stop-opacity="0"/>
                             </radialGradient>
-                            <filter id="cityGoldGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <filter id="cityGlow" x="-20%" y="-20%" width="140%" height="140%">
                                 <feGaussianBlur stdDeviation="2" result="blur"/>
                                 <feMerge>
                                     <feMergeNode in="blur"/>
                                     <feMergeNode in="SourceGraphic"/>
                                 </feMerge>
                             </filter>
+                            <linearGradient id="cityWallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#341f54"/>
+                                <stop offset="100%" stop-color="#190a30"/>
+                            </linearGradient>
                         </defs>
-                        <!-- Fortress Wall & Gate -->
-                        <path d="M4 36 L36 36 L36 22 L33 22 L33 14 L29 14 L29 22 L25 22 L25 10 L20 6 L15 10 L15 22 L11 22 L11 14 L7 14 L7 22 L4 22 Z" fill="#24123d" stroke="#f1c40f" stroke-width="1.5" stroke-linejoin="round"/>
-                        <!-- Glowing Arch Portal -->
-                        <path d="M14 36 L14 24 Q20 18 26 24 L26 36 Z" fill="url(#cityPortal)" stroke="#ffeaa7" stroke-width="1.5" filter="url(#cityGoldGlow)"/>
-                        <ellipse cx="20" cy="28" rx="2.5" ry="4" fill="#ffffff" opacity="0.6"/>
-                        <!-- Top Banner / Spire -->
-                        <polygon points="20,2 23,6 17,6" fill="#f1c40f"/>
-                        <circle cx="20" cy="2" r="1.5" fill="#e74c3c"/>
+                        <!-- Radiant Aura Glow -->
+                        <circle cx="28" cy="28" r="26" fill="url(#cityAura)"/>
+                        <!-- Fortress Walls & Battlements -->
+                        <path d="M6 48 L50 48 L50 28 L46 28 L46 18 L41 18 L41 28 L35 28 L35 14 L28 8 L21 14 L21 28 L15 28 L15 18 L10 18 L10 28 L6 28 Z" 
+                              fill="url(#cityWallGrad)" stroke="#f1c40f" stroke-width="1.8" stroke-linejoin="round" filter="url(#cityGlow)"/>
+                        <!-- Golden Battlements Trim -->
+                        <path d="M10 18 L15 18 M21 14 L28 8 L35 14 M41 18 L46 18" stroke="#ffeaa7" stroke-width="2" stroke-linecap="round"/>
+                        <!-- Portal Arch (Glowing Golden Amber) -->
+                        <path d="M20 48 L20 30 Q28 22 36 30 L36 48 Z" fill="#f39c12" stroke="#ffeaa7" stroke-width="1.8"/>
+                        <path d="M23 48 L23 33 Q28 26 33 33 L33 48 Z" fill="#ffeaa7" opacity="0.85"/>
+                        <ellipse cx="28" cy="38" rx="3" ry="5" fill="#ffffff" opacity="0.9"/>
+                        <!-- Citadel Tower Flags & Spire Jewels -->
+                        <polygon points="28,2 32,7 24,7" fill="#f1c40f"/>
+                        <circle cx="28" cy="2" r="2" fill="#e74c3c" stroke="#fff" stroke-width="0.8"/>
+                        <circle cx="12.5" cy="18" r="1.5" fill="#3498db"/>
+                        <circle cx="43.5" cy="18" r="1.5" fill="#3498db"/>
                     </svg>
                 </div>
-                <h2 class="tab-title">Королевский Город</h2>
-            </div>
-            
-            <p class="header-sub">Торговая гильдия, контракты героев, сокровищницы и реликвии</p>
 
-            <!-- Multi-Currency Balance Row -->
-            <div class="balance-row">
-                <div class="balance-chip gold">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none">
-                            <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
-                            <circle cx="12" cy="12" r="5" fill="#f39c12"/>
-                        </svg>
-                    </span>
-                    <span>{formatNumber($gameStore.gold)}</span>
+                <div class="header-titles">
+                    <h2 class="title-text">КОРОЛЕВСКИЙ ГОРОД</h2>
+                    <span class="subtitle-text">Торговая гильдия, контракты героев, сокровищницы и реликвии</span>
                 </div>
-                <div class="balance-chip crystal">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none">
-                            <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
-                        </svg>
-                    </span>
-                    <span>{formatNumber($crystals)}</span>
+            </div>
+
+            <!-- Unified Multi-Currency Bar -->
+            <div class="currencies-panel">
+                <!-- Gold -->
+                <div class="curr-chip gold-chip" title="Золото">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="5" fill="#f39c12"/>
+                    </svg>
+                    <span class="curr-val">{formatNumber($gameStore.gold)}</span>
                 </div>
-                <div class="balance-chip stardust">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none">
-                            <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                        </svg>
-                    </span>
-                    <span>{formatNumber($gameStore.stardust)}</span>
+
+                <!-- Crystals -->
+                <div class="curr-chip crystal-chip" title="Кристаллы">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
+                    </svg>
+                    <span class="curr-val">{formatNumber($crystals)}</span>
+                </div>
+
+                <!-- Stardust -->
+                <div class="curr-chip stardust-chip" title="Звёздная Пыль">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
+                    </svg>
+                    <span class="curr-val">{formatNumber($gameStore.stardust)}</span>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Tabs Bar -->
+        <!-- Master Tabs Bar -->
         <div class="city-tabs-bar" role="tablist">
             <!-- Orders Tab -->
             <button 
@@ -132,18 +145,18 @@
                 class:active={activeTab === 'orders'} 
                 on:click={() => activeTab = 'orders'}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <path d="M6 4 C6 2.5 8 2.5 8 4 L8 18 C8 19.5 6 19.5 6 18 Z" fill="#d35400" stroke="#f39c12" stroke-width="1.2"/>
                         <path d="M8 3 L18 3 C19.5 3 20 4 20 5.5 L20 17 C20 18.5 19 19 17.5 19 L8 19 Z" fill="#f5cd79" stroke="#d35400" stroke-width="1.2"/>
                         <line x1="10" y1="7" x2="17" y2="7" stroke="#b7791f" stroke-width="1.2" stroke-linecap="round"/>
                         <line x1="10" y1="11" x2="17" y2="11" stroke="#b7791f" stroke-width="1.2" stroke-linecap="round"/>
                         <line x1="10" y1="15" x2="14" y2="15" stroke="#b7791f" stroke-width="1.2" stroke-linecap="round"/>
                     </svg>
-                    <span class="tab-label">Заказы</span>
                 </div>
+                <span class="tab-label">Заказы</span>
                 {#if $readyOrdersCount > 0}
-                    <span class="badge badge-ready">{$readyOrdersCount}</span>
+                    <span class="tab-badge badge-ready">{$readyOrdersCount}</span>
                 {/if}
             </button>
 
@@ -156,17 +169,17 @@
                 class:active={activeTab === 'quests'} 
                 on:click={() => activeTab = 'quests'}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <path d="M12 2 L20 5 L20 12 C20 17 12 22 12 22 C12 22 4 17 4 12 L4 5 Z" fill="#2d1b4e" stroke="#74b9ff" stroke-width="1.5"/>
                         <line x1="8" y1="8" x2="16" y2="16" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round"/>
                         <line x1="16" y1="8" x2="8" y2="16" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round"/>
                         <circle cx="12" cy="12" r="2.5" fill="#e74c3c"/>
                     </svg>
-                    <span class="tab-label">Квесты</span>
                 </div>
+                <span class="tab-label">Квесты</span>
                 {#if $unclaimedQuestsCount > 0}
-                    <span class="badge badge-claim">{$unclaimedQuestsCount}</span>
+                    <span class="tab-badge badge-claim">{$unclaimedQuestsCount}</span>
                 {/if}
             </button>
 
@@ -179,18 +192,18 @@
                 class:active={activeTab === 'chests'} 
                 on:click={() => activeTab = 'chests'}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <rect x="3" y="10" width="18" height="11" rx="2" fill="#8B4513" stroke="#f1c40f" stroke-width="1.2"/>
                         <path d="M3 10 C3 6 7 4 12 4 C17 4 21 6 21 10 Z" fill="#a0522d" stroke="#f1c40f" stroke-width="1.2"/>
                         <rect x="10" y="9" width="4" height="4" rx="1" fill="#f1c40f" stroke="#b7791f" stroke-width="1"/>
                     </svg>
-                    <span class="tab-label">Сундуки</span>
                 </div>
+                <span class="tab-label">Сундуки</span>
                 {#if $isFreeChestReady}
-                    <span class="badge badge-free">FREE</span>
+                    <span class="tab-badge badge-free">FREE</span>
                 {:else}
-                    <span class="badge badge-ad">AD</span>
+                    <span class="tab-badge badge-ad">AD</span>
                 {/if}
             </button>
 
@@ -203,15 +216,15 @@
                 class:active={activeTab === 'artifacts'} 
                 on:click={() => activeTab = 'artifacts'}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <path d="M12 2 L19 8 L16 19 L8 19 L5 8 Z" fill="#2d1b4e" stroke="#a29bfe" stroke-width="1.5"/>
                         <circle cx="12" cy="12" r="4" fill="#a29bfe" stroke="#ffeaa7" stroke-width="1"/>
                         <path d="M12 4 L14 7 L10 7 Z" fill="#ffeaa7"/>
                     </svg>
-                    <span class="tab-label">Древности</span>
                 </div>
-                <span class="badge badge-count">{$gameStore.artifacts.length}/8</span>
+                <span class="tab-label">Древности</span>
+                <span class="tab-badge badge-count">{$gameStore.artifacts.length}/8</span>
             </button>
         </div>
 
@@ -256,13 +269,13 @@
 
     .modal-content {
         background: linear-gradient(160deg, #1a0a2e 0%, #150826 40%, #0d041a 100%);
-        padding: 22px 20px 18px 20px;
+        padding: 0;
         border-radius: 24px;
-        border: 2px solid rgba(241, 196, 15, 0.35);
+        border: 2px solid rgba(241, 196, 15, 0.4);
         box-shadow: 
-            0 0 50px rgba(241, 196, 15, 0.2),
-            0 20px 60px rgba(0, 0, 0, 0.85),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            0 0 50px rgba(162, 155, 254, 0.25),
+            0 25px 60px rgba(0, 0, 0, 0.85),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
         width: 100%;
         max-width: 760px;
         height: 90vh;
@@ -275,180 +288,205 @@
         color: white;
     }
 
+    /* Master Header */
+    .master-header {
+        position: relative;
+        padding: 16px 20px 12px;
+        background: rgba(0, 0, 0, 0.35);
+        border-bottom: 1px solid rgba(241, 196, 15, 0.25);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
     .close-btn {
         position: absolute;
         top: 14px;
         right: 16px;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        width: 34px;
-        height: 34px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 1.4rem;
+        border-radius: 10px;
+        color: #b2bec3;
+        font-size: 1.1rem;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
         transition: all 0.2s;
-        line-height: 1;
         z-index: 10;
+        line-height: 1;
     }
 
     .close-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        transform: scale(1.06);
+        background: rgba(231, 76, 60, 0.2);
+        border-color: #e74c3c;
+        color: #ff7675;
     }
 
-    /* Standard Tab Header */
-    .tab-header {
+    .header-main {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-right: 40px;
+    }
+
+    .master-icon-wrap {
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 10px rgba(241, 196, 15, 0.35));
+    }
+
+    .header-titles {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 6px;
-        margin-bottom: 12px;
-        flex-shrink: 0;
+        gap: 2px;
     }
 
-    .tab-title-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .header-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.45));
-    }
-
-    .tab-title {
+    .title-text {
         margin: 0;
+        font-size: 1.35rem;
+        font-weight: 900;
+        letter-spacing: 1px;
         color: #f1c40f;
-        font-size: 1.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        text-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 2px 4px rgba(0,0,0,0.8);
+        text-shadow: 0 0 16px rgba(241, 196, 15, 0.4);
     }
 
-    .header-sub {
-        margin: 0;
-        font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.7);
-        max-width: 520px;
+    .subtitle-text {
+        font-size: 0.78rem;
+        color: #b2bec3;
+        line-height: 1.25;
     }
 
-    .balance-row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 4px;
-    }
-
-    .balance-chip {
+    /* Currency Panel */
+    .currencies-panel {
         display: flex;
         align-items: center;
-        gap: 5px;
-        padding: 4px 11px;
-        border-radius: 20px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        background: rgba(0, 0, 0, 0.45);
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .curr-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+        border-radius: 20px;
+        padding: 4px 10px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        transition: all 0.2s ease;
     }
 
-    .balance-chip.gold {
-        color: #ffeaa7;
-        border-color: rgba(241, 196, 15, 0.35);
+    .curr-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
     }
 
-    .balance-chip.crystal {
+    .gold-chip {
+        border-color: rgba(241, 196, 15, 0.3);
+        color: #f1c40f;
+    }
+
+    .crystal-chip {
+        border-color: rgba(116, 185, 255, 0.3);
         color: #74b9ff;
-        border-color: rgba(116, 185, 255, 0.35);
     }
 
-    .balance-chip.stardust {
+    .stardust-chip {
+        border-color: rgba(224, 86, 253, 0.3);
         color: #e056fd;
-        border-color: rgba(224, 86, 253, 0.35);
     }
 
-    /* Navigation Tabs Bar */
+    /* Master Tabs Bar */
     .city-tabs-bar {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.4);
-        padding: 6px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        margin-bottom: 12px;
+        background: rgba(8, 3, 16, 0.85);
+        border-bottom: 2px solid rgba(241, 196, 15, 0.25);
+        padding: 4px 6px 0;
+        gap: 4px;
         flex-shrink: 0;
+        z-index: 2;
     }
 
     .city-tab {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 11px;
-        padding: 8px 10px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.85rem;
-        font-weight: 700;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 8px 4px 6px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 8px 8px 0 0;
+        color: #b2bec3;
         cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .city-tab:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #dfe6e9;
+    }
+
+    .city-tab.active {
+        color: #f1c40f;
+        background: linear-gradient(180deg, rgba(241, 196, 15, 0.15) 0%, rgba(241, 196, 15, 0.02) 100%);
+        border-bottom-color: #f1c40f;
+    }
+
+    .tab-icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        transition: all 0.22s ease;
-        position: relative;
-    }
-
-    .tab-btn-content {
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        line-height: 1;
+        transition: transform 0.2s ease;
     }
 
     .tab-svg {
         flex-shrink: 0;
-        transition: transform 0.2s;
-    }
-
-    .city-tab:hover {
-        background: rgba(255, 255, 255, 0.09);
-        color: white;
-    }
-
-    .city-tab:hover .tab-svg {
-        transform: scale(1.1);
-    }
-
-    .city-tab.active {
-        background: linear-gradient(135deg, rgba(241, 196, 15, 0.22) 0%, rgba(211, 84, 0, 0.25) 100%);
-        border-color: rgba(241, 196, 15, 0.6);
-        color: #ffeaa7;
-        box-shadow: 0 0 14px rgba(241, 196, 15, 0.25);
+        transition: transform 0.2s ease, filter 0.2s ease;
     }
 
     .city-tab.active .tab-svg {
-        filter: drop-shadow(0 0 4px rgba(241, 196, 15, 0.6));
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.5));
+    }
+
+    .tab-label {
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.15;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* Badges */
-    .badge {
-        font-size: 0.7rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 10px;
-        line-height: 1;
+    .tab-badge {
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 0.58rem;
+        font-weight: 900;
+        padding: 1px 5px;
+        border-radius: 8px;
+        text-transform: uppercase;
         letter-spacing: 0.3px;
+        line-height: 1.2;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        white-space: nowrap;
     }
 
     .badge-ready {
@@ -496,6 +534,8 @@
         position: relative;
         display: flex;
         flex-direction: column;
+        padding: 16px 20px;
+        box-sizing: border-box;
     }
 
     .view-panel {
@@ -532,57 +572,85 @@
     /* Mobile Responsive */
     @media (max-width: 600px) {
         .modal-content {
-            padding: 16px 10px 12px 10px;
             max-height: 94vh;
             border-radius: 18px;
         }
 
-        .tab-title {
-            font-size: 1.35rem;
+        .master-header {
+            padding: 14px 14px 10px;
         }
 
-        .header-sub {
-            font-size: 0.76rem;
+        .title-text {
+            font-size: 1.15rem;
+        }
+
+        .currencies-panel {
+            gap: 6px;
+        }
+
+        .curr-chip {
+            padding: 3px 8px;
+            font-size: 0.75rem;
         }
 
         .city-tabs-bar {
-            gap: 4px;
-            padding: 4px;
-        }
-
-        .city-tab {
-            padding: 6px 4px;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .tab-btn-content {
-            flex-direction: column;
+            padding: 3px 4px 0;
             gap: 2px;
         }
 
-        .tab-label {
-            font-size: 0.72rem;
+        .city-tab {
+            padding: 6px 2px 5px;
+            gap: 2px;
         }
 
-        .badge {
-            font-size: 0.62rem;
-            padding: 1px 4px;
+        .tab-svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .tab-label {
+            font-size: 0.68rem;
+            line-height: 1.1;
+        }
+
+        .tab-badge {
+            top: 1px;
+            right: 2px;
+            font-size: 0.52rem;
+            padding: 1px 3px;
+        }
+
+        .city-content {
+            padding: 12px 10px;
         }
     }
 
     @media (max-width: 380px) {
-        .balance-row {
+        .currencies-panel {
             gap: 4px;
         }
 
-        .balance-chip {
-            padding: 3px 7px;
-            font-size: 0.75rem;
+        .curr-chip {
+            padding: 2px 6px;
+            font-size: 0.7rem;
         }
 
-        .tab-title {
-            font-size: 1.15rem;
+        .city-tabs-bar {
+            padding: 2px 2px 0;
+            gap: 1px;
+        }
+
+        .city-tab {
+            padding: 5px 1px 4px;
+        }
+
+        .tab-label {
+            font-size: 0.62rem;
+        }
+
+        .tab-badge {
+            font-size: 0.46rem;
+            padding: 1px 2px;
         }
     }
 </style>

@@ -75,71 +75,91 @@
 <div class="modal-overlay" class:embedded={isEmbedded} on:click={onClose} role="dialog" aria-modal="true" aria-label="Лавка Улучшений" tabindex="-1">
     <div class="modal-content" class:embedded-modal={isEmbedded} on:click|stopPropagation>
         {#if !isEmbedded}
-            <button class="close-btn" on:click={onClose} aria-label="Закрыть">&times;</button>
-        {/if}
+            <!-- Master Header -->
+            <div class="master-header">
+                <button class="close-btn" on:click={onClose} aria-label="Закрыть">✕</button>
 
-        <!-- Unified Header -->
-        <div class="tab-header">
-            <div class="tab-title-row">
-                <div class="header-icon">
-                    <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
-                        <defs>
-                            <radialGradient id="shopOrbGrad" cx="40%" cy="30%" r="65%">
-                                <stop offset="0%" stop-color="#ffeaa7"/>
-                                <stop offset="60%" stop-color="#f39c12"/>
-                                <stop offset="100%" stop-color="#d35400"/>
-                            </radialGradient>
-                            <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
-                                <feGaussianBlur stdDeviation="2" result="blur"/>
-                                <feMerge>
-                                    <feMergeNode in="blur"/>
-                                    <feMergeNode in="SourceGraphic"/>
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        <rect x="6" y="32" width="28" height="4" rx="2" fill="#636e72" stroke="#2d3436" stroke-width="1"/>
-                        <path d="M14 16 L14 20 Q10 24 10 29 Q10 32 16 32 Q22 32 22 29 Q22 24 18 20 L18 16 Z" fill="url(#shopOrbGrad)" stroke="#f1c40f" stroke-width="1.5" filter="url(#goldGlow)"/>
-                        <rect x="13" y="13" width="6" height="4" rx="1" fill="#dfe6e9"/>
-                        <ellipse cx="28" cy="24" rx="6" ry="2.5" fill="#f1c40f" stroke="#b7791f" stroke-width="1"/>
-                        <ellipse cx="28" cy="27" rx="6" ry="2.5" fill="#f1c40f" stroke="#b7791f" stroke-width="1"/>
-                        <ellipse cx="28" cy="30" rx="6" ry="2.5" fill="#f39c12" stroke="#b7791f" stroke-width="1"/>
-                        <path d="M20 4 L21 8 L25 9 L21 10 L20 14 L19 10 L15 9 L19 8 Z" fill="#ffeaa7"/>
-                    </svg>
+                <div class="header-main">
+                    <div class="master-icon-wrap">
+                        <svg viewBox="0 0 56 56" width="48" height="48" class="master-svg-icon">
+                            <defs>
+                                <radialGradient id="shopMasterAura" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ffeaa7" stop-opacity="0.9"/>
+                                    <stop offset="55%" stop-color="#f39c12" stop-opacity="0.5"/>
+                                    <stop offset="100%" stop-color="#d35400" stop-opacity="0"/>
+                                </radialGradient>
+                                <filter id="shopGoldGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="2" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                                <radialGradient id="alchSphere" cx="40%" cy="30%" r="70%">
+                                    <stop offset="0%" stop-color="#fff"/>
+                                    <stop offset="25%" stop-color="#ffeaa7"/>
+                                    <stop offset="65%" stop-color="#f39c12"/>
+                                    <stop offset="100%" stop-color="#b7791f"/>
+                                </radialGradient>
+                            </defs>
+                            <!-- Ambient Aura -->
+                            <circle cx="28" cy="28" r="26" fill="url(#shopMasterAura)"/>
+                            <!-- Magic Shop / Alchemy Pedestal Base -->
+                            <rect x="8" y="44" width="40" height="6" rx="3" fill="#2d3436" stroke="#f1c40f" stroke-width="1.5"/>
+                            <rect x="12" y="41" width="32" height="4" fill="#636e72"/>
+                            <!-- Alchemy Flask / Orb Structure -->
+                            <path d="M22 22 L22 28 Q14 34 14 41 L42 41 Q42 34 34 28 L34 22 Z" 
+                                  fill="url(#alchSphere)" stroke="#ffeaa7" stroke-width="1.8" filter="url(#shopGoldGlow)"/>
+                            <!-- Neck & Rim of Flask -->
+                            <rect x="20" y="16" width="16" height="7" rx="2" fill="#dcdde1" stroke="#f1c40f" stroke-width="1.2"/>
+                            <ellipse cx="28" cy="16" rx="8" ry="3" fill="#ffeaa7" stroke="#b7791f" stroke-width="1.2"/>
+                            <!-- Swirling Magic Liquid & Sparkles -->
+                            <ellipse cx="28" cy="36" rx="10" ry="4" fill="#ffffff" opacity="0.6"/>
+                            <!-- Gold Coins Stacks beside the Flask -->
+                            <ellipse cx="38" cy="35" rx="7" ry="3" fill="#f1c40f" stroke="#b7791f" stroke-width="1"/>
+                            <ellipse cx="38" cy="38" rx="7" ry="3" fill="#f39c12" stroke="#b7791f" stroke-width="1"/>
+                            <ellipse cx="38" cy="41" rx="7" ry="3" fill="#d35400" stroke="#b7791f" stroke-width="1"/>
+                            <!-- Sparkling Star above Flask -->
+                            <polygon points="28,4 30,10 36,12 30,14 28,20 26,14 20,12 26,10" fill="#ffeaa7" filter="url(#shopGoldGlow)"/>
+                            <circle cx="28" cy="12" r="2" fill="#fff"/>
+                        </svg>
+                    </div>
+
+                    <div class="header-titles">
+                        <h2 class="title-text">ЛАВКА УЛУЧШЕНИЙ</h2>
+                        <span class="subtitle-text">Инвестируйте золото в производство, силу клика и магическое мастерство</span>
+                    </div>
                 </div>
-                <h2 class="tab-title">Лавка Улучшений</h2>
-            </div>
-            
-            <p class="header-sub">Инвестируйте золото в производство, чары клика и магическое мастерство</p>
 
-            <div class="balance-row">
-                <div class="balance-chip gold">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <!-- Economic Stats Row -->
+                <div class="currencies-panel">
+                    <div class="curr-chip gold-chip" title="Золото">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
                             <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
                             <circle cx="12" cy="12" r="5" fill="#f39c12"/>
                         </svg>
-                    </span>
-                    <span>{formatNumber($gameStore.gold)} золота</span>
-                </div>
-                <div class="balance-chip click">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                        <span class="curr-val">{formatNumber($gameStore.gold)} золота</span>
+                    </div>
+
+                    <div class="curr-chip click-chip" title="Сила клика">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
                             <polygon points="13,2 4,14 11,14 10,22 20,9 13,9" fill="#ff7675" stroke="#d63031" stroke-width="1.5"/>
                         </svg>
-                    </span>
-                    <span>+{formatNumber($currentClickPower)}/клик</span>
-                </div>
-                <div class="balance-chip idle">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                        <span class="curr-val">+{formatNumber($currentClickPower)}/клик</span>
+                    </div>
+
+                    <div class="curr-chip idle-chip" title="Доход в секунду">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
                             <circle cx="12" cy="12" r="9" stroke="#74b9ff" stroke-width="2"/>
                             <polyline points="12,6 12,12 16,14" stroke="#74b9ff" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                    </span>
-                    <span>+{formatNumber($currentIdleIncome)}/сек</span>
+                        <span class="curr-val">+{formatNumber($currentIdleIncome)}/сек</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        {/if}
+
+        <div class="shop-body-scroll">
 
         <!-- Золотая Жила: Майлстоуны прокачки -->
         <div class="milestone-card">
@@ -315,6 +335,7 @@
                 </div>
             {/each}
         </div>
+        </div>
     </div>
 </div>
 {/if}
@@ -335,14 +356,14 @@
     }
 
     .modal-content {
-        background: linear-gradient(160deg, #1a0a2e 0%, #150826 40%, #0d041a 100%);
-        padding: 24px;
+        background: linear-gradient(160deg, #1d0b33 0%, #120624 55%, #0a0314 100%);
+        padding: 0;
         border-radius: 24px;
-        border: 2px solid rgba(162, 155, 254, 0.35);
+        border: 2px solid rgba(241, 196, 15, 0.4);
         box-shadow: 
             0 0 50px rgba(162, 155, 254, 0.25),
-            0 20px 60px rgba(0, 0, 0, 0.8),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            0 25px 60px rgba(0, 0, 0, 0.85),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
         width: 100%;
         max-width: 680px;
         max-height: 88vh;
@@ -352,6 +373,16 @@
         animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         box-sizing: border-box;
         overflow: hidden;
+    }
+
+    .shop-body-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 14px 20px 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
     }
 
     .embedded {
@@ -374,7 +405,7 @@
         height: 100%;
         background: transparent;
         animation: none;
-        padding: 12px;
+        padding: 0;
     }
 
     @keyframes popIn {
@@ -382,17 +413,29 @@
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
+    /* Master Header */
+    .master-header {
+        position: relative;
+        padding: 16px 20px 12px;
+        background: rgba(0, 0, 0, 0.35);
+        border-bottom: 1px solid rgba(241, 196, 15, 0.25);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
     .close-btn {
         position: absolute;
         top: 14px;
         right: 16px;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 1.6rem;
+        border-radius: 10px;
+        width: 32px;
+        height: 32px;
+        color: #b2bec3;
+        font-size: 1.1rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -403,94 +446,83 @@
     }
 
     .close-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        transform: scale(1.05);
+        background: rgba(231, 76, 60, 0.2);
+        border-color: #e74c3c;
+        color: #ff7675;
     }
 
-    /* Standard Tab Header */
-    .tab-header {
+    .header-main {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-right: 40px;
+    }
+
+    .master-icon-wrap {
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 10px rgba(241, 196, 15, 0.35));
+    }
+
+    .header-titles {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 6px;
-        margin-bottom: 12px;
-        flex-shrink: 0;
+        gap: 2px;
     }
 
-    .tab-title-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .header-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        filter: drop-shadow(0 0 8px rgba(241, 196, 15, 0.4));
-    }
-
-    .tab-title {
+    .title-text {
         margin: 0;
+        font-size: 1.35rem;
+        font-weight: 900;
+        letter-spacing: 1px;
         color: #f1c40f;
-        font-size: 1.8rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        text-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 2px 4px rgba(0,0,0,0.8);
+        text-shadow: 0 0 16px rgba(241, 196, 15, 0.4);
     }
 
-    .header-sub {
-        margin: 0;
-        font-size: 0.88rem;
-        color: rgba(255, 255, 255, 0.7);
-        max-width: 500px;
+    .subtitle-text {
+        font-size: 0.78rem;
+        color: #b2bec3;
+        line-height: 1.25;
     }
 
-    .balance-row {
+    /* Currency Panel */
+    .currencies-panel {
         display: flex;
+        align-items: center;
+        gap: 8px;
         flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 4px;
     }
 
-    .balance-chip {
+    .curr-chip {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
         background: rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+        border-radius: 20px;
+        padding: 4px 10px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        transition: all 0.2s ease;
     }
 
-    .balance-chip .icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .curr-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
     }
 
-    .balance-chip.gold {
-        color: #ffeaa7;
-        border-color: rgba(241, 196, 15, 0.35);
+    .gold-chip {
+        border-color: rgba(241, 196, 15, 0.3);
+        color: #f1c40f;
     }
 
-    .balance-chip.click {
+    .click-chip {
+        border-color: rgba(255, 118, 117, 0.3);
         color: #fab1a0;
-        border-color: rgba(231, 76, 60, 0.35);
     }
 
-    .balance-chip.idle {
+    .idle-chip {
+        border-color: rgba(116, 185, 255, 0.3);
         color: #81ecec;
-        border-color: rgba(9, 132, 227, 0.35);
     }
 
     /* Milestone Banner */
@@ -872,23 +904,29 @@
     /* Responsive Design for Mobile Devices */
     @media (max-width: 600px) {
         .modal-content {
-            padding: 16px 12px;
             max-height: 92vh;
             border-radius: 18px;
         }
 
-        .tab-title {
-            font-size: 1.4rem;
-            letter-spacing: 1px;
+        .master-header {
+            padding: 14px 14px 10px;
         }
 
-        .header-sub {
-            font-size: 0.78rem;
+        .title-text {
+            font-size: 1.15rem;
         }
 
-        .balance-chip {
-            padding: 4px 8px;
-            font-size: 0.76rem;
+        .currencies-panel {
+            gap: 6px;
+        }
+
+        .curr-chip {
+            padding: 3px 8px;
+            font-size: 0.74rem;
+        }
+
+        .shop-body-scroll {
+            padding: 10px 12px 14px;
         }
 
         .shop-controls-bar {

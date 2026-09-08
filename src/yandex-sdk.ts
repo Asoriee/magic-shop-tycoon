@@ -168,6 +168,7 @@ export async function loadGame(): Promise<void> {
             if (merged.artifacts === undefined) merged.artifacts = [];
             if (merged.lastQuestDate === undefined) merged.lastQuestDate = '';
             if (merged.quests === undefined) merged.quests = [];
+            if (merged.dailyBonusClaimed === undefined) merged.dailyBonusClaimed = false;
             if (merged.unlockedPets === undefined) merged.unlockedPets = [];
             if (merged.activeExpeditions === undefined) merged.activeExpeditions = [];
             if (merged.activeOrders === undefined) merged.activeOrders = [];

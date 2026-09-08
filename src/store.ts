@@ -16,14 +16,26 @@ export function formatNumber(num: number): string {
 // TYPES
 // ============================================================
 
-export type QuestType = 'clicks' | 'buy_upgrades' | 'watch_ads';
+export type QuestType = 
+    | 'clicks' 
+    | 'buy_upgrades' 
+    | 'watch_ads' 
+    | 'brew_potions' 
+    | 'complete_orders' 
+    | 'send_expeditions';
+
+export type QuestRewardType = 'gold' | 'stardust' | 'crystals';
+export type QuestDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Quest {
     id: string;
     type: QuestType;
+    difficulty: QuestDifficulty;
     target: number;
     current: number;
-    reward: number;
+    rewardType: QuestRewardType;
+    rewardAmount: number;
+    reward?: number; // legacy fallback
     isCompleted: boolean;
     isClaimed: boolean;
 }
@@ -138,6 +150,7 @@ export interface GameState {
     secretUpgrades: SecretUpgrade[];
     lastQuestDate: string;
     quests: Quest[];
+    dailyBonusClaimed?: boolean;
     unlockedPets: string[];
     activeExpeditions: ActiveExpedition[];
     activeOrders: CustomerOrder[];
@@ -895,6 +908,7 @@ const defaultState: GameState = {
     secretUpgrades: defaultSecretUpgrades,
     lastQuestDate: new Date().toDateString(),
     quests: [],
+    dailyBonusClaimed: false,
     unlockedPets: ['pet_rat'],
     activeExpeditions: [],
     activeOrders: [],
@@ -908,14 +922,82 @@ const defaultState: GameState = {
 export const crystals = writable<number>(0);
 export const isVip    = writable<boolean>(false);
 
+/**
+ * Dynamic gold reward scaling with current idle income.
+ * @param secondsFactor Number of seconds of passive income to reward (default 150s).
+ */
+export function calculateQuestGoldReward(secondsFactor = 150): number {
+    const idleIncome = get(currentIdleIncome);
+    return Math.max(3000, Math.round(idleIncome * secondsFactor));
+}
+
 function generateQuests(): Quest[] {
-    const clickTarget    = Math.floor(Math.random() * 3 + 2) * 100;
-    const upgradesTarget = Math.floor(Math.random() * 3 + 2);
-    const adsTarget      = Math.floor(Math.random() * 2 + 1);
+    const clickTarget    = (Math.floor(Math.random() * 2) + 2) * 100; // 200 or 300
+    const upgradesTarget = Math.floor(Math.random() * 3) + 3;       // 3 to 5
+    const brewTarget     = Math.floor(Math.random() * 2) + 2;       // 2 to 3
+    const ordersTarget   = Math.floor(Math.random() * 2) + 2;       // 2 to 3
+    const adsTarget      = 2;                                       // 2 visions
+    const now = Date.now();
+
     return [
-        { id: 'q1_' + Date.now(), type: 'clicks',        target: clickTarget,    current: 0, reward: Math.floor(clickTarget / 100), isCompleted: false, isClaimed: false },
-        { id: 'q2_' + Date.now(), type: 'buy_upgrades',  target: upgradesTarget, current: 0, reward: upgradesTarget * 2,            isCompleted: false, isClaimed: false },
-        { id: 'q3_' + Date.now(), type: 'watch_ads',     target: adsTarget,      current: 0, reward: adsTarget * 5,                isCompleted: false, isClaimed: false },
+        // 2 Easy Quests (Dynamic Gold based on income)
+        { 
+            id: 'q_click_' + now, 
+            type: 'clicks', 
+            difficulty: 'easy', 
+            target: clickTarget, 
+            current: 0, 
+            rewardType: 'gold', 
+            rewardAmount: 150, 
+            isCompleted: false, 
+            isClaimed: false 
+        },
+        { 
+            id: 'q_upg_' + now, 
+            type: 'buy_upgrades', 
+            difficulty: 'easy', 
+            target: upgradesTarget, 
+            current: 0, 
+            rewardType: 'gold', 
+            rewardAmount: 180, 
+            isCompleted: false, 
+            isClaimed: false 
+        },
+        // 2 Medium Quests (Stardust for Antiquities & Grimoire)
+        { 
+            id: 'q_brew_' + now, 
+            type: 'brew_potions', 
+            difficulty: 'medium', 
+            target: brewTarget, 
+            current: 0, 
+            rewardType: 'stardust', 
+            rewardAmount: Math.floor(Math.random() * 4) + 6, // 6-9 stardust
+            isCompleted: false, 
+            isClaimed: false 
+        },
+        { 
+            id: 'q_ord_' + now, 
+            type: 'complete_orders', 
+            difficulty: 'medium', 
+            target: ordersTarget, 
+            current: 0, 
+            rewardType: 'stardust', 
+            rewardAmount: Math.floor(Math.random() * 4) + 7, // 7-10 stardust
+            isCompleted: false, 
+            isClaimed: false 
+        },
+        // 1 Hard Quest (Crystals - premium reward)
+        { 
+            id: 'q_ads_' + now, 
+            type: 'watch_ads', 
+            difficulty: 'hard', 
+            target: adsTarget, 
+            current: 0, 
+            rewardType: 'crystals', 
+            rewardAmount: Math.floor(Math.random() * 4) + 8, // 8-11 crystals
+            isCompleted: false, 
+            isClaimed: false 
+        }
     ];
 }
 
@@ -931,8 +1013,9 @@ function createGameStore() {
         recordFreeChest:() => update(state => ({ ...state, lastFreeChestTime: Date.now() })),
         checkDailyQuests: () => update(state => {
             const today = new Date().toISOString().split('T')[0];
-            if (state.lastQuestDate !== today) {
-                return { ...state, lastQuestDate: today, quests: generateQuests() };
+            const hasLegacy = state.quests.some(q => !q.rewardType || !q.difficulty);
+            if (state.lastQuestDate !== today || hasLegacy || state.quests.length < 5) {
+                return { ...state, lastQuestDate: today, quests: generateQuests(), dailyBonusClaimed: false };
             }
             return state;
         }),
@@ -952,10 +1035,35 @@ function createGameStore() {
         claimQuest: (id: string) => update(state => {
             const quest = state.quests.find(q => q.id === id);
             if (quest && quest.isCompleted && !quest.isClaimed) {
+                let nextGold = state.gold;
+                let nextStardust = state.stardust;
+
+                if (quest.rewardType === 'gold') {
+                    nextGold += calculateQuestGoldReward(quest.rewardAmount || 150);
+                } else if (quest.rewardType === 'crystals') {
+                    crystals.update(c => c + (quest.rewardAmount || 10));
+                } else {
+                    nextStardust += (quest.rewardAmount || quest.reward || 8);
+                }
+
                 return {
                     ...state,
-                    stardust: state.stardust + quest.reward,
+                    gold: nextGold,
+                    stardust: nextStardust,
                     quests: state.quests.map(q => q.id === id ? { ...q, isClaimed: true } : q)
+                };
+            }
+            return state;
+        }),
+        claimDailyBonus: () => update(state => {
+            const allClaimed = state.quests.length >= 5 && state.quests.every(q => q.isClaimed);
+            if (allClaimed && !state.dailyBonusClaimed) {
+                crystals.update(c => c + 10);
+                openChest('magical');
+                return {
+                    ...state,
+                    stardust: state.stardust + 10,
+                    dailyBonusClaimed: true
                 };
             }
             return state;
@@ -1049,8 +1157,19 @@ function createGameStore() {
         }),
         startExpedition: (petId: string, durationHours: number) => update(state => {
             if (state.activeExpeditions.some(e => e.petId === petId)) return state;
+
+            const newQuests = state.quests.map(q => {
+                if (q.type === 'send_expeditions' && !q.isCompleted) {
+                    const nextCurrent = q.current + 1;
+                    const isCompleted = nextCurrent >= q.target;
+                    return { ...q, current: isCompleted ? q.target : nextCurrent, isCompleted };
+                }
+                return q;
+            });
+
             return {
                 ...state,
+                quests: newQuests,
                 activeExpeditions: [
                     ...state.activeExpeditions,
                     { petId, startTime: Date.now(), durationMs: durationHours * 3600 * 1000 }
@@ -1137,11 +1256,21 @@ function createGameStore() {
             const goldMultiplier = 1 + (ordersLevel * 0.20);
             const finalGold = Math.floor(order.rewardGold * goldMultiplier);
 
+            const newQuests = state.quests.map(q => {
+                if (q.type === 'complete_orders' && !q.isCompleted) {
+                    const nextCurrent = q.current + 1;
+                    const isCompleted = nextCurrent >= q.target;
+                    return { ...q, current: isCompleted ? q.target : nextCurrent, isCompleted };
+                }
+                return q;
+            });
+
             // Give rewards
             return {
                 ...state,
                 gold: state.gold + finalGold,
                 stardust: state.stardust + order.rewardStardust,
+                quests: newQuests,
                 activeOrders: state.activeOrders.filter(o => o.id !== orderId)
             };
         }),
@@ -1345,7 +1474,9 @@ export const readyOrdersCount = derived(
 );
 
 export const unclaimedQuestsCount = derived(gameStore, $gameStore => {
-    return $gameStore.quests.filter(q => q.isCompleted && !q.isClaimed).length;
+    const unclaimed = $gameStore.quests.filter(q => q.isCompleted && !q.isClaimed).length;
+    const bonusReady = $gameStore.quests.length >= 5 && $gameStore.quests.every(q => q.isClaimed) && !$gameStore.dailyBonusClaimed ? 1 : 0;
+    return unclaimed + bonusReady;
 });
 
 export const freeChestCooldownRemaining = derived(gameStore, $state => {
@@ -1610,6 +1741,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
         }));
         failedBrewAttempts.set(0);
         unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
+        gameStore.updateQuestProgress('brew_potions', 1);
         
         const pot = AVAILABLE_POTIONS.find(p => p.id === recipe.resultPotionId);
         return { 
@@ -1707,6 +1839,7 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
     // Ensure fully unlocked in book
     unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
     failedBrewAttempts.set(0);
+    gameStore.updateQuestProgress('brew_potions', 1);
 
     return { success: true };
 }

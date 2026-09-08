@@ -1,6 +1,14 @@
 <script lang="ts">
     import { onMount, onDestroy, tick } from 'svelte';
-    import { gameStore, formatNumber } from '../store';
+    import { 
+        gameStore, 
+        crystals, 
+        currentIdleIncome, 
+        calculateQuestGoldReward, 
+        formatNumber, 
+        type QuestType, 
+        type QuestDifficulty 
+    } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
 
@@ -82,11 +90,29 @@
         }
     }
 
-    const typeLabels: Record<string, string> = {
+    function claimDailyMastery() {
+        gameStore.claimDailyBonus();
+        saveGame();
+    }
+
+    const typeLabels: Record<QuestType, string> = {
         'clicks': 'Сварить зелий кликом',
-        'buy_upgrades': 'Приобрести улучшений',
+        'buy_upgrades': 'Купить улучшений в лавке',
+        'send_expeditions': 'Отправить фамильяров в поход',
+        'brew_potions': 'Сварить зелий в алхимии',
+        'complete_orders': 'Выполнить заказы жителей',
         'watch_ads': 'Посмотреть видения в шаре'
     };
+
+    const difficultyLabels: Record<QuestDifficulty, string> = {
+        'easy': 'Легкий',
+        'medium': 'Средний',
+        'hard': 'Сложный'
+    };
+
+    $: completedCount = $gameStore.quests.filter(q => q.isClaimed).length;
+    $: totalQuests = $gameStore.quests.length;
+    $: isAllClaimed = totalQuests >= 5 && completedCount >= totalQuests;
 </script>
 
 {#if isOpen}
@@ -108,14 +134,20 @@
                     </div>
                     <h2 class="tab-title">Ежедневные Контракты</h2>
                 </div>
-                <p class="header-sub">Выполняйте поручения Гильдии для получения Звездной Пыли</p>
+                <p class="header-sub">Выполняйте поручения Гильдии для получения Золота, Пыли и Алмазов</p>
 
                 <div class="balance-row">
                     <div class="balance-chip stardust">
-                        <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
                             <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
                         </svg>
-                        <span>{formatNumber($gameStore.stardust)} Звездной Пыли</span>
+                        <span>{formatNumber($gameStore.stardust)}</span>
+                    </div>
+                    <div class="balance-chip crystals">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
+                            <polygon points="12,2 21,9 12,22 3,9"/>
+                        </svg>
+                        <span>{formatNumber($crystals)}</span>
                     </div>
                 </div>
 
@@ -140,23 +172,96 @@
             </div>
         </div>
         
+        <!-- Daily Mastery Card -->
+        <div class="mastery-card" class:mastery-ready={isAllClaimed && !$gameStore.dailyBonusClaimed} class:mastery-claimed={$gameStore.dailyBonusClaimed}>
+            <div class="mastery-icon-box">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+                    <rect x="3" y="8" width="18" height="12" rx="3" fill="#f1c40f" opacity="0.2" stroke="#f1c40f" stroke-width="1.8"/>
+                    <path d="M7 8 V5 C7 3.5 17 3.5 17 5 V8" stroke="#f39c12" stroke-width="1.8"/>
+                    <polygon points="12,11 13.5,14 17,14.5 14.5,17 15,20.5 12,19 9,20.5 9.5,17 7,14.5 10.5,14" fill="#f1c40f"/>
+                </svg>
+            </div>
+            <div class="mastery-details">
+                <div class="mastery-top">
+                    <span class="mastery-name">Ларец Мастера Дня</span>
+                    <span class="mastery-counter">{completedCount} / {totalQuests}</span>
+                </div>
+                <div class="mastery-sub">
+                    {#if $gameStore.dailyBonusClaimed}
+                        Награда дня успешно получена! Новые контракты завтра.
+                    {:else}
+                        Выполните все {totalQuests} контрактов дня и получите супер-приз!
+                    {/if}
+                </div>
+            </div>
+            <div class="mastery-action">
+                {#if $gameStore.dailyBonusClaimed}
+                    <div class="claimed-pill">
+                        <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
+                            <polyline points="3,8 6,11 13,4" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Получено</span>
+                    </div>
+                {:else if isAllClaimed}
+                    <button class="mastery-claim-btn" on:click={claimDailyMastery}>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
+                            <polygon points="12,2 21,9 12,22 3,9"/>
+                        </svg>
+                        <span>Забрать (+10 крист.)</span>
+                    </button>
+                {:else}
+                    <div class="mastery-reward-tag">
+                        <span class="m-loot" title="Кристаллы">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff">
+                                <polygon points="12,2 21,9 12,22 3,9"/>
+                            </svg>
+                            +10
+                        </span>
+                        <span class="m-loot" title="Звёздная Пыль">
+                            <svg viewBox="0 0 16 16" width="11" height="11" fill="none">
+                                <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
+                            </svg>
+                            +10
+                        </span>
+                    </div>
+                {/if}
+            </div>
+        </div>
+        
         <div class="quests-list">
             {#each $gameStore.quests as quest (quest.id)}
                 <div class="quest-card" class:completed={quest.isCompleted && !quest.isClaimed} class:claimed={quest.isClaimed}>
                     <div class="quest-icon-col">
                         {#if quest.type === 'clicks'}
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <circle cx="12" cy="12" r="9" stroke="#74b9ff" stroke-width="1.5" stroke-dasharray="3 3"/>
                                 <polygon points="13,3 6,13 12,13 11,21 18,11 12,11" fill="#74b9ff"/>
                             </svg>
                         {:else if quest.type === 'buy_upgrades'}
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <rect x="5" y="8" width="14" height="13" rx="3" fill="#fdcb6e" stroke="#e67e22" stroke-width="1.5"/>
                                 <path d="M9 8 V5 C9 3.5 15 3.5 15 5 V8" stroke="#f39c12" stroke-width="1.5"/>
                                 <polygon points="12,11 13.5,14 17,14.5 14.5,17 15,20.5 12,19 9,20.5 9.5,17 7,14.5 10.5,14" fill="#d35400"/>
                             </svg>
+                        {:else if quest.type === 'brew_potions'}
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2ed573" stroke-width="1.8">
+                                <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
+                                <circle cx="12" cy="15" r="2" fill="#2ed573"/>
+                            </svg>
+                        {:else if quest.type === 'complete_orders'}
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#00cec9" stroke-width="1.8">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                        {:else if quest.type === 'send_expeditions'}
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#e17055" stroke-width="1.8">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                            </svg>
                         {:else}
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <circle cx="12" cy="12" r="9" fill="#a29bfe" opacity="0.3" stroke="#6c5ce7" stroke-width="1.5"/>
                                 <polygon points="10,8 16,12 10,16" fill="#f1c40f"/>
                             </svg>
@@ -165,13 +270,34 @@
 
                     <div class="quest-main-col">
                         <div class="quest-header-row">
-                            <span class="quest-title">{typeLabels[quest.type]}: {quest.target}</span>
-                            <div class="reward-pill">
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
-                                    <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
-                                </svg>
-                                <span>+{formatNumber(quest.reward)}</span>
+                            <div class="title-with-diff">
+                                <span class="diff-badge diff-{quest.difficulty || 'medium'}">{difficultyLabels[quest.difficulty || 'medium']}</span>
+                                <span class="quest-title">{typeLabels[quest.type] || 'Задание'}: {quest.target}</span>
                             </div>
+                            {#if quest.rewardType === 'gold'}
+                                {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 150)}
+                                <div class="reward-pill gold-pill" title="Золото от дохода лавки">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#f1c40f">
+                                        <circle cx="12" cy="12" r="9"/>
+                                        <text x="12" y="16" font-size="11" font-weight="900" fill="#1e1035" text-anchor="middle">G</text>
+                                    </svg>
+                                    <span>+{formatNumber(dynGold)}</span>
+                                </div>
+                            {:else if quest.rewardType === 'crystals'}
+                                <div class="reward-pill crystal-pill" title="Алмазы">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff">
+                                        <polygon points="12,2 21,9 12,22 3,9"/>
+                                    </svg>
+                                    <span>+{quest.rewardAmount || 10}</span>
+                                </div>
+                            {:else}
+                                <div class="reward-pill stardust-pill" title="Звёздная пыль">
+                                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
+                                        <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
+                                    </svg>
+                                    <span>+{quest.rewardAmount || quest.reward || 8}</span>
+                                </div>
+                            {/if}
                         </div>
                         
                         <div class="progress-wrap">
@@ -329,6 +455,157 @@
         color: #f1c40f;
     }
 
+    /* Daily Mastery Card */
+    .mastery-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(108, 92, 231, 0.08) 100%);
+        border: 1.5px solid rgba(241, 196, 15, 0.25);
+        border-radius: 16px;
+        padding: 12px 14px;
+        box-sizing: border-box;
+        transition: all 0.25s;
+    }
+
+    .mastery-card.mastery-ready {
+        border-color: rgba(241, 196, 15, 0.7);
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.2) 0%, rgba(108, 92, 231, 0.15) 100%);
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.25);
+    }
+
+    .mastery-card.mastery-claimed {
+        opacity: 0.65;
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .mastery-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(241, 196, 15, 0.1);
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mastery-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .mastery-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mastery-name {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #f1c40f;
+    }
+
+    .mastery-counter {
+        font-size: 0.76rem;
+        font-weight: 800;
+        color: #d2a8ff;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 1px 7px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mastery-sub {
+        font-size: 0.76rem;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.3;
+    }
+
+    .mastery-action {
+        flex-shrink: 0;
+    }
+
+    .mastery-claim-btn {
+        background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+        color: #1e1035;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 3px 0 #b7791f, 0 4px 14px rgba(241, 196, 15, 0.45);
+        transition: all 0.2s;
+    }
+
+    .mastery-claim-btn:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+    }
+
+    .mastery-claim-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 #b7791f;
+    }
+
+    .mastery-reward-tag {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 4px 8px;
+        border-radius: 10px;
+    }
+
+    .m-loot {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    /* Balance Chips */
+    .balance-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .balance-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .balance-chip.stardust {
+        background: rgba(162, 155, 254, 0.12);
+        border: 1px solid rgba(162, 155, 254, 0.35);
+        color: #d2a8ff;
+    }
+
+    .balance-chip.crystals {
+        background: rgba(116, 185, 255, 0.12);
+        border: 1px solid rgba(116, 185, 255, 0.35);
+        color: #74b9ff;
+    }
+
     /* Quests List */
     .quests-list {
         display: flex;
@@ -387,8 +664,45 @@
         gap: 8px;
     }
 
+    .title-with-diff {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .diff-badge {
+        font-size: 0.64rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+    }
+
+    .diff-easy {
+        background: rgba(46, 213, 115, 0.15);
+        color: #2ed573;
+        border: 1px solid rgba(46, 213, 115, 0.35);
+    }
+
+    .diff-medium {
+        background: rgba(162, 155, 254, 0.15);
+        color: #a29bfe;
+        border: 1px solid rgba(162, 155, 254, 0.35);
+    }
+
+    .diff-hard {
+        background: rgba(241, 196, 15, 0.15);
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        box-shadow: 0 0 8px rgba(241, 196, 15, 0.2);
+    }
+
     .quest-title {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         font-weight: 700;
         color: #ffffff;
         white-space: nowrap;
@@ -408,6 +722,24 @@
         font-weight: 700;
         color: #d2a8ff;
         flex-shrink: 0;
+    }
+
+    .reward-pill.gold-pill {
+        background: rgba(241, 196, 15, 0.12);
+        border-color: rgba(241, 196, 15, 0.35);
+        color: #f1c40f;
+    }
+
+    .reward-pill.crystal-pill {
+        background: rgba(116, 185, 255, 0.12);
+        border-color: rgba(116, 185, 255, 0.35);
+        color: #74b9ff;
+    }
+
+    .reward-pill.stardust-pill {
+        background: rgba(162, 155, 254, 0.12);
+        border-color: rgba(162, 155, 254, 0.35);
+        color: #d2a8ff;
     }
 
     .progress-wrap {

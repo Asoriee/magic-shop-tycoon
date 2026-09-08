@@ -45,25 +45,45 @@
         if (clockInterval) clearInterval(clockInterval);
     });
 
+    let questsAnimated = false;
+
     $: if (isOpen) {
         tick().then(() => {
             if (overlayEl && modalEl && !isEmbedded) {
                 gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.3 });
                 gsap.fromTo(modalEl, { y: 50, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.2)' });
             }
-            // Animate progress bars on open
-            if ($gameStore && Array.isArray($gameStore.quests)) {
+            // Анимируем полоски только один раз при открытии
+            if (!questsAnimated && $gameStore && Array.isArray($gameStore.quests)) {
+                questsAnimated = true;
                 $gameStore.quests.forEach(q => {
                     const bar = progressBars[q.id];
                     if (bar) {
                         const target = q.target > 0 ? q.target : 1;
                         const width = Math.min(100, ((q.current || 0) / target) * 100);
-                        gsap.fromTo(bar, { width: 0 }, { width: `${width}%`, duration: 0.5, ease: 'power2.out' });
+                        gsap.fromTo(bar, { width: '0%' }, { width: `${width}%`, duration: 0.6, ease: 'power2.out' });
                     }
                 });
             }
         });
     }
+
+    $: if (!isOpen) {
+        questsAnimated = false;
+    }
+
+    // Плавно обновляем полоски при изменении прогресса (без сброса в 0)
+    $: if (isOpen && questsAnimated && $gameStore && Array.isArray($gameStore.quests)) {
+        $gameStore.quests.forEach(q => {
+            const bar = progressBars[q.id];
+            if (bar) {
+                const target = q.target > 0 ? q.target : 1;
+                const width = Math.min(100, ((q.current || 0) / target) * 100);
+                gsap.to(bar, { width: `${width}%`, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
+            }
+        });
+    }
+
 
     function close() {
         if (overlayEl && modalEl && !isEmbedded) {
@@ -308,7 +328,6 @@
                                 <div 
                                     class="progress-bar-fill" 
                                     bind:this={progressBars[quest.id]}
-                                    style="width: {Math.min(100, ((quest.current || 0) / (quest.target || 1)) * 100)}%"
                                 ></div>
                             </div>
                             <span class="progress-label">

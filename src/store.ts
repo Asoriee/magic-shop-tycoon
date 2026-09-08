@@ -556,6 +556,75 @@ export const AVAILABLE_POTIONS: Potion[] = [
             <!-- Hourglass / Core Rune -->
             <path d="M16 22 L24 22 L20 28 L24 34 L16 34 L20 28 Z" fill="#ffeaa7" opacity="0.9"/>
         </svg>`
+    },
+    {
+        id: 'potion_swift',
+        name: 'Зелье Ветрокрыла',
+        description: '-1ч всем экспедициям и +40% к пассивному доходу на 5 мин',
+        effect: 'idle_multiplier',
+        value: 0.4,
+        durationMin: 5,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="swiftGrad" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#81ecec"/><stop offset="100%" stop-color="#00cec9"/></radialGradient>
+                <filter id="swiftGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <path d="M16 8 L16 22 Q6 30 6 38 Q6 46 20 46 Q34 46 34 38 Q34 30 24 22 L24 8Z" fill="url(#swiftGrad)" filter="url(#swiftGlow)"/>
+            <path d="M12 28 Q20 20 28 28" stroke="white" stroke-width="2" fill="none" opacity="0.8"/>
+            <path d="M15 33 Q20 27 25 33" stroke="white" stroke-width="1.5" fill="none" opacity="0.7"/>
+            <rect x="14" y="4" width="12" height="6" rx="3" fill="#00cec9"/>
+        </svg>`
+    },
+    {
+        id: 'potion_midas',
+        name: 'Эликсир Мидаса',
+        description: '+150% к золоту от заказов и кликов на 5 мин',
+        effect: 'gold_multiplier',
+        value: 1.5,
+        durationMin: 5,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="midasGrad" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff"/><stop offset="50%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#e67e22"/></radialGradient>
+                <filter id="midasGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="20" cy="28" r="15" fill="url(#midasGrad)" filter="url(#midasGlow)"/>
+            <circle cx="20" cy="28" r="8" fill="none" stroke="#d35400" stroke-width="2"/>
+            <rect x="16" y="6" width="8" height="8" rx="2" fill="#d35400"/>
+        </svg>`
+    },
+    {
+        id: 'potion_astral',
+        name: 'Астральный Нектар',
+        description: '+200% ко всему доходу на 5 мин и +5 звёздной пыли сразу!',
+        effect: 'gold_multiplier',
+        value: 2.0,
+        durationMin: 5,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="astralPotGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fd79a8"/><stop offset="50%" stop-color="#a29bfe"/><stop offset="100%" stop-color="#2d134d"/></radialGradient>
+                <filter id="astralPotGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <path d="M16 8 L16 20 L8 36 Q6 44 20 44 Q34 44 32 36 L24 20 L24 8 Z" fill="url(#astralPotGrad)" filter="url(#astralPotGlow)"/>
+            <polygon points="20,24 22,29 27,29 23,32 25,37 20,34 15,37 17,32 13,29 18,29" fill="#ffeaa7"/>
+            <rect x="14" y="4" width="12" height="5" rx="2" fill="#6c5ce7"/>
+        </svg>`
+    },
+    {
+        id: 'potion_insight',
+        name: 'Раствор Озарения',
+        description: '+120% к пассивному доходу и силе клика на 8 мин',
+        effect: 'gold_multiplier',
+        value: 1.2,
+        durationMin: 8,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="insightGrad" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#74b9ff"/><stop offset="100%" stop-color="#0984e3"/></radialGradient>
+                <filter id="insightGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <rect x="12" y="14" width="16" height="30" rx="6" fill="url(#insightGrad)" filter="url(#insightGlow)"/>
+            <circle cx="20" cy="28" r="4" fill="#ffffff"/>
+            <rect x="15" y="6" width="10" height="8" rx="2" fill="#0984e3"/>
+        </svg>`
     }
 ];
 
@@ -909,11 +978,12 @@ function generateQuests(): Quest[] {
     const upgradesTarget = Math.floor(Math.random() * 3) + 3;       // 3 to 5
     const brewTarget     = Math.floor(Math.random() * 2) + 2;       // 2 to 3
     const ordersTarget   = Math.floor(Math.random() * 2) + 2;       // 2 to 3
+    const expTarget      = 2;                                       // 2 expeditions
     const adsTarget      = 2;                                       // 2 visions
     const now = Date.now();
 
     return [
-        // 2 Easy Quests (Dynamic Gold based on income)
+        // Easy Quests (Dynamic Gold)
         { 
             id: 'q_click_' + now, 
             type: 'clicks', 
@@ -936,7 +1006,7 @@ function generateQuests(): Quest[] {
             isCompleted: false, 
             isClaimed: false 
         },
-        // 2 Medium Quests (Stardust for Antiquities & Grimoire)
+        // Medium Quests (Stardust for Antiquities & Grimoire)
         { 
             id: 'q_brew_' + now, 
             type: 'brew_potions', 
@@ -944,7 +1014,7 @@ function generateQuests(): Quest[] {
             target: brewTarget, 
             current: 0, 
             rewardType: 'stardust', 
-            rewardAmount: Math.floor(Math.random() * 4) + 6, // 6-9 stardust
+            rewardAmount: Math.floor(Math.random() * 3) + 6, // 6-8 stardust
             isCompleted: false, 
             isClaimed: false 
         },
@@ -955,11 +1025,22 @@ function generateQuests(): Quest[] {
             target: ordersTarget, 
             current: 0, 
             rewardType: 'stardust', 
-            rewardAmount: Math.floor(Math.random() * 4) + 7, // 7-10 stardust
+            rewardAmount: Math.floor(Math.random() * 3) + 6, // 6-8 stardust
             isCompleted: false, 
             isClaimed: false 
         },
-        // 1 Hard Quest (Crystals - premium reward)
+        { 
+            id: 'q_exp_' + now, 
+            type: 'send_expeditions', 
+            difficulty: 'medium', 
+            target: expTarget, 
+            current: 0, 
+            rewardType: 'stardust', 
+            rewardAmount: Math.floor(Math.random() * 3) + 7, // 7-9 stardust
+            isCompleted: false, 
+            isClaimed: false 
+        },
+        // Hard Quest (Crystals - tuned to 5-7 crystals)
         { 
             id: 'q_ads_' + now, 
             type: 'watch_ads', 
@@ -967,7 +1048,7 @@ function generateQuests(): Quest[] {
             target: adsTarget, 
             current: 0, 
             rewardType: 'crystals', 
-            rewardAmount: Math.floor(Math.random() * 4) + 8, // 8-11 crystals
+            rewardAmount: Math.floor(Math.random() * 3) + 5, // 5-7 crystals
             isCompleted: false, 
             isClaimed: false 
         }
@@ -1027,7 +1108,7 @@ function createGameStore() {
         checkDailyQuests: () => update(state => {
             const today = new Date().toISOString().split('T')[0];
             const hasLegacy = state.quests.some(q => !q.rewardType || !q.difficulty);
-            if (state.lastQuestDate !== today || hasLegacy || state.quests.length < 5) {
+            if (state.lastQuestDate !== today || hasLegacy || state.quests.length < 6) {
                 return { ...state, lastQuestDate: today, quests: generateQuests(), dailyBonusClaimed: false };
             }
             return state;
@@ -1308,7 +1389,7 @@ function createGameStore() {
                 return next;
             });
 
-            // Special effect for Chronos Elixir: accelerate all active expeditions by 2 hours!
+            // Special effect for Chronos Elixir / Swift Potion: accelerate all active expeditions!
             let updatedExpeditions = state.activeExpeditions;
             if (potionId === 'potion_chronos' && state.activeExpeditions.length > 0) {
                 const reductionMs = 2 * 3600 * 1000;
@@ -1316,7 +1397,15 @@ function createGameStore() {
                     ...e,
                     startTime: e.startTime - reductionMs
                 }));
+            } else if (potionId === 'potion_swift' && state.activeExpeditions.length > 0) {
+                const reductionMs = 1 * 3600 * 1000;
+                updatedExpeditions = state.activeExpeditions.map(e => ({
+                    ...e,
+                    startTime: e.startTime - reductionMs
+                }));
             }
+
+            const extraStardust = potionId === 'potion_astral' ? 5 : 0;
 
             const newBuff: ActiveBuff = {
                 potionId,
@@ -1327,6 +1416,7 @@ function createGameStore() {
 
             return {
                 ...state,
+                stardust: state.stardust + extraStardust,
                 activeBuffs: [...state.activeBuffs, newBuff],
                 activeExpeditions: updatedExpeditions
             };
@@ -1720,6 +1810,30 @@ export const RECIPES: AlchemyRecipe[] = [
         resultPotionId: 'potion_chronos',
         rarity: 'legendary',
     },
+    {
+        id: 'recipe_swift',
+        ingredients: ['fairy_breath', 'moonpetal', 'toadstone'],
+        resultPotionId: 'potion_swift',
+        rarity: 'rare',
+    },
+    {
+        id: 'recipe_midas',
+        ingredients: ['fire_salamander', 'stardew', 'troll_blood'],
+        resultPotionId: 'potion_midas',
+        rarity: 'epic',
+    },
+    {
+        id: 'recipe_astral',
+        ingredients: ['void_essence', 'stardew', 'time_crystal'],
+        resultPotionId: 'potion_astral',
+        rarity: 'legendary',
+    },
+    {
+        id: 'recipe_insight',
+        ingredients: ['dragon_scale', 'philosophers_tear', 'fairy_breath'],
+        resultPotionId: 'potion_insight',
+        rarity: 'legendary',
+    },
 ];
 
 /** Crystal costs to reveal each successive hint (0→1, 1→2, 2→3) */
@@ -1788,6 +1902,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
 
     // Wrong recipe - calculate Alchemical Resonance
     let maxMatches = 0;
+    let closestRecipe: AlchemyRecipe | null = null;
     for (const r of RECIPES) {
         let matches = 0;
         const targetIngs = [...r.ingredients];
@@ -1800,7 +1915,20 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
         }
         if (matches > maxMatches) {
             maxMatches = matches;
+            closestRecipe = r;
         }
+    }
+
+    // Alchemical Discovery: if player discovered 2 out of 3 ingredients of an unknown recipe,
+    // automatically register the first hint in the Grimoire!
+    if (maxMatches === 2 && closestRecipe) {
+        unlockedRecipes.update(r => {
+            const currentLevel = r[closestRecipe!.id] || 0;
+            if (currentLevel < 1) {
+                return { ...r, [closestRecipe!.id]: 1 };
+            }
+            return r;
+        });
     }
 
     const current = get(failedBrewAttempts);
@@ -1821,8 +1949,8 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
             return nextC;
         });
         failedBrewAttempts.set(0);
-        gameStore.update(s => ({ ...s, stardust: s.stardust + 2 }));
-        return { status: 'burn', stardustAwarded: 2 };
+        gameStore.update(s => ({ ...s, stardust: s.stardust + 3 }));
+        return { status: 'burn', stardustAwarded: 3 };
     }
 
     failedBrewAttempts.set(next);

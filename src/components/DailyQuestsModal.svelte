@@ -135,7 +135,7 @@
 
     $: completedCount = $gameStore.quests.filter(q => q.isClaimed).length;
     $: totalQuests = $gameStore.quests.length;
-    $: isAllClaimed = totalQuests >= 5 && completedCount >= totalQuests;
+    $: isAllClaimed = totalQuests >= 6 && completedCount >= totalQuests;
 </script>
 
 {#if isOpen}

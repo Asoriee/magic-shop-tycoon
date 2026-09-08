@@ -141,8 +141,33 @@
         on:keydown={(e) => e.key === 'Enter' && handleCauldronClick(new PointerEvent('pointerdown'))}
     >
         <svg width="220" height="220" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Alchemical Pedestal / Transmutation Circle (Pure SVG) -->
+            <g class="alchemical-pedestal" opacity="{0.45 + (heat / 160)}">
+                <!-- Outer Ring with runic ticks -->
+                <ellipse cx="100" cy="180" rx="90" ry="17" fill="none" 
+                    stroke={heat > 85 ? "#ff7675" : heat > 35 ? "#f1c40f" : "#a29bfe"} 
+                    stroke-width="1.6" stroke-dasharray="8 4" opacity="0.85"/>
+                
+                <!-- Inner Ring -->
+                <ellipse cx="100" cy="180" rx="76" ry="14.5" fill="none" 
+                    stroke={heat > 85 ? "#f39c12" : "#74b9ff"} 
+                    stroke-width="1" opacity="0.6"/>
+
+                <!-- Transmutation Geometry / Rune Axes -->
+                <line x1="14" y1="180" x2="186" y2="180" 
+                    stroke={heat > 85 ? "#ff7675" : "#f1c40f"} stroke-width="0.8" opacity="0.4"/>
+                <line x1="100" y1="163" x2="100" y2="197" 
+                    stroke={heat > 85 ? "#ff7675" : "#f1c40f"} stroke-width="0.8" opacity="0.4"/>
+                
+                <!-- Rune nodes on the rim -->
+                <circle cx="24" cy="180" r="2.2" fill={heat > 85 ? "#ff7675" : "#f1c40f"} opacity="0.8"/>
+                <circle cx="176" cy="180" r="2.2" fill={heat > 85 ? "#ff7675" : "#f1c40f"} opacity="0.8"/>
+                <circle cx="100" cy="165.5" r="1.8" fill={heat > 85 ? "#ff7675" : "#f1c40f"} opacity="0.8"/>
+                <circle cx="100" cy="194.5" r="1.8" fill={heat > 85 ? "#ff7675" : "#f1c40f"} opacity="0.8"/>
+            </g>
+
             <!-- Shadow -->
-            <ellipse cx="100" cy="180" rx="70" ry="15" fill="rgba(0,0,0,0.3)" />
+            <ellipse cx="100" cy="180" rx="70" ry="15" fill="rgba(0,0,0,0.35)" />
 
             <!-- Fiery heat glow under cauldron when heated -->
             {#if heat > 5}
@@ -312,6 +337,17 @@
         height: 100%;
         border-radius: 4px;
         transition: width 0.1s ease-out;
+    }
+
+    .alchemical-pedestal {
+        transition: opacity 0.3s ease;
+        filter: drop-shadow(0 0 5px rgba(162, 155, 254, 0.35));
+        animation: pulsePedestal 3.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulsePedestal {
+        0% { filter: drop-shadow(0 0 4px rgba(162, 155, 254, 0.3)); }
+        100% { filter: drop-shadow(0 0 9px rgba(241, 196, 15, 0.55)); }
     }
 
     .cauldron-container {

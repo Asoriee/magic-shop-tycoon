@@ -119,9 +119,11 @@
     async function handleQuickBrew(recipeId: string) {
         const res = quickBrewRecipe(recipeId);
         if (res.success) {
-            gsap.timeline()
-                .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
-                .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.4, ease: 'elastic.out(1, 0.5)' });
+            if (cauldronEl) {
+                gsap.timeline()
+                    .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
+                    .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.4, ease: 'elastic.out(1, 0.5)' });
+            }
             showToast('Зелье мгновенно сварено по рецепту!', 'success');
             await saveGame();
         } else {

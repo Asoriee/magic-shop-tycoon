@@ -77,7 +77,11 @@
 
             <div class="balance-row">
                 <div class="balance-chip crystal">
-                    <span class="icon">★</span>
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
+                            <polygon points="12,2 21,9 12,22 3,9"/>
+                        </svg>
+                    </span>
                     <span>{formatNumber($crystals)} кристаллов</span>
                 </div>
                 <div class="balance-chip gold">
@@ -174,8 +178,8 @@
                         <circle cx="18" cy="45" r="4" fill="#3498db"/>
                         <circle cx="62" cy="45" r="4" fill="#2ecc71"/>
                         <!-- Stars around crown -->
-                        <text x="5" y="22" font-size="12" fill="#f1c40f" opacity="0.8">✦</text>
-                        <text x="60" y="22" font-size="12" fill="#f1c40f" opacity="0.8">✦</text>
+                        <polygon points="8,17 9,21 13,22 9,23 8,27 7,23 3,22 7,21" fill="#f1c40f" opacity="0.8"/>
+                        <polygon points="63,17 64,21 68,22 64,23 63,27 62,23 58,22 62,21" fill="#f1c40f" opacity="0.8"/>
                     </svg>
                 </div>
                 <div class="item-info">

@@ -52,13 +52,16 @@
                 gsap.fromTo(modalEl, { y: 50, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.2)' });
             }
             // Animate progress bars on open
-            $gameStore.quests.forEach(q => {
-                const bar = progressBars[q.id];
-                if (bar) {
-                    const width = Math.min(100, (q.current / q.target) * 100);
-                    gsap.fromTo(bar, { width: 0 }, { width: `${width}%`, duration: 0.5, ease: 'power2.out' });
-                }
-            });
+            if ($gameStore && Array.isArray($gameStore.quests)) {
+                $gameStore.quests.forEach(q => {
+                    const bar = progressBars[q.id];
+                    if (bar) {
+                        const target = q.target > 0 ? q.target : 1;
+                        const width = Math.min(100, ((q.current || 0) / target) * 100);
+                        gsap.fromTo(bar, { width: 0 }, { width: `${width}%`, duration: 0.5, ease: 'power2.out' });
+                    }
+                });
+            }
         });
     }
 
@@ -141,13 +144,13 @@
                         <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
                             <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
                         </svg>
-                        <span>{formatNumber($gameStore.stardust)}</span>
+                        <span>{formatNumber($gameStore?.stardust ?? 0)}</span>
                     </div>
                     <div class="balance-chip crystals">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
                             <polygon points="12,2 21,9 12,22 3,9"/>
                         </svg>
-                        <span>{formatNumber($crystals)}</span>
+                        <span>{formatNumber($crystals ?? 0)}</span>
                     </div>
                 </div>
 
@@ -281,7 +284,7 @@
                                         <circle cx="12" cy="12" r="9"/>
                                         <text x="12" y="16" font-size="11" font-weight="900" fill="#1e1035" text-anchor="middle">G</text>
                                     </svg>
-                                    <span>+{formatNumber(dynGold)}</span>
+                                    <span>+{formatNumber(dynGold || 3000)}</span>
                                 </div>
                             {:else if quest.rewardType === 'crystals'}
                                 <div class="reward-pill crystal-pill" title="Алмазы">
@@ -305,11 +308,11 @@
                                 <div 
                                     class="progress-bar-fill" 
                                     bind:this={progressBars[quest.id]}
-                                    style="width: {Math.min(100, (quest.current / quest.target) * 100)}%"
+                                    style="width: {Math.min(100, ((quest.current || 0) / (quest.target || 1)) * 100)}%"
                                 ></div>
                             </div>
                             <span class="progress-label">
-                                {Math.min(quest.current, quest.target)} / {quest.target}
+                                {Math.min(quest.current || 0, quest.target || 0)} / {quest.target || 0}
                             </span>
                         </div>
                     </div>

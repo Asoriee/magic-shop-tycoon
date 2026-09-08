@@ -11,30 +11,36 @@
     let effects: { id: number, type: 'coin' | 'heart', x: number, y: number }[] = [];
     let effectIdCounter = 0;
     
-    let idleLoop: number;
+    let idleLoop: any;
+    let delayedBlink: gsap.core.Tween | null = null;
 
     onMount(() => {
         // 1. Hovering animation (entire pet)
-        gsap.to(petNode, {
-            y: -15,
-            duration: 2,
-            yoyo: true,
-            repeat: -1,
-            ease: "sine.inOut"
-        });
+        if (petNode) {
+            gsap.to(petNode, {
+                y: -15,
+                duration: 2,
+                yoyo: true,
+                repeat: -1,
+                ease: "sine.inOut"
+            });
+        }
 
         // 2. Breathing animation (body scales slightly)
-        gsap.to(bodyGroup, {
-            scaleY: 1.05,
-            duration: 1.5,
-            yoyo: true,
-            repeat: -1,
-            transformOrigin: "center bottom",
-            ease: "sine.inOut"
-        });
+        if (bodyGroup) {
+            gsap.to(bodyGroup, {
+                scaleY: 1.05,
+                duration: 1.5,
+                yoyo: true,
+                repeat: -1,
+                transformOrigin: "center bottom",
+                ease: "sine.inOut"
+            });
+        }
 
         // 3. Blinking animation (random interval)
         const blink = () => {
+            if (!eyesGroup) return;
             gsap.to(eyesGroup, {
                 scaleY: 0.1,
                 duration: 0.1,
@@ -42,11 +48,13 @@
                 repeat: 1,
                 transformOrigin: "center center",
                 onComplete: () => {
-                    gsap.delayedCall(Math.random() * 4 + 3, blink); // next blink in 3-7s
+                    if (eyesGroup) {
+                        delayedBlink = gsap.delayedCall(Math.random() * 4 + 3, blink);
+                    }
                 }
             });
         };
-        gsap.delayedCall(2, blink);
+        delayedBlink = gsap.delayedCall(2, blink);
 
         // Passive Income Tick listener (checks every second)
         idleLoop = setInterval(() => {
@@ -58,10 +66,13 @@
 
     onDestroy(() => {
         if (idleLoop) clearInterval(idleLoop);
-        gsap.killTweensOf([petNode, bodyGroup, wingsGroup, eyesGroup]);
+        if (delayedBlink) delayedBlink.kill();
+        const targets = [petNode, bodyGroup, wingsGroup, eyesGroup].filter(Boolean);
+        if (targets.length) gsap.killTweensOf(targets);
     });
 
     function flapWingsAndDropCoin() {
+        if (!wingsGroup) return;
         // Quick wing flap to visualize income
         gsap.to(wingsGroup, {
             rotation: 15,
@@ -76,6 +87,7 @@
     }
 
     function handlePetClick() {
+        if (!petNode) return;
         // Easter egg flip
         gsap.to(petNode, {
             rotation: "+=360",
@@ -95,6 +107,7 @@
     }
 
     function animateEffect(node: HTMLElement, { type, id }: { type: 'coin' | 'heart', id: number }) {
+        if (!node) return;
         if (type === 'coin') {
             // Coin drops down and right into the cauldron
             gsap.to(node, {
@@ -123,7 +136,7 @@
 
         return {
             destroy() {
-                gsap.killTweensOf(node);
+                if (node) gsap.killTweensOf(node);
             }
         };
     }

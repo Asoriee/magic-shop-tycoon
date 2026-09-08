@@ -57,14 +57,16 @@
         
         // Bounce animation - juicy click micro-scaling (stronger on crit or overheat)
         const bounceScale = isCrit ? 0.82 : isOverheated ? 0.86 : 0.92;
-        gsap.to(cauldronGroup, { 
-            scale: bounceScale, 
-            yoyo: true, 
-            repeat: 1, 
-            duration: isCrit ? 0.07 : 0.05, 
-            ease: "power1.inOut",
-            transformOrigin: "50% 100%"
-        });
+        if (cauldronGroup) {
+            gsap.to(cauldronGroup, { 
+                scale: bounceScale, 
+                yoyo: true, 
+                repeat: 1, 
+                duration: isCrit ? 0.07 : 0.05, 
+                ease: "power1.inOut",
+                transformOrigin: "50% 100%"
+            });
+        }
 
         // Add floating text
         const id = effectIdCounter++;
@@ -84,20 +86,22 @@
 
     // A Svelte action to animate and remove the effect
     function animateClick(node: HTMLElement, id: number) {
-        gsap.to(node, {
-            y: -100,
-            x: `+=${(Math.random() - 0.5) * 50}`,
-            opacity: 0,
-            duration: 1.2,
-            ease: "power2.out",
-            onComplete: () => {
-                clickEffects = clickEffects.filter(effect => effect.id !== id);
-            }
-        });
+        if (node) {
+            gsap.to(node, {
+                y: -100,
+                x: `+=${(Math.random() - 0.5) * 50}`,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power2.out",
+                onComplete: () => {
+                    clickEffects = clickEffects.filter(effect => effect.id !== id);
+                }
+            });
+        }
         
         return {
             destroy() {
-                gsap.killTweensOf(node);
+                if (node) gsap.killTweensOf(node);
             }
         };
     }

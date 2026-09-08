@@ -155,31 +155,39 @@
 
         // Step 1: shake chest
         await new Promise<void>(resolve => {
-            gsap.to(chestEl, {
-                keyframes: [
-                    { rotation: -12, duration: 0.08 },
-                    { rotation:  12, duration: 0.08 },
-                    { rotation: -10, duration: 0.08 },
-                    { rotation:  10, duration: 0.08 },
-                    { rotation:  -8, duration: 0.07 },
-                    { rotation:   8, duration: 0.07 },
-                    { rotation:   0, duration: 0.06 },
-                ],
-                scale: 1.12,
-                transformOrigin: 'center bottom',
-                onComplete: resolve
-            });
+            if (chestEl) {
+                gsap.to(chestEl, {
+                    keyframes: [
+                        { rotation: -12, duration: 0.08 },
+                        { rotation:  12, duration: 0.08 },
+                        { rotation: -10, duration: 0.08 },
+                        { rotation:  10, duration: 0.08 },
+                        { rotation:  -8, duration: 0.07 },
+                        { rotation:   8, duration: 0.07 },
+                        { rotation:   0, duration: 0.06 },
+                    ],
+                    scale: 1.12,
+                    transformOrigin: 'center bottom',
+                    onComplete: resolve
+                });
+            } else {
+                resolve();
+            }
         });
 
         // Step 2: burst
         await new Promise<void>(resolve => {
-            gsap.to(chestEl, {
-                scale: 2.2,
-                opacity: 0,
-                duration: 0.35,
-                ease: 'power3.out',
-                onComplete: resolve
-            });
+            if (chestEl) {
+                gsap.to(chestEl, {
+                    scale: 2.2,
+                    opacity: 0,
+                    duration: 0.35,
+                    ease: 'power3.out',
+                    onComplete: resolve
+                });
+            } else {
+                resolve();
+            }
         });
 
         // Step 3: loot cards
@@ -188,10 +196,14 @@
         await tick();
 
         await new Promise<void>(resolve => {
-            gsap.fromTo(cardEls,
-                { opacity: 0, scale: 0.5, y: 30 },
-                { opacity: 1, scale: 1, y: 0, stagger: 0.08, duration: 0.4, ease: 'back.out(1.5)', onComplete: resolve }
-            );
+            if (cardEls && cardEls.length > 0) {
+                gsap.fromTo(cardEls,
+                    { opacity: 0, scale: 0.5, y: 30 },
+                    { opacity: 1, scale: 1, y: 0, stagger: 0.08, duration: 0.4, ease: 'back.out(1.5)', onComplete: resolve }
+                );
+            } else {
+                resolve();
+            }
         });
     }
 

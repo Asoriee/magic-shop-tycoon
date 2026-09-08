@@ -58,25 +58,29 @@
 
         if (earned === 0) {
             // Not enough crystals — shake
-            gsap.to(btn, {
-                keyframes: [
-                    { x: -8, duration: 0.06 },
-                    { x:  8, duration: 0.06 },
-                    { x: -6, duration: 0.06 },
-                    { x:  6, duration: 0.06 },
-                    { x:  0, duration: 0.06 },
-                ],
-                ease: 'none'
-            });
+            if (btn) {
+                gsap.to(btn, {
+                    keyframes: [
+                        { x: -8, duration: 0.06 },
+                        { x:  8, duration: 0.06 },
+                        { x: -6, duration: 0.06 },
+                        { x:  6, duration: 0.06 },
+                        { x:  0, duration: 0.06 },
+                    ],
+                    ease: 'none'
+                });
+            }
         } else {
             // Success — flash green + show earned amount
-            gsap.fromTo(btn,
-                { backgroundColor: skip.color },
-                { backgroundColor: '#2ecc71', yoyo: true, repeat: 1, duration: 0.25, ease: 'power1.inOut',
-                  onComplete: () => gsap.set(btn, { clearProps: 'backgroundColor' }) }
-            );
+            if (btn) {
+                gsap.fromTo(btn,
+                    { backgroundColor: skip.color },
+                    { backgroundColor: '#2ecc71', yoyo: true, repeat: 1, duration: 0.25, ease: 'power1.inOut',
+                      onComplete: () => { if (btn) gsap.set(btn, { clearProps: 'backgroundColor' }); } }
+                );
+            }
 
-            const formatted = `+${formatNumber(earned)} 💰`;
+            const formatted = `+${formatNumber(earned)} G`;
 
             resultMessages[skip.id] = { text: formatted, visible: true };
 
@@ -134,11 +138,22 @@
             <!-- Crystal Balance -->
             <div class="balance-row">
                 <div class="balance-chip crystal">
-                    <span class="icon">★</span>
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
+                            <polygon points="12,2 21,9 12,22 3,9"/>
+                        </svg>
+                    </span>
                     <span>{formatNumber($crystals)} кристаллов</span>
                 </div>
                 {#if $currentIdleIncome === 0}
-                    <span class="no-idle-hint">⚠️ Нужен пассивный доход</span>
+                    <span class="no-idle-hint">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f1c40f" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        Нужен пассивный доход
+                    </span>
                 {/if}
             </div>
 
@@ -203,12 +218,23 @@
                     <div class="card-content">
                         <h3>{skip.label}</h3>
                         <p class="card-desc">{skip.desc}</p>
-                        <p class="card-reward">≈ <strong>{estimateGold(skip.hours)}</strong> 💰</p>
+                        <p class="card-reward">
+                            ≈ <strong>{estimateGold(skip.hours)}</strong>
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" style="vertical-align: middle; display: inline-block;">
+                                <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
+                                <circle cx="12" cy="12" r="5" fill="#f39c12"/>
+                            </svg>
+                        </p>
                     </div>
 
                     <div class="card-action">
                         <button class="buy-btn" on:click={() => handleSkip(skip)} bind:this={btnRefs[skip.id]} disabled={$crystals < skip.cost}>
-                            <span class="btn-cost">★ {skip.cost}</span>
+                            <span class="btn-cost">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff" style="vertical-align: middle; display: inline-block;">
+                                    <polygon points="12,2 21,9 12,22 3,9"/>
+                                </svg>
+                                {skip.cost}
+                            </span>
                             <span class="btn-label">Купить</span>
                         </button>
                     </div>

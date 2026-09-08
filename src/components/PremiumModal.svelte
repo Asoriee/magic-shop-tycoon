@@ -46,15 +46,41 @@
 <div class="overlay" bind:this={overlayEl} on:click={close}>
     <div class="modal" bind:this={modalEl} on:click|stopPropagation>
         <div class="modal-header">
-            <h2>💎 Премиум и Ритуалы</h2>
+            <h2>
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#74b9ff" style="vertical-align: middle; display: inline-block;">
+                    <polygon points="12,2 21,9 12,22 3,9"/>
+                </svg>
+                Премиум и Ритуалы
+            </h2>
             <button class="close-btn" on:click={close}>✕</button>
         </div>
 
         <div class="tabs">
-            <button class="tab" class:active={activeTab === 'bank'} on:click={() => activeTab = 'bank'}>🏦 Банк</button>
-            <button class="tab" class:active={activeTab === 'timeskip'} on:click={() => activeTab = 'timeskip'}>⏳ Прыжок времени</button>
-            <button class="tab" class:active={activeTab === 'secret'} on:click={() => activeTab = 'secret'}>🔮 Тайные Знания</button>
-            <button class="tab" class:active={activeTab === 'rebirth'} on:click={() => activeTab = 'rebirth'}>💀 Темный Ритуал</button>
+            <button class="tab" class:active={activeTab === 'bank'} on:click={() => activeTab = 'bank'}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align: middle; display: inline-block;">
+                    <path d="M12 2L2 7v2h20V7L12 2zm-8 8h3v8H4v-8zm6 0h3v8h-3v-8zm6 0h3v8h-3v-8zM2 20h20v2H2v-2z"/>
+                </svg>
+                Банк
+            </button>
+            <button class="tab" class:active={activeTab === 'timeskip'} on:click={() => activeTab = 'timeskip'}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align: middle; display: inline-block;">
+                    <path d="M6 2v6l4 4-4 4v6h12v-6l-4-4 4-4V2H6zm10 14.5l-4-4-4 4V20h8v-3.5zm-4-5l4-4V4H8v3.5l4 4z"/>
+                </svg>
+                Прыжок времени
+            </button>
+            <button class="tab" class:active={activeTab === 'secret'} on:click={() => activeTab = 'secret'}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="#a29bfe" style="vertical-align: middle; display: inline-block;">
+                    <circle cx="12" cy="11" r="7" opacity="0.8"/>
+                    <path d="M8 20h8v2H8z M10 18h4v2h-4z"/>
+                </svg>
+                Тайные Знания
+            </button>
+            <button class="tab" class:active={activeTab === 'rebirth'} on:click={() => activeTab = 'rebirth'}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="#e74c3c" style="vertical-align: middle; display: inline-block;">
+                    <path d="M12 2a8 8 0 0 0-8 8c0 3.25 1.94 6.05 4.7 7.28V20h6.6v-2.72c2.76-1.23 4.7-4.03 4.7-7.28a8 8 0 0 0-8-8zm-3 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                </svg>
+                Темный Ритуал
+            </button>
         </div>
 
         <div class="content">

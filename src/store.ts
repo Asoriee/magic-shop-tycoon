@@ -4,12 +4,15 @@ import { writable, get, derived } from 'svelte/store';
 // UTILS
 // ============================================================
 
-export function formatNumber(num: number): string {
-    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + 'B';
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
-    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
-    if (num % 1 !== 0) return num.toFixed(1);
-    return Math.floor(num).toString();
+export function formatNumber(num: number | undefined | null): string {
+    if (num === undefined || num === null) return '0';
+    const n = Number(num);
+    if (isNaN(n) || !isFinite(n)) return '0';
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+    if (n % 1 !== 0) return n.toFixed(1);
+    return Math.floor(n).toString();
 }
 
 // ============================================================
@@ -899,38 +902,6 @@ export const AVAILABLE_PETS: Pet[] = [
     }
 ];
 
-const defaultState: GameState = {
-    gold: 10,
-    lastSaveTime: Date.now(),
-    stardust: 0,
-    artifacts: [],
-    upgrades: defaultUpgrades,
-    secretUpgrades: defaultSecretUpgrades,
-    lastQuestDate: new Date().toDateString(),
-    quests: [],
-    dailyBonusClaimed: false,
-    unlockedPets: ['pet_rat'],
-    activeExpeditions: [],
-    activeOrders: [],
-    lastOrderSpawnTime: Date.now(),
-    activeBuffs: [],
-    unlockedCollections: [],
-    lastFreeChestTime: 0
-};
-
-// --- Premium stores ---
-export const crystals = writable<number>(0);
-export const isVip    = writable<boolean>(false);
-
-/**
- * Dynamic gold reward scaling with current idle income.
- * @param secondsFactor Number of seconds of passive income to reward (default 150s).
- */
-export function calculateQuestGoldReward(secondsFactor = 150): number {
-    const idleIncome = get(currentIdleIncome);
-    return Math.max(3000, Math.round(idleIncome * secondsFactor));
-}
-
 function generateQuests(): Quest[] {
     const clickTarget    = (Math.floor(Math.random() * 2) + 2) * 100; // 200 or 300
     const upgradesTarget = Math.floor(Math.random() * 3) + 3;       // 3 to 5
@@ -999,6 +970,44 @@ function generateQuests(): Quest[] {
             isClaimed: false 
         }
     ];
+}
+
+const defaultState: GameState = {
+    gold: 10,
+    lastSaveTime: Date.now(),
+    stardust: 0,
+    artifacts: [],
+    upgrades: defaultUpgrades,
+    secretUpgrades: defaultSecretUpgrades,
+    lastQuestDate: new Date().toISOString().split('T')[0],
+    quests: generateQuests(),
+    dailyBonusClaimed: false,
+    unlockedPets: ['pet_rat'],
+    activeExpeditions: [],
+    activeOrders: [],
+    lastOrderSpawnTime: Date.now(),
+    activeBuffs: [],
+    unlockedCollections: [],
+    lastFreeChestTime: 0
+};
+
+// --- Premium stores ---
+export const crystals = writable<number>(0);
+export const isVip    = writable<boolean>(false);
+
+/**
+ * Dynamic gold reward scaling with current idle income.
+ * @param secondsFactor Number of seconds of passive income to reward (default 150s).
+ */
+export function calculateQuestGoldReward(secondsFactor: number = 150): number {
+    try {
+        const factor = (typeof secondsFactor === 'number' && !isNaN(secondsFactor) && secondsFactor > 0) ? secondsFactor : 150;
+        const idle = get(currentIdleIncome);
+        const validIdle = (typeof idle === 'number' && !isNaN(idle) && isFinite(idle)) ? idle : 0;
+        return Math.max(3000, Math.round(validIdle * factor));
+    } catch {
+        return 3000;
+    }
 }
 
 function createGameStore() {
@@ -1358,78 +1367,90 @@ export const heatBonusLevel = derived(gameStore, $gameStore => {
 });
 
 export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
-    let multiplier = 1 * $milestone.multiplier;
+    let multiplier = 1 * ($milestone?.multiplier || 1);
+    const arts = $gameStore?.artifacts || [];
+    const colls = $gameStore?.unlockedCollections || [];
+    const buffs = $gameStore?.activeBuffs || [];
     
     // Original artifacts
-    if ($gameStore.artifacts.includes(0)) multiplier += 0.20; // Scroll of Greed
+    if (arts.includes(0)) multiplier += 0.20; // Scroll of Greed
     // Archmage set artifacts
-    if ($gameStore.artifacts.includes(3)) multiplier += 0.35; // Archmage Robe
-    if ($gameStore.artifacts.includes(6)) multiplier += 0.35; // Archmage Ring
-    if ($gameStore.artifacts.includes(7)) multiplier += 1.00; // Archmage Eye
+    if (arts.includes(3)) multiplier += 0.35; // Archmage Robe
+    if (arts.includes(6)) multiplier += 0.35; // Archmage Ring
+    if (arts.includes(7)) multiplier += 1.00; // Archmage Eye
     // Archmage Set Completion Bonus
-    if ($gameStore.unlockedCollections.includes('archmage_set')) multiplier += 1.50;
+    if (colls.includes('archmage_set')) multiplier += 1.50;
     
     if ($isVip) multiplier *= 2;
     
     // Apply active buffs
-    for (const buff of $gameStore.activeBuffs) {
+    for (const buff of buffs) {
         if (buff.effect === 'idle_multiplier') multiplier += buff.value;
         if (buff.effect === 'gold_multiplier') multiplier += buff.value;
     }
     
     // Apply stardust prestige multiplier (+2% per stardust)
-    multiplier += $gameStore.stardust * 0.02;
+    multiplier += ($gameStore?.stardust || 0) * 0.02;
     
-    return multiplier;
+    return Math.max(1, multiplier);
 });
 
 export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
-    let multiplier = 1 * $milestone.multiplier;
+    let multiplier = 1 * ($milestone?.multiplier || 1);
+    const arts = $gameStore?.artifacts || [];
+    const colls = $gameStore?.unlockedCollections || [];
+    const buffs = $gameStore?.activeBuffs || [];
     
     // Original artifacts
-    if ($gameStore.artifacts.includes(1)) multiplier += 0.20; // Ring of Power
+    if (arts.includes(1)) multiplier += 0.20; // Ring of Power
     // Archmage set artifacts
-    if ($gameStore.artifacts.includes(4)) multiplier += 0.60; // Archmage Staff
+    if (arts.includes(4)) multiplier += 0.60; // Archmage Staff
     // Archmage Set Completion Bonus
-    if ($gameStore.unlockedCollections.includes('archmage_set')) multiplier += 1.00;
+    if (colls.includes('archmage_set')) multiplier += 1.00;
     
     if ($isVip) multiplier *= 2;
 
     // Apply active buffs
-    for (const buff of $gameStore.activeBuffs) {
+    for (const buff of buffs) {
         if (buff.effect === 'click_multiplier') multiplier += buff.value;
         if (buff.effect === 'gold_multiplier') multiplier += buff.value;
     }
 
     // Apply stardust prestige multiplier (+2% per stardust)
-    multiplier += $gameStore.stardust * 0.02;
+    multiplier += ($gameStore?.stardust || 0) * 0.02;
 
-    return multiplier;
+    return Math.max(1, multiplier);
 });
 
 // Update max offline time to account for new artifacts and hearth upgrade
 export const maxOfflineTimeHours = derived(gameStore, $gameStore => {
     let hours = 2; // base
-    const hearthUpgrade = $gameStore.upgrades.find(u => u.id === 'idle_hearth');
+    const upgs = $gameStore?.upgrades || [];
+    const arts = $gameStore?.artifacts || [];
+    const hearthUpgrade = upgs.find(u => u.id === 'idle_hearth');
     if (hearthUpgrade && hearthUpgrade.level > 0) {
         hours += hearthUpgrade.level; // +1 hour per level
     }
-    if ($gameStore.artifacts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
-    if ($gameStore.artifacts.includes(5)) hours += 2; // Archmage Hat (+2 hours)
+    if (arts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
+    if (arts.includes(5)) hours += 2; // Archmage Hat (+2 hours)
     return hours;
 });
 
 export const currentIdleIncome = derived([gameStore, globalIdleMultiplier], ([$gameStore, $idleMult]) => {
     let totalIdle = 0;
-    $gameStore.upgrades.forEach(u => {
-        if (u.type === 'idle') totalIdle += u.baseValue * u.level;
+    const upgs = $gameStore?.upgrades || [];
+    const secUpgs = $gameStore?.secretUpgrades || [];
+
+    upgs.forEach(u => {
+        if (u.type === 'idle') totalIdle += (u.baseValue || 0) * (u.level || 0);
     });
 
     // Secret Upgrade: Аура Фамильяра (+15% passive income per level)
-    const familiarLevel = $gameStore.secretUpgrades.find(u => u.id === 'familiar')?.level || 0;
+    const familiarLevel = secUpgs.find(u => u.id === 'familiar')?.level || 0;
     const familiarMultiplier = 1 + (familiarLevel * 0.15);
+    const mult = (typeof $idleMult === 'number' && !isNaN($idleMult)) ? $idleMult : 1;
 
-    return totalIdle * $idleMult * familiarMultiplier;
+    return Math.max(0, totalIdle * mult * familiarMultiplier);
 });
 
 export const critChance = derived(gameStore, ($gameStore) => {

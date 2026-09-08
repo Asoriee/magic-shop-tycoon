@@ -12,7 +12,7 @@
     let containerEl: HTMLElement;
 
     onMount(() => {
-        if (containerEl) {
+        if (containerEl && containerEl.children && containerEl.children.length > 0) {
             gsap.fromTo(containerEl.children,
                 { y: 20, opacity: 0 },
                 { y: 0, opacity: 1, duration: 0.35, stagger: 0.08, ease: 'power2.out' }
@@ -21,7 +21,7 @@
     });
 
     export function animateIn() {
-        if (containerEl) {
+        if (containerEl && containerEl.children && containerEl.children.length > 0) {
             gsap.fromTo(containerEl.children,
                 { y: 20, opacity: 0 },
                 { y: 0, opacity: 1, duration: 0.3, stagger: 0.08, ease: 'power2.out' }

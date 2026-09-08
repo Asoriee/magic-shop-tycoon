@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
 
     // Generate star and bubble positions ONCE at module init
@@ -25,27 +25,32 @@
 
     onMount(() => {
         // Layer 1: Stars slow rotation
-        gsap.to(starsLayer, {
-            rotation: 360,
-            duration: 200,
-            repeat: -1,
-            ease: 'linear',
-            transformOrigin: 'center center'
-        });
+        if (starsLayer) {
+            gsap.to(starsLayer, {
+                rotation: 360,
+                duration: 200,
+                repeat: -1,
+                ease: 'linear',
+                transformOrigin: 'center center'
+            });
+        }
 
         // Layer 2: Runes/Fog opacity pulsation
-        gsap.to(runesLayer, {
-            opacity: 0.4,
-            duration: 4,
-            yoyo: true,
-            repeat: -1,
-            ease: 'sine.inOut'
-        });
+        if (runesLayer) {
+            gsap.to(runesLayer, {
+                opacity: 0.4,
+                duration: 4,
+                yoyo: true,
+                repeat: -1,
+                ease: 'sine.inOut'
+            });
+        }
 
         // Layer 3: Bubbles — immediate distribution across viewport
         if (bubblesLayer) {
             const bubbleGroups = bubblesLayer.querySelectorAll('.bubble-group');
             bubbleGroups.forEach((group, i) => {
+                if (!group) return;
                 const dur = bubbles[i]?.duration || 10;
                 
                 // Vertical rise
@@ -72,6 +77,15 @@
                     ease: 'sine.inOut'
                 });
             });
+        }
+    });
+
+    onDestroy(() => {
+        const targets = [starsLayer, runesLayer, bubblesLayer].filter(Boolean);
+        if (targets.length) gsap.killTweensOf(targets);
+        if (bubblesLayer) {
+            const bubbleGroups = bubblesLayer.querySelectorAll('.bubble-group');
+            if (bubbleGroups.length) gsap.killTweensOf(bubbleGroups);
         }
     });
 </script>

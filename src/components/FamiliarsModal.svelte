@@ -84,10 +84,13 @@
         }
         if ($crystals < GACHA_COST) {
             showToast('Недостаточно кристаллов для призыва!');
-            gsap.fromTo('.gacha-btn', 
-                { x: -10 }, 
-                { x: 10, duration: 0.08, yoyo: true, repeat: 5, onComplete: () => gsap.set('.gacha-btn', { x: 0 }) }
-            );
+            const gachaBtn = document.querySelector('.gacha-btn');
+            if (gachaBtn) {
+                gsap.fromTo(gachaBtn, 
+                    { x: -10 }, 
+                    { x: 10, duration: 0.08, yoyo: true, repeat: 5, onComplete: () => gsap.set(gachaBtn, { x: 0 }) }
+                );
+            }
             return;
         }
 

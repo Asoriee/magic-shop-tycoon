@@ -152,9 +152,23 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-content" on:click|stopPropagation>
-        <div class="ad-icon">✨</div>
+        <div class="ad-icon">
+            <svg viewBox="0 0 24 24" width="42" height="42" fill="none">
+                <path d="M12 2 L14 8 L20 10 L14 12 L12 18 L10 12 L4 10 L10 8 Z" fill="#ffeaa7" stroke="#fdcb6e" stroke-width="1.5"/>
+                <circle cx="18" cy="5" r="2" fill="#ffeaa7"/>
+                <circle cx="6" cy="18" r="1.5" fill="#ffeaa7"/>
+            </svg>
+        </div>
         <h2>Волшебная Искра!</h2>
-        <p>Поймана волшебная искра! Посмотри рекламу, чтобы получить <span class="reward-gold">💰 {formatNumber(rewardAmount)}</span> золота.</p>
+        <p>Поймана волшебная искра! Посмотри рекламу, чтобы получить 
+            <span class="reward-gold">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" style="vertical-align: middle; display: inline-block;">
+                    <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="5" fill="#f39c12"/>
+                </svg>
+                +{formatNumber(rewardAmount)}
+            </span> золота.
+        </p>
         <div class="actions">
             <button class="btn-cancel" on:click={declineAd}>Упустить</button>
             <button class="btn-confirm" on:click={watchAd}>Смотреть</button>

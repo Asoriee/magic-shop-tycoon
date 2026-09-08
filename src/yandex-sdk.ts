@@ -167,13 +167,14 @@ export async function loadGame(): Promise<void> {
             if (merged.stardust === undefined) merged.stardust = 0;
             if (merged.artifacts === undefined) merged.artifacts = [];
             if (merged.lastQuestDate === undefined) merged.lastQuestDate = '';
-            if (merged.quests === undefined) merged.quests = [];
+            if (merged.quests === undefined || !Array.isArray(merged.quests)) merged.quests = state.quests;
             if (merged.dailyBonusClaimed === undefined) merged.dailyBonusClaimed = false;
-            if (merged.unlockedPets === undefined) merged.unlockedPets = [];
+            if (merged.unlockedPets === undefined) merged.unlockedPets = ['pet_rat'];
             if (merged.activeExpeditions === undefined) merged.activeExpeditions = [];
             if (merged.activeOrders === undefined) merged.activeOrders = [];
             if (merged.lastOrderSpawnTime === undefined) merged.lastOrderSpawnTime = Date.now();
             if (merged.activeBuffs === undefined) merged.activeBuffs = [];
+            if (merged.unlockedCollections === undefined) merged.unlockedCollections = [];
             
             // Restore missing upgrades from default state
             if (!merged.upgrades) {
@@ -181,6 +182,16 @@ export async function loadGame(): Promise<void> {
             } else {
                 merged.upgrades = state.upgrades.map(defaultU => {
                     const savedU = merged.upgrades.find((u: any) => u.id === defaultU.id);
+                    return savedU ? { ...defaultU, level: savedU.level } : defaultU;
+                });
+            }
+
+            // Restore secret upgrades
+            if (!merged.secretUpgrades) {
+                merged.secretUpgrades = state.secretUpgrades;
+            } else {
+                merged.secretUpgrades = state.secretUpgrades.map(defaultU => {
+                    const savedU = merged.secretUpgrades.find((u: any) => u.id === defaultU.id);
                     return savedU ? { ...defaultU, level: savedU.level } : defaultU;
                 });
             }

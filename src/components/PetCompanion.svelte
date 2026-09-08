@@ -110,11 +110,12 @@
         if (!node) return;
         if (type === 'coin') {
             // Coin drops down and right into the cauldron
+            const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 769;
             gsap.to(node, {
-                y: 120, // Move down towards cauldron
-                x: 120, // Move right towards cauldron
+                y: isDesktop ? 150 : 120, // Move down towards cauldron
+                x: isDesktop ? 150 : 120, // Move right towards cauldron
                 opacity: 0,
-                duration: 0.8,
+                duration: 0.85,
                 ease: "power2.in",
                 onComplete: () => {
                     effects = effects.filter(e => e.id !== id);
@@ -217,11 +218,12 @@
         top: 50%;
         left: 50%;
         /* Positioned up and to the left of the Cauldron */
-        transform: translate(-170px, -140px);
+        transform: translate(-220px, -170px);
         width: 140px;
         height: 140px;
         z-index: 50; 
         pointer-events: none; /* Let clicks pass through empty areas */
+        transition: transform 0.25s ease;
     }
 
     .pet-clickable {
@@ -259,12 +261,23 @@
         transform: translate(-50%, -50%); /* Center effect on its coords */
     }
     
+    @media (min-width: 1200px) and (min-height: 750px) {
+        .pet-container {
+            transform: translate(-245px, -190px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .pet-container {
+            transform: translate(-160px, -140px);
+        }
+    }
+
     @media (max-width: 600px) {
         .pet-container {
             /* Adjust positioning for smaller screens so it doesn't get cut off */
-            transform: translate(-100px, -160px);
-            /* Maybe scale it down slightly */
-            scale: 0.8;
+            transform: translate(-100px, -150px);
+            scale: 0.82;
         }
     }
 </style>

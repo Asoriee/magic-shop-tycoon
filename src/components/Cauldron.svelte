@@ -140,7 +140,7 @@
         tabindex="0" 
         on:keydown={(e) => e.key === 'Enter' && handleCauldronClick(new PointerEvent('pointerdown'))}
     >
-        <svg width="220" height="220" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <svg class="cauldron-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <!-- Alchemical Pedestal / Transmutation Circle (Pure SVG) -->
             <g class="alchemical-pedestal" opacity="{0.45 + (heat / 160)}">
                 <!-- Outer Ring with runic ticks -->
@@ -359,6 +359,57 @@
         -webkit-user-select: none;
         outline: none;
         -webkit-tap-highlight-color: transparent;
+    }
+
+    .cauldron-svg {
+        width: clamp(280px, 38vmin, 380px);
+        height: clamp(280px, 38vmin, 380px);
+        display: block;
+        transition: filter 0.3s ease;
+    }
+
+    @media (hover: hover) {
+        .cauldron-container:hover .cauldron-svg {
+            filter: drop-shadow(0 0 22px rgba(162, 155, 254, 0.45));
+        }
+    }
+
+    @media (min-width: 769px) {
+        .heat-track {
+            width: 150px;
+            height: 8px;
+        }
+
+        .heat-text {
+            font-size: 0.88rem;
+        }
+
+        .floating-text {
+            font-size: 2.1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .cauldron-svg {
+            width: clamp(230px, 46vw, 270px);
+            height: clamp(230px, 46vw, 270px);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cauldron-svg {
+            width: 215px;
+            height: 215px;
+        }
+
+        .heat-track {
+            width: 105px;
+            height: 6px;
+        }
+
+        .heat-text {
+            font-size: 0.74rem;
+        }
     }
 
     .floating-text {

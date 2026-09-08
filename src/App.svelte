@@ -34,43 +34,101 @@
     let isShopOpen = false;
     
     let offlineGoldAmount = 0;
+    let offlineSecondsCount = 0;
+    let maxOfflineSecondsCount = 0;
+    let offlineRatePerSec = 0;
     let isReady = false;
     let gameLoop: number;
+    let hiddenTimestamp = 0;
+    let autoSaveCounter = 0;
 
     $: totalCityNotifications = $readyOrdersCount + $unclaimedQuestsCount;
+
+    function checkOfflineEarnings(forcedAwayMs?: number) {
+        const now = Date.now();
+        const lastSave = $gameStore?.lastSaveTime || now;
+        const rawDiffMs = typeof forcedAwayMs === 'number' && forcedAwayMs > 0 
+            ? forcedAwayMs 
+            : Math.max(0, now - lastSave);
+
+        const maxHours = $maxOfflineTimeHours || 2;
+        const maxOfflineMs = maxHours * 3600 * 1000;
+        const cappedDiffMs = Math.min(rawDiffMs, maxOfflineMs);
+        const cappedSeconds = Math.floor(cappedDiffMs / 1000);
+        const awaySeconds = Math.floor(rawDiffMs / 1000);
+        const idleRate = $currentIdleIncome || 0;
+
+        if (cappedSeconds >= 60 && idleRate > 0) {
+            offlineGoldAmount = Math.floor(cappedSeconds * idleRate);
+            offlineSecondsCount = awaySeconds;
+            maxOfflineSecondsCount = maxHours * 3600;
+            offlineRatePerSec = idleRate;
+            if (offlineGoldAmount > 0) {
+                isOfflinePopupOpen = true;
+            }
+        }
+
+        gameStore.setLastSaveTime(now);
+        saveGame();
+    }
+
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            hiddenTimestamp = Date.now();
+            gameStore.setLastSaveTime(hiddenTimestamp);
+            saveGame();
+        } else {
+            if (hiddenTimestamp > 0) {
+                const awayMs = Date.now() - hiddenTimestamp;
+                hiddenTimestamp = 0;
+                if (awayMs >= 60 * 1000) {
+                    checkOfflineEarnings(awayMs);
+                } else {
+                    gameStore.setLastSaveTime(Date.now());
+                }
+            }
+        }
+    }
+
+    function handleWindowFocus() {
+        if (hiddenTimestamp > 0) {
+            const awayMs = Date.now() - hiddenTimestamp;
+            hiddenTimestamp = 0;
+            if (awayMs >= 60 * 1000) {
+                checkOfflineEarnings(awayMs);
+            }
+        }
+    }
 
     onMount(async () => {
         // Init SDK and load game
         await initYandexSdk();
         gameStore.checkDailyQuests();
         
-        // Calculate offline income
-        const now = Date.now();
-        const maxOfflineTimeMs = $maxOfflineTimeHours * 3600 * 1000;
-        const timeDiffMs = Math.min(now - $gameStore.lastSaveTime, maxOfflineTimeMs);
-        const timeDiffSeconds = timeDiffMs / 1000;
-        
-        if (timeDiffSeconds > 60 && $currentIdleIncome > 0) { // Only show if away for > 1 min
-            offlineGoldAmount = Math.floor(timeDiffSeconds * $currentIdleIncome);
-            if (offlineGoldAmount > 0) {
-                isOfflinePopupOpen = true;
-            }
-        }
-        
-        gameStore.setLastSaveTime(now);
+        // Calculate offline income on startup
+        checkOfflineEarnings();
         isReady = true;
 
-        // Start idle loop
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', handleWindowFocus);
+
+        // Start idle loop with throttled auto-save
         gameLoop = setInterval(() => {
-            if (!isAdActive()) {
+            if (!isAdActive() && !document.hidden) {
                 gameStore.addGold($currentIdleIncome);
-                saveGame();
+                autoSaveCounter++;
+                if (autoSaveCounter >= 15) { // Auto-save every 15 seconds
+                    autoSaveCounter = 0;
+                    saveGame();
+                }
             }
         }, 1000);
     });
 
     onDestroy(() => {
         if (gameLoop) clearInterval(gameLoop);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('focus', handleWindowFocus);
     });
 
     function handleKeydown(e: KeyboardEvent) {
@@ -204,6 +262,9 @@
     <OfflineIncomePopup 
         isOpen={isOfflinePopupOpen} 
         offlineGold={offlineGoldAmount} 
+        offlineSeconds={offlineSecondsCount}
+        maxOfflineSeconds={maxOfflineSecondsCount}
+        currentRate={offlineRatePerSec}
         onClose={() => isOfflinePopupOpen = false} 
     />
 

@@ -14,31 +14,47 @@
 
     export let isEmbedded = false;
 
-    // Orders spawn timer: checks every 10 seconds
-    let spawnTimer: any;
-    let secondsToNext = 30;
-    let countdownInterval: any;
+    // ----------------------------------------------------------------
+    // Spawn logic: путник появляется раз в 3–5 минут (случайно).
+    // nextSpawnAt — точная метка времени следующего появления.
+    // Нельзя заспавнить раньше этой метки.
+    // ----------------------------------------------------------------
+    const MIN_SPAWN_MS = 3 * 60 * 1000; // 3 минуты
+    const MAX_SPAWN_MS = 5 * 60 * 1000; // 5 минут
+
+    let nextSpawnAt = Date.now() + randomSpawnDelay();
+    let secondsToNext = Math.ceil((nextSpawnAt - Date.now()) / 1000);
+    let tickInterval: any;
+
+    function randomSpawnDelay(): number {
+        return MIN_SPAWN_MS + Math.floor(Math.random() * (MAX_SPAWN_MS - MIN_SPAWN_MS + 1));
+    }
 
     onMount(() => {
-        spawnTimer = setInterval(() => {
-            const { activeOrders } = $gameStore;
-            if (activeOrders.length < 4) {
-                gameStore.spawnOrder();
-                secondsToNext = 30;
-            }
-        }, 10000);
+        // Единый тик раз в секунду: считает обратный отсчёт и при необходимости спавнит
+        tickInterval = setInterval(() => {
+            const now = Date.now();
+            const remaining = Math.ceil((nextSpawnAt - now) / 1000);
 
-        countdownInterval = setInterval(() => {
-            if ($gameStore.activeOrders.length < 4) {
-                secondsToNext = Math.max(0, secondsToNext - 1);
-                if (secondsToNext === 0) secondsToNext = 30;
+            if ($gameStore.activeOrders.length >= 4) {
+                // Лавка заполнена — замораживаем таймер, но не сбрасываем целевую метку
+                secondsToNext = remaining > 0 ? remaining : 0;
+                return;
+            }
+
+            if (now >= nextSpawnAt) {
+                // Пора — спавним путника и назначаем новую метку
+                gameStore.spawnOrder();
+                nextSpawnAt = now + randomSpawnDelay();
+                secondsToNext = Math.ceil((nextSpawnAt - now) / 1000);
+            } else {
+                secondsToNext = remaining > 0 ? remaining : 0;
             }
         }, 1000);
     });
 
     onDestroy(() => {
-        if (spawnTimer) clearInterval(spawnTimer);
-        if (countdownInterval) clearInterval(countdownInterval);
+        if (tickInterval) clearInterval(tickInterval);
     });
 
     function getRequirementItem(type: 'ingredient' | 'potion', id: string) {
@@ -174,7 +190,9 @@
                     {#if $gameStore.activeOrders.length >= 4}
                         Лавка заполнена клиентами (4/4)
                     {:else}
-                        Новый путник через: {secondsToNext} сек
+                        {@const mins = Math.floor(secondsToNext / 60)}
+                        {@const secs = secondsToNext % 60}
+                        Новый путник через: {mins > 0 ? `${mins} мин ${secs.toString().padStart(2,'0')} сек` : `${secs} сек`}
                     {/if}
                 </span>
             </div>

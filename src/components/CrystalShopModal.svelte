@@ -112,39 +112,38 @@
     <div class="modal" class:embedded-modal={isEmbedded} bind:this={modalEl} on:click|stopPropagation>
 
         <!-- Header -->
-        <div class="modal-header">
-            <div class="header-icon">
-                <svg viewBox="0 0 48 60" width="32" height="40">
-                    <!-- Hourglass body -->
-                    <path d="M6,4 L42,4 L42,8 Q42,30 24,30 Q6,30 6,8 Z" fill="#a29bfe" opacity="0.9"/>
-                    <path d="M6,56 L42,56 L42,52 Q42,30 24,30 Q6,30 6,52 Z" fill="#74b9ff" opacity="0.9"/>
-                    <!-- Frames -->
-                    <rect x="4" y="2" width="40" height="6" rx="3" fill="#6c5ce7"/>
-                    <rect x="4" y="52" width="40" height="6" rx="3" fill="#0984e3"/>
-                    <!-- Sand flow -->
-                    <circle cx="24" cy="30" r="3" fill="#f1c40f" opacity="0.8"/>
-                    <line x1="24" y1="33" x2="24" y2="45" stroke="#f1c40f" stroke-width="2" opacity="0.6"/>
-                </svg>
+        <div class="tab-header">
+            <div class="tab-title-row">
+                <div class="header-icon">
+                    <svg viewBox="0 0 48 60" width="32" height="40">
+                        <!-- Hourglass body -->
+                        <path d="M6,4 L42,4 L42,8 Q42,30 24,30 Q6,30 6,8 Z" fill="#a29bfe" opacity="0.9"/>
+                        <path d="M6,56 L42,56 L42,52 Q42,30 24,30 Q6,30 6,52 Z" fill="#74b9ff" opacity="0.9"/>
+                        <!-- Frames -->
+                        <rect x="4" y="2" width="40" height="6" rx="3" fill="#6c5ce7"/>
+                        <rect x="4" y="52" width="40" height="6" rx="3" fill="#0984e3"/>
+                        <!-- Sand flow -->
+                        <circle cx="24" cy="30" r="3" fill="#f1c40f" opacity="0.8"/>
+                        <line x1="24" y1="33" x2="24" y2="45" stroke="#f1c40f" stroke-width="2" opacity="0.6"/>
+                    </svg>
+                </div>
+                <h2 class="tab-title">Машина Времени</h2>
             </div>
-            <div class="header-text">
-                <h2>Машина Времени</h2>
-                <p class="header-sub">Потрать кристаллы — получи мгновенный доход</p>
+            <p class="header-sub">Потрать кристаллы — получи мгновенный доход</p>
+
+            <!-- Crystal Balance -->
+            <div class="balance-row">
+                <div class="balance-chip crystal">
+                    <span class="icon">★</span>
+                    <span>{formatNumber($crystals)} кристаллов</span>
+                </div>
+                {#if $currentIdleIncome === 0}
+                    <span class="no-idle-hint">⚠️ Нужен пассивный доход</span>
+                {/if}
             </div>
+
             {#if !isEmbedded}
                 <button class="close-btn" on:click={onClose}>✕</button>
-            {/if}
-        </div>
-
-        <!-- Crystal Balance -->
-        <div class="balance-row">
-            <div class="balance-chip crystal">
-                <svg viewBox="0 0 20 20" width="16" height="16">
-                    <polygon points="10,2 12.9,7 18.5,7.6 14.5,11.5 15.6,17.1 10,14.2 4.4,17.1 5.5,11.5 1.5,7.6 7.1,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1"/>
-                </svg>
-                <span>{$crystals} кристаллов</span>
-            </div>
-            {#if $currentIdleIncome === 0}
-                <span class="no-idle-hint">⚠️ Нужен пассивный доход</span>
             {/if}
         </div>
 

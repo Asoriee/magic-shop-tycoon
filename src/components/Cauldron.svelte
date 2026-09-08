@@ -1,20 +1,47 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
-    import { gameStore, currentClickPower, crystals, formatNumber } from '../store';
+    import { gameStore, currentClickPower, critChance, heatBonusLevel, crystals, formatNumber } from '../store';
     
     let cauldronGroup: SVGGElement;
 
+    let heat = 0; // 0 to 100
+    let decayInterval: any;
+
+    onMount(() => {
+        decayInterval = setInterval(() => {
+            if (heat > 0) {
+                // Decay speed decreases with higher heat upgrade level
+                const decayAmount = Math.max(0.6, 2.2 - ($heatBonusLevel * 0.25));
+                heat = Math.max(0, heat - decayAmount);
+            }
+        }, 100);
+    });
+
+    onDestroy(() => {
+        if (decayInterval) clearInterval(decayInterval);
+    });
+
+    $: comboMultiplier = 1 + (heat / 100) * (1.0 + ($heatBonusLevel * 0.25));
+    $: isOverheated = heat >= 85;
+
     // Use a localized array for tracking click effects
-    let clickEffects: { id: number, x: number, y: number, value: number, offsetX: number, isCrystal: boolean }[] = [];
+    let clickEffects: { id: number, x: number, y: number, value: number, offsetX: number, isCrystal: boolean, isCrit: boolean, isCombo: boolean }[] = [];
     let effectIdCounter = 0;
 
     function handleCauldronClick(event: PointerEvent) {
         const clientX = event.clientX;
         const clientY = event.clientY;
 
-        // Add gold
-        const clickValue = $currentClickPower;
+        // Increase heat on click
+        const heatGain = 10 + ($heatBonusLevel * 3);
+        heat = Math.min(100, heat + heatGain);
+
+        // Check for crit
+        const isCrit = Math.random() < $critChance;
+        const critMultiplier = isCrit ? 5 : 1;
+        const clickValue = Math.max(1, Math.floor($currentClickPower * critMultiplier * comboMultiplier));
+
         gameStore.addGold(clickValue);
         gameStore.updateQuestProgress('clicks', 1);
 
@@ -28,12 +55,13 @@
             isCrystal = true;
         }
         
-        // Bounce animation - juicy click micro-scaling
+        // Bounce animation - juicy click micro-scaling (stronger on crit or overheat)
+        const bounceScale = isCrit ? 0.82 : isOverheated ? 0.86 : 0.92;
         gsap.to(cauldronGroup, { 
-            scale: 0.92, 
+            scale: bounceScale, 
             yoyo: true, 
             repeat: 1, 
-            duration: 0.05, 
+            duration: isCrit ? 0.07 : 0.05, 
             ease: "power1.inOut",
             transformOrigin: "50% 100%"
         });
@@ -48,7 +76,9 @@
             y: clientY,
             value: clickValue,
             offsetX,
-            isCrystal
+            isCrystal,
+            isCrit,
+            isCombo: heat > 30
         }];
     }
 
@@ -56,60 +86,133 @@
     function animateClick(node: HTMLElement, id: number) {
         gsap.to(node, {
             y: -100,
-            x: `+=${(Math.random() - 0.5) * 50}`, // slight random x drift
+            x: `+=${(Math.random() - 0.5) * 50}`,
             opacity: 0,
             duration: 1.2,
             ease: "power2.out",
             onComplete: () => {
-                // Remove from array (garbage collection)
                 clickEffects = clickEffects.filter(effect => effect.id !== id);
             }
         });
         
         return {
             destroy() {
-                // clean up if node is destroyed early
                 gsap.killTweensOf(node);
             }
         };
     }
 </script>
 
-<div 
-    class="cauldron-container" 
-    on:pointerdown|preventDefault={handleCauldronClick} 
-    role="button" 
-    tabindex="0" 
-    on:keydown={(e) => e.key === 'Enter' && handleCauldronClick(new PointerEvent('pointerdown'))}
->
-    <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-        <!-- Shadow -->
-        <ellipse cx="100" cy="180" rx="70" ry="15" fill="rgba(0,0,0,0.3)" />
-        
-        <g bind:this={cauldronGroup} style="will-change: transform">
-            <!-- Cauldron body -->
-            <path d="M 40 80 Q 20 170 100 170 Q 180 170 160 80 Z" fill="#2d3436" stroke="#1f2324" stroke-width="4"/>
-            <!-- Cauldron rim -->
-            <ellipse cx="100" cy="80" rx="65" ry="15" fill="#636e72" stroke="#2d3436" stroke-width="4"/>
-            <!-- Inner liquid -->
-            <ellipse cx="100" cy="80" rx="55" ry="10" fill="#a29bfe">
-                <animate attributeName="fill" values="#a29bfe;#6c5ce7;#a29bfe" dur="3s" repeatCount="indefinite" />
-            </ellipse>
-            <!-- Bubbles -->
-            <circle cx="80" cy="80" r="5" fill="#dfe6e9" opacity="0.6">
-                <animate attributeName="cy" values="80; 60; 80" dur="2s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.6; 0; 0.6" dur="2s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="120" cy="80" r="8" fill="#dfe6e9" opacity="0.6">
-                <animate attributeName="cy" values="80; 50; 80" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
-                <animate attributeName="opacity" values="0.6; 0; 0.6" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
-            </circle>
-            <circle cx="100" cy="80" r="4" fill="#dfe6e9" opacity="0.6">
-                <animate attributeName="cy" values="80; 65; 80" dur="1.8s" repeatCount="indefinite" begin="1s"/>
-                <animate attributeName="opacity" values="0.6; 0; 0.6" dur="1.8s" repeatCount="indefinite" begin="1s"/>
-            </circle>
-        </g>
-    </svg>
+<div class="cauldron-wrapper">
+    <!-- SVG Heat Combo Gauge -->
+    <div class="heat-gauge" class:visible={heat > 3}>
+        <div class="heat-info">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <path d="M12 2 C10 7 6 10 6 15 C6 18.5 8.7 21.5 12 21.5 C15.3 21.5 18 18.5 18 15 C18 11 15 8 12 2 Z" fill={heat > 75 ? "#ff7675" : "#f1c40f"}/>
+                <path d="M12 8 C10.5 11 8.5 13 8.5 16 C8.5 18 10 19.5 12 19.5 C14 19.5 15.5 18 15.5 16 C15.5 13.5 13.5 12 12 8 Z" fill="#ffffff"/>
+            </svg>
+            <span class="heat-text" class:hot={heat >= 85}>
+                {#if heat >= 85}
+                    ПЛАМЯ x{comboMultiplier.toFixed(1)}!
+                {:else if heat >= 30}
+                    ЖАР x{comboMultiplier.toFixed(1)}
+                {:else}
+                    Разогрев x{comboMultiplier.toFixed(1)}
+                {/if}
+            </span>
+        </div>
+        <div class="heat-track">
+            <div 
+                class="heat-fill" 
+                style="width: {heat}%; background: {heat > 85 ? 'linear-gradient(90deg, #f39c12, #ff7675, #d63031)' : heat > 40 ? 'linear-gradient(90deg, #f1c40f, #e67e22)' : 'linear-gradient(90deg, #3498db, #a29bfe)'}"
+            ></div>
+        </div>
+    </div>
+
+    <div 
+        class="cauldron-container" 
+        on:pointerdown|preventDefault={handleCauldronClick} 
+        role="button" 
+        tabindex="0" 
+        on:keydown={(e) => e.key === 'Enter' && handleCauldronClick(new PointerEvent('pointerdown'))}
+    >
+        <svg width="220" height="220" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Shadow -->
+            <ellipse cx="100" cy="180" rx="70" ry="15" fill="rgba(0,0,0,0.3)" />
+
+            <!-- Fiery heat glow under cauldron when heated -->
+            {#if heat > 5}
+                <ellipse 
+                    cx="100" 
+                    cy="174" 
+                    rx="{35 + (heat * 0.35)}" 
+                    ry="{9 + (heat * 0.1)}" 
+                    fill={heat > 85 ? "#ff7675" : "#f39c12"} 
+                    opacity="{heat / 120}" 
+                    style="filter: blur(5px)"
+                />
+            {/if}
+            
+            <g bind:this={cauldronGroup} style="will-change: transform">
+                <!-- Cauldron body -->
+                <path d="M 40 80 Q 20 170 100 170 Q 180 170 160 80 Z" fill="#2d3436" stroke="#1f2324" stroke-width="4"/>
+                
+                <!-- Rune on cauldron body that glows brighter with heat -->
+                <path 
+                    d="M 94 110 L 100 98 L 106 110 L 100 122 Z M 100 98 L 100 122 M 92 110 L 108 110" 
+                    stroke={heat > 50 ? "#f1c40f" : "#636e72"} 
+                    stroke-width="1.8" 
+                    fill="none"
+                    opacity="{0.3 + (heat / 140)}"
+                />
+
+                <!-- Cauldron rim -->
+                <ellipse cx="100" cy="80" rx="65" ry="15" fill="#636e72" stroke="#2d3436" stroke-width="4"/>
+                
+                <!-- Inner liquid (shifts to molten gold/red as heat increases) -->
+                <ellipse 
+                    cx="100" 
+                    cy="80" 
+                    rx="55" 
+                    ry="10" 
+                    fill={heat > 80 ? "#ff7675" : heat > 40 ? "#f39c12" : "#a29bfe"}
+                >
+                    {#if heat <= 40}
+                        <animate attributeName="fill" values="#a29bfe;#6c5ce7;#a29bfe" dur="3s" repeatCount="indefinite" />
+                    {/if}
+                </ellipse>
+
+                <!-- Bubbles inside cauldron potion -->
+                <g class="cauldron-bubbles">
+                    <circle cx="78" cy="80" r="6" fill={heat > 60 ? "#ffeaa7" : "#fd79a8"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
+                        <animate attributeName="cy" values="84; 52; 44" dur="{heat > 60 ? '1.1s' : '1.8s'}" repeatCount="indefinite" />
+                        <animate attributeName="r" values="4; 7; 1" dur="{heat > 60 ? '1.1s' : '1.8s'}" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '1.1s' : '1.8s'}" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="118" cy="80" r="8" fill={heat > 60 ? "#ff7675" : "#74b9ff"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
+                        <animate attributeName="cy" values="84; 48; 38" dur="{heat > 60 ? '1.3s' : '2.2s'}" repeatCount="indefinite" begin="0.4s"/>
+                        <animate attributeName="r" values="5; 9; 1" dur="{heat > 60 ? '1.3s' : '2.2s'}" repeatCount="indefinite" begin="0.4s"/>
+                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '1.3s' : '2.2s'}" repeatCount="indefinite" begin="0.4s"/>
+                    </circle>
+                    <circle cx="98" cy="80" r="5" fill="#ffeaa7" stroke="#ffffff" stroke-width="1.5" opacity="0.85">
+                        <animate attributeName="cy" values="82; 55; 42" dur="{heat > 60 ? '0.9s' : '1.5s'}" repeatCount="indefinite" begin="0.8s"/>
+                        <animate attributeName="r" values="4; 6; 1" dur="{heat > 60 ? '0.9s' : '1.5s'}" repeatCount="indefinite" begin="0.8s"/>
+                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '0.9s' : '1.5s'}" repeatCount="indefinite" begin="0.8s"/>
+                    </circle>
+                    <circle cx="86" cy="80" r="7" fill={heat > 60 ? "#f39c12" : "#a29bfe"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
+                        <animate attributeName="cy" values="84; 45; 32" dur="{heat > 60 ? '1.5s' : '2.5s'}" repeatCount="indefinite" begin="1.2s"/>
+                        <animate attributeName="r" values="4; 8; 1" dur="{heat > 60 ? '1.5s' : '2.5s'}" repeatCount="indefinite" begin="1.2s"/>
+                        <animate attributeName="opacity" values="0.7; 0.9; 0" dur="{heat > 60 ? '1.5s' : '2.5s'}" repeatCount="indefinite" begin="1.2s"/>
+                    </circle>
+                    <circle cx="110" cy="80" r="5" fill={heat > 60 ? "#fdcb6e" : "#55efc4"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
+                        <animate attributeName="cy" values="84; 58; 46" dur="{heat > 60 ? '1.1s' : '1.9s'}" repeatCount="indefinite" begin="1.6s"/>
+                        <animate attributeName="r" values="3; 6; 1" dur="{heat > 60 ? '1.1s' : '1.9s'}" repeatCount="indefinite" begin="1.6s"/>
+                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '1.1s' : '1.9s'}" repeatCount="indefinite" begin="1.6s"/>
+                    </circle>
+                </g>
+            </g>
+        </svg>
+    </div>
 </div>
 
 <!-- Render floating text using Svelte {#each} loop -->
@@ -120,7 +223,17 @@
         style="left: {effect.x - 10 + effect.offsetX}px; top: {effect.y - 20}px;"
     >
         {#if effect.isCrystal}
-            <span style="font-size: 1.5rem; filter: drop-shadow(0 0 5px #0984e3);">💎+1</span>
+            <span class="crystal-float">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <polygon points="12,2 22,9 18,22 6,22 2,9" fill="#00cec9" stroke="#74b9ff" stroke-width="1.5"/>
+                    <polygon points="12,2 18,9 12,22 6,9" fill="#81ecec" opacity="0.6"/>
+                </svg>
+                +1
+            </span>
+        {:else if effect.isCrit}
+            <span class="crit-text">КРИТ! +{formatNumber(effect.value)}</span>
+        {:else if effect.isCombo}
+            <span class="combo-text">+{formatNumber(effect.value)}</span>
         {:else}
             +{formatNumber(effect.value)}
         {/if}
@@ -128,13 +241,80 @@
 {/each}
 
 <style>
+    .cauldron-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    .heat-gauge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        margin-bottom: -10px;
+        z-index: 10;
+    }
+
+    .heat-gauge.visible {
+        opacity: 1;
+    }
+
+    .heat-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 3px 10px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .heat-text {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #ffeaa7;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        letter-spacing: 0.5px;
+    }
+
+    .heat-text.hot {
+        color: #ff7675;
+        text-shadow: 0 0 8px #d63031;
+        animation: pulse 0.6s infinite alternate;
+    }
+
+    @keyframes pulse {
+        from { transform: scale(1); }
+        to { transform: scale(1.08); }
+    }
+
+    .heat-track {
+        width: 110px;
+        height: 6px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+    }
+
+    .heat-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.1s ease-out;
+    }
+
     .cauldron-container {
         display: flex;
         justify-content: center;
         align-items: center;
         cursor: pointer;
-        width: 100%;
-        height: 100%;
         user-select: none;
         -webkit-user-select: none;
         outline: none;
@@ -156,5 +336,41 @@
         pointer-events: none;
         z-index: 1000;
         will-change: transform, opacity;
+    }
+
+    .crystal-float {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 1.5rem;
+        color: #81ecec;
+        filter: drop-shadow(0 0 6px #0984e3);
+    }
+
+    .crit-text {
+        color: #ffeaa7;
+        font-size: 2.2rem;
+        font-weight: 900;
+        text-shadow: 
+            0 0 8px #ff7675,
+            0 0 16px #d63031,
+            -1px -1px 0 #d63031,
+             1px  1px 0 #2d3436;
+        animation: crit-pop 0.3s ease-out;
+    }
+
+    .combo-text {
+        color: #ffeaa7;
+        font-size: 1.9rem;
+        text-shadow: 
+            0 0 8px #f39c12,
+            -1px -1px 0 #d35400,
+             1px  1px 0 #2d3436;
+    }
+
+    @keyframes crit-pop {
+        0% { transform: scale(0.6); }
+        50% { transform: scale(1.25); }
+        100% { transform: scale(1); }
     }
 </style>

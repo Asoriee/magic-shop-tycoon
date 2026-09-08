@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import gsap from 'gsap';
 
-    // Generate star and bubble positions ONCE at module init — not on every render
+    // Generate star and bubble positions ONCE at module init
     const stars = Array.from({ length: 200 }, () => ({
         cx: Math.random() * 2000 - 500,
         cy: Math.random() * 2000 - 500,
@@ -10,11 +10,13 @@
         opacity: Math.random() * 0.8 + 0.2
     }));
 
-    const bubbles = Array.from({ length: 20 }, () => ({
+    const bubbleColors = ['#a29bfe', '#74b9ff', '#fd79a8', '#55efc4', '#ffeaa7'];
+
+    const bubbles = Array.from({ length: 32 }, () => ({
         cx: Math.random() * 1000,
-        r: Math.random() * 15 + 5,
-        delay: Math.random() * 10,
-        duration: Math.random() * 10 + 10
+        r: Math.random() * 12 + 8, // 8px to 20px radius for clear visibility
+        color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
+        duration: Math.random() * 8 + 7 // 7 to 15 seconds
     }));
 
     let starsLayer: SVGGElement;
@@ -33,30 +35,44 @@
 
         // Layer 2: Runes/Fog opacity pulsation
         gsap.to(runesLayer, {
-            opacity: 0.3,
+            opacity: 0.4,
             duration: 4,
             yoyo: true,
             repeat: -1,
             ease: 'sine.inOut'
         });
 
-        // Layer 3: Bubbles — use CSS animation via GSAP stagger for efficiency
-        const bubbleEls = bubblesLayer.querySelectorAll('circle');
-        bubbleEls.forEach((bubble, i) => {
-            const dur = bubbles[i].duration;
-            const delay = bubbles[i].delay;
-            gsap.fromTo(bubble, 
-                { y: 1100, opacity: 0 },
-                {
-                    y: -100,
-                    opacity: 0.6,
-                    duration: dur,
+        // Layer 3: Bubbles — immediate distribution across viewport
+        if (bubblesLayer) {
+            const bubbleGroups = bubblesLayer.querySelectorAll('.bubble-group');
+            bubbleGroups.forEach((group, i) => {
+                const dur = bubbles[i]?.duration || 10;
+                
+                // Vertical rise
+                const tween = gsap.fromTo(group, 
+                    { y: 1050, opacity: 0 },
+                    {
+                        y: -80,
+                        opacity: 0.85,
+                        duration: dur,
+                        repeat: -1,
+                        ease: 'none'
+                    }
+                );
+                
+                // Immediately distribute across the height so bubbles are visible right on load!
+                tween.progress(Math.random());
+
+                // Horizontal gentle sway
+                gsap.to(group, {
+                    x: `+=${(Math.random() - 0.5) * 50}`,
+                    duration: 2.5 + Math.random() * 2,
+                    yoyo: true,
                     repeat: -1,
-                    delay: delay,
-                    ease: 'none'
-                }
-            );
-        });
+                    ease: 'sine.inOut'
+                });
+            });
+        }
     });
 </script>
 
@@ -65,6 +81,13 @@
         <defs>
             <filter id="fog" x="-20%" y="-20%" width="140%" height="140%">
                 <feGaussianBlur stdDeviation="30" />
+            </filter>
+            <filter id="bubbleGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+                <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                </feMerge>
             </filter>
         </defs>
 
@@ -88,18 +111,30 @@
             <path d="M 150 700 L 250 700 L 200 800 Z" fill="none" stroke="#fab1a0" stroke-width="6" opacity="0.6"/>
         </g>
 
-        <!-- Layer 3: Bubbles — pre-generated, reduced to 20 for performance -->
+        <!-- Layer 3: Bubbles with glowing gradient and shine -->
         <g bind:this={bubblesLayer}>
             {#each bubbles as bubble}
-                <circle 
-                    cx={bubble.cx}
-                    cy="0" 
-                    r={bubble.r}
-                    fill="none" 
-                    stroke="rgba(255, 255, 255, 0.4)" 
-                    stroke-width="2"
-                    style="will-change: transform, opacity"
-                />
+                <g class="bubble-group" filter="url(#bubbleGlow)">
+                    <!-- Bubble body with translucent fill and vibrant colored stroke -->
+                    <circle 
+                        cx={bubble.cx}
+                        cy="0" 
+                        r={bubble.r}
+                        fill={bubble.color}
+                        fill-opacity="0.22"
+                        stroke={bubble.color} 
+                        stroke-width="2.5"
+                        stroke-opacity="0.85"
+                    />
+                    <!-- Bubble highlight reflection -->
+                    <circle 
+                        cx={bubble.cx - bubble.r * 0.35}
+                        cy={-bubble.r * 0.35}
+                        r={bubble.r * 0.28}
+                        fill="#ffffff"
+                        opacity="0.75"
+                    />
+                </g>
             {/each}
         </g>
     </svg>
@@ -108,11 +143,10 @@
 <style>
     .parallax-bg {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: -1;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
         pointer-events: none;
         overflow: hidden;
         background: radial-gradient(circle at center, #1e1e38 0%, #0a0a14 100%);

@@ -28,14 +28,20 @@ export interface Quest {
     isClaimed: boolean;
 }
 
+export type UpgradeType = 'click' | 'idle' | 'crit' | 'resonance' | 'heat' | 'hearth';
+export type UpgradeCategory = 'production' | 'click' | 'mastery';
+
 export interface Upgrade {
     id: string;
     name: string;
-    type: 'click' | 'idle';
+    description: string;
+    type: UpgradeType;
+    category: UpgradeCategory;
     baseCost: number;
     costMultiplier: number;
     baseValue: number;
     level: number;
+    iconSvg: string;
 }
 
 export interface SecretUpgrade {
@@ -138,6 +144,7 @@ export interface GameState {
     lastOrderSpawnTime: number;
     activeBuffs: ActiveBuff[];
     unlockedCollections: string[];
+    lastFreeChestTime?: number;
 }
 
 // ============================================================
@@ -485,10 +492,175 @@ export function openChest(chestType: ChestType): Ingredient[] {
 // ============================================================
 
 const defaultUpgrades: Upgrade[] = [
-    { id: 'click1', name: 'Магическая ложка', type: 'click', baseCost: 15, costMultiplier: 1.65, baseValue: 1, level: 0 },
-    { id: 'idle1',  name: 'Авто-помешивание', type: 'idle',  baseCost: 15, costMultiplier: 1.30, baseValue: 1, level: 0 },
-    { id: 'idle2',  name: 'Призыв духа огня', type: 'idle',  baseCost: 250, costMultiplier: 1.35, baseValue: 5, level: 0 },
-    { id: 'click2', name: 'Слова Силы',        type: 'click', baseCost: 500, costMultiplier: 1.70, baseValue: 10, level: 0 }
+    // --- Производство (Пассивный доход) ---
+    {
+        id: 'idle1',
+        name: 'Чародейский половник',
+        description: 'Автоматически помешивает зелье в котле без перерыва.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 15,
+        costMultiplier: 1.30,
+        baseValue: 1,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="14" cy="28" rx="8" ry="6" fill="#74b9ff" stroke="#0984e3" stroke-width="2"/><path d="M18 24 L32 8" stroke="#dfe6e9" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="8" r="3" fill="#f1c40f"/><path d="M12 26 Q14 20 18 22" stroke="white" stroke-width="1.5" fill="none"/></svg>`
+    },
+    {
+        id: 'click1',
+        name: 'Магическая ложка',
+        description: 'Увеличивает силу каждого ручного клика по котлу.',
+        type: 'click',
+        category: 'click',
+        baseCost: 20,
+        costMultiplier: 1.30,
+        baseValue: 1,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="14" cy="28" rx="7" ry="5" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/><path d="M18 24 L34 8" stroke="#f39c12" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="8" r="3" fill="#e74c3c"/></svg>`
+    },
+    {
+        id: 'idle_apprentice',
+        name: 'Младший Ученик',
+        description: 'Прилежный ассистент фасует порошки и убирает лавку.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 100,
+        costMultiplier: 1.30,
+        baseValue: 6,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><circle cx="20" cy="16" r="6" fill="#ffeaa7"/><polygon points="12,12 28,12 20,2" fill="#6c5ce7"/><ellipse cx="20" cy="12" rx="10" ry="2" fill="#a29bfe"/><path d="M14 22 L26 22 L28 36 L12 36 Z" fill="#6c5ce7"/><circle cx="18" cy="16" r="1" fill="#2d3436"/><circle cx="22" cy="16" r="1" fill="#2d3436"/></svg>`
+    },
+    {
+        id: 'click_gloves',
+        name: 'Перчатки Алхимика',
+        description: 'Руническая кожа защищает руки и ускоряет процесс.',
+        type: 'click',
+        category: 'click',
+        baseCost: 200,
+        costMultiplier: 1.30,
+        baseValue: 5,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M12 18 C12 14 16 12 20 12 C24 12 28 14 28 18 L28 32 C28 34 26 36 24 36 L16 36 C14 36 12 34 12 32 Z" fill="#e17055" stroke="#d63031" stroke-width="2"/><path d="M12 22 L8 26 C7 27 7 29 8 30 C9 31 11 31 12 30 L15 27" fill="#e17055" stroke="#d63031" stroke-width="2"/><line x1="16" y1="28" x2="24" y2="28" stroke="#f1c40f" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#f1c40f"/></svg>`
+    },
+    {
+        id: 'idle2',
+        name: 'Огненный Саламандр',
+        description: 'Дух пламени поддерживает идеальную температуру варки.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 750,
+        costMultiplier: 1.30,
+        baseValue: 35,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M10 28 Q15 8 28 8 Q22 18 30 30 Q20 24 10 28Z" fill="#ff7675" stroke="#d63031" stroke-width="2"/><circle cx="26" cy="10" r="2.5" fill="#f1c40f"/><path d="M16 22 Q20 14 24 22" stroke="#ffeaa7" stroke-width="2" fill="none"/></svg>`
+    },
+    {
+        id: 'click2',
+        name: 'Слова Силы',
+        description: 'Древние рунические заклинания резонируют с кипящим котлом.',
+        type: 'click',
+        category: 'click',
+        baseCost: 1500,
+        costMultiplier: 1.30,
+        baseValue: 25,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="8" y="10" width="24" height="22" rx="3" fill="#2d3436" stroke="#f1c40f" stroke-width="2"/><path d="M20 10 L20 32" stroke="#f1c40f" stroke-width="2"/><line x1="12" y1="16" x2="16" y2="16" stroke="#e74c3c" stroke-width="1.5"/><line x1="12" y1="22" x2="17" y2="22" stroke="#e74c3c" stroke-width="1.5"/><line x1="24" y1="16" x2="28" y2="16" stroke="#74b9ff" stroke-width="1.5"/><line x1="23" y1="22" x2="28" y2="22" stroke="#74b9ff" stroke-width="1.5"/></svg>`
+    },
+    {
+        id: 'idle_distiller',
+        name: 'Алхимический Дистиллятор',
+        description: 'Медные змеевики очищают эликсиры до безупречной чистоты.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 5000,
+        costMultiplier: 1.30,
+        baseValue: 220,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><circle cx="16" cy="26" r="10" fill="#d35400" stroke="#e67e22" stroke-width="2"/><rect x="14" y="10" width="4" height="8" fill="#e67e22"/><path d="M16 10 C16 4 28 4 28 14 L28 28 L32 30" stroke="#f39c12" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="16" cy="26" r="4" fill="#f1c40f" opacity="0.8"/></svg>`
+    },
+    {
+        id: 'click_crit',
+        name: 'Критический Всплеск',
+        description: '+3% шанс нанести сокрушительный критический клик с множителем x5!',
+        type: 'crit',
+        category: 'click',
+        baseCost: 8000,
+        costMultiplier: 1.30,
+        baseValue: 3,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,2 24,14 36,14 26,22 30,34 20,26 10,34 14,22 4,14 16,14" fill="#f1c40f" stroke="#e67e22" stroke-width="2"/><polygon points="20,8 22,15 30,15 24,20 26,28 20,23 14,28 16,20 10,15 18,15" fill="#e74c3c"/></svg>`
+    },
+    {
+        id: 'idle_greenhouse',
+        name: 'Зачарованная Теплица',
+        description: 'Волшебный свет ускоряет созревание мандрагор и редких трав.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 35000,
+        costMultiplier: 1.30,
+        baseValue: 1400,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,6 34,16 34,34 6,34 6,16" fill="#81ecec" stroke="#00cec9" stroke-width="2" fill-opacity="0.4"/><line x1="20" y1="6" x2="20" y2="34" stroke="#00cec9" stroke-width="1.5"/><line x1="6" y1="16" x2="34" y2="16" stroke="#00cec9" stroke-width="1.5"/><path d="M16 34 Q16 22 20 22 Q24 22 24 34" fill="#2ecc71"/><circle cx="20" cy="20" r="3" fill="#f1c40f"/></svg>`
+    },
+    {
+        id: 'click_resonance',
+        name: 'Катализатор Резонанса',
+        description: 'Прибавляет +1% от текущего дохода в сек. к каждому клику!',
+        type: 'resonance',
+        category: 'click',
+        baseCost: 50000,
+        costMultiplier: 1.30,
+        baseValue: 1,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,4 28,18 20,36 12,18" fill="#a29bfe" stroke="#6c5ce7" stroke-width="2"/><line x1="20" y1="4" x2="20" y2="36" stroke="white" stroke-width="1.5" opacity="0.6"/><circle cx="6" cy="20" r="3" fill="none" stroke="#fd79a8" stroke-width="1.5"/><circle cx="34" cy="20" r="3" fill="none" stroke="#fd79a8" stroke-width="1.5"/><path d="M8 16 Q10 20 8 24" stroke="#fd79a8" stroke-width="1.5" fill="none"/><path d="M32 16 Q30 20 32 24" stroke="#fd79a8" stroke-width="1.5" fill="none"/></svg>`
+    },
+    {
+        id: 'idle_homunculus',
+        name: 'Цех Гомункулов',
+        description: 'Искусственные алхимические рабочие варят оптовые партии зелий.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 250000,
+        costMultiplier: 1.30,
+        baseValue: 9000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="12" y="10" width="16" height="24" rx="8" fill="#a29bfe" stroke="#6c5ce7" stroke-width="2" fill-opacity="0.4"/><circle cx="20" cy="20" r="4" fill="#fd79a8"/><circle cx="18" cy="19" r="1" fill="#2d3436"/><circle cx="22" cy="19" r="1" fill="#2d3436"/><ellipse cx="20" cy="28" rx="5" ry="3" fill="#6c5ce7"/><rect x="16" y="6" width="8" height="4" rx="1" fill="#d63031"/></svg>`
+    },
+    {
+        id: 'idle_rift',
+        name: 'Астральный Разлом',
+        description: 'Портал напрямую выкачивает чистую ману эфира в вашу казну.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 2000000,
+        costMultiplier: 1.30,
+        baseValue: 60000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="20" cy="20" rx="18" ry="8" stroke="#fd79a8" stroke-width="2" transform="rotate(-30 20 20)"/><ellipse cx="20" cy="20" rx="14" ry="6" stroke="#a29bfe" stroke-width="2" transform="rotate(30 20 20)"/><circle cx="20" cy="20" r="5" fill="#2d1b4e" stroke="#ffeaa7" stroke-width="1.5"/><circle cx="20" cy="20" r="2" fill="#ffeaa7"/></svg>`
+    },
+    {
+        id: 'idle_hearth',
+        name: 'Укрепленный Очаг',
+        description: 'Магический очаг удерживает жар: увеличивает максимальное время офлайн-дохода (+1 час за уровень).',
+        type: 'hearth',
+        category: 'mastery',
+        baseCost: 12000,
+        costMultiplier: 1.30,
+        baseValue: 1,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="8" y="24" width="24" height="12" rx="3" fill="#636e72" stroke="#2d3436" stroke-width="2"/><path d="M14 24 Q20 12 26 24" fill="#2d3436"/><path d="M16 26 Q20 16 24 26" fill="#e17055"/><circle cx="20" cy="24" r="3" fill="#f1c40f"/><path d="M12 12 Q20 4 28 12" stroke="#e67e22" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`
+    },
+    {
+        id: 'click_heat',
+        name: 'Магический Разогрев',
+        description: 'Серия быстрых кликов разжигает котёл: ускоряет нагрев, замедляет остывание и даёт до +150% к комбо-множителю!',
+        type: 'heat',
+        category: 'mastery',
+        baseCost: 25000,
+        costMultiplier: 1.30,
+        baseValue: 1,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M20 4 C16 12 10 16 10 24 C10 30 14 36 20 36 C26 36 30 30 30 24 C30 18 26 12 20 4 Z" fill="#ff7675" stroke="#d63031" stroke-width="2"/><path d="M20 14 C17 19 14 22 14 27 C14 30 17 33 20 33 C23 33 26 30 26 27 C26 23 23 19 20 14 Z" fill="#f1c40f"/><circle cx="20" cy="28" r="3" fill="#fff"/></svg>`
+    }
 ];
 
 const defaultSecretUpgrades: SecretUpgrade[] = [
@@ -504,57 +676,57 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         id: 0,
         name: 'Свиток жадности',
         description: '+20% к пассивному доходу',
-        cost: 5,
+        cost: 50,
         svg: `<svg viewBox="0 0 100 100"><rect x="30" y="10" width="40" height="80" fill="#f1c40f" rx="5"/><line x1="35" y1="20" x2="65" y2="20" stroke="#d35400" stroke-width="4"/><line x1="35" y1="35" x2="65" y2="35" stroke="#d35400" stroke-width="4"/><line x1="35" y1="50" x2="65" y2="50" stroke="#d35400" stroke-width="4"/></svg>`
     },
     {
         id: 1,
         name: 'Кольцо мощи',
-        description: '+15% к клику',
-        cost: 15,
+        description: '+20% к силе клика',
+        cost: 150,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#f39c12" stroke-width="10"/><circle cx="50" cy="20" r="12" fill="#e74c3c"/></svg>`
     },
     {
         id: 2,
         name: 'Амулет времени',
-        description: 'Увеличивает макс. время офлайн-дохода',
-        cost: 50,
+        description: 'Увеличивает макс. время офлайн-дохода до 12 ч',
+        cost: 500,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#34495e" stroke="#ecf0f1" stroke-width="5"/><circle cx="50" cy="50" r="3" fill="#ecf0f1"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="65" y2="65" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/></svg>`
     },
     // Archmage Set
     {
         id: 3,
         name: 'Мантия Архимага',
-        description: '+30% к пассивному доходу',
-        cost: 150,
+        description: '+35% к пассивному доходу',
+        cost: 1500,
         svg: `<svg viewBox="0 0 100 100"><path d="M50 10 L80 90 L20 90 Z" fill="#9b59b6" stroke="#8e44ad" stroke-width="3"/><path d="M50 10 L65 90 L35 90 Z" fill="#8e44ad"/><circle cx="50" cy="40" r="8" fill="#f1c40f"/></svg>`
     },
     {
         id: 4,
         name: 'Посох Архимага',
-        description: '+50% к клику',
-        cost: 200,
+        description: '+60% к силе клика',
+        cost: 3000,
         svg: `<svg viewBox="0 0 100 100"><rect x="45" y="20" width="10" height="70" fill="#7f8c8d" rx="4"/><circle cx="50" cy="15" r="12" fill="#3498db" stroke="#2980b9" stroke-width="4"/><circle cx="50" cy="15" r="5" fill="#ecf0f1"/></svg>`
     },
     {
         id: 5,
         name: 'Шляпа Архимага',
-        description: '+1 час макс. офлайн-времени',
-        cost: 250,
+        description: '+2 часа к макс. офлайн-времени',
+        cost: 5000,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="80" rx="40" ry="10" fill="#2c3e50"/><polygon points="20,75 80,75 50,10" fill="#34495e"/><polygon points="35,75 65,75 50,10" fill="#2c3e50"/><path d="M30 70 Q50 85 70 70" fill="none" stroke="#f1c40f" stroke-width="4"/></svg>`
     },
     {
         id: 6,
         name: 'Кольцо Архимага',
-        description: '+25% к пассивному доходу',
-        cost: 300,
+        description: '+35% к пассивному доходу',
+        cost: 8000,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#9b59b6" stroke-width="8"/><circle cx="50" cy="20" r="14" fill="#3498db" stroke="#2980b9" stroke-width="3"/><polygon points="50,10 55,20 65,25 55,30 50,40 45,30 35,25 45,20" fill="#ecf0f1" opacity="0.8"/></svg>`
     },
     {
         id: 7,
         name: 'Око Архимага',
         description: '+100% к пассивному доходу',
-        cost: 500,
+        cost: 15000,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="25" fill="#ecf0f1" stroke="#f39c12" stroke-width="5"/><circle cx="50" cy="50" r="18" fill="#e74c3c"/><circle cx="50" cy="50" r="6" fill="#c0392b"/><circle cx="55" cy="45" r="4" fill="white"/></svg>`
     }
 ];
@@ -620,7 +792,8 @@ const defaultState: GameState = {
     activeOrders: [],
     lastOrderSpawnTime: Date.now(),
     activeBuffs: [],
-    unlockedCollections: []
+    unlockedCollections: [],
+    lastFreeChestTime: 0
 };
 
 // --- Premium stores ---
@@ -647,6 +820,7 @@ function createGameStore() {
         update,
         addGold:        (amount: number) => update(state => ({ ...state, gold: state.gold + amount })),
         setLastSaveTime:(time: number)   => update(state => ({ ...state, lastSaveTime: time })),
+        recordFreeChest:() => update(state => ({ ...state, lastFreeChestTime: Date.now() })),
         checkDailyQuests: () => update(state => {
             const today = new Date().toISOString().split('T')[0];
             if (state.lastQuestDate !== today) {
@@ -733,6 +907,16 @@ function createGameStore() {
             }
             return state;
         }),
+        buyUpgradeBulk: (id: string, count: number, totalCost: number) => update(state => {
+            const upgradeIndex = state.upgrades.findIndex(u => u.id === id);
+            if (upgradeIndex !== -1 && count > 0 && state.gold >= totalCost) {
+                const upgrade = state.upgrades[upgradeIndex];
+                const newUpgrades = [...state.upgrades];
+                newUpgrades[upgradeIndex] = { ...upgrade, level: upgrade.level + count };
+                return { ...state, gold: state.gold - totalCost, upgrades: newUpgrades };
+            }
+            return state;
+        }),
         buySecretUpgrade: (id: string) => {
         update(state => {
             const upgradeIndex = state.secretUpgrades.findIndex(u => u.id === id);
@@ -815,7 +999,7 @@ function createGameStore() {
             const newOrder: CustomerOrder = {
                 id: 'ord_' + Date.now() + Math.floor(Math.random() * 1000),
                 name: isVip ? vipNames[Math.floor(Math.random() * vipNames.length)] : names[Math.floor(Math.random() * names.length)],
-                icon: isVip ? '👑' : '🧙‍♂️',
+                icon: isVip ? 'vip' : 'mage',
                 requirements: reqs,
                 rewardGold,
                 rewardStardust,
@@ -895,14 +1079,36 @@ export const gameStore = createGameStore();
 // DERIVED STORES
 // ============================================================
 
-export const globalIdleMultiplier = derived([gameStore, isVip], ([$gameStore, $isVip]) => {
-    let multiplier = 1;
+export const totalUpgradeLevels = derived(gameStore, $gameStore => {
+    return $gameStore.upgrades.reduce((sum, u) => sum + u.level, 0);
+});
+
+export const milestoneInfo = derived(totalUpgradeLevels, $totalLevels => {
+    const tier = Math.floor($totalLevels / 25);
+    const multiplier = Math.pow(1.25, tier);
+    const progress = $totalLevels % 25;
+    const nextTarget = (tier + 1) * 25;
+    return {
+        tier,
+        multiplier,
+        progress,
+        nextTarget,
+        totalLevels: $totalLevels
+    };
+});
+
+export const heatBonusLevel = derived(gameStore, $gameStore => {
+    return $gameStore.upgrades.find(u => u.id === 'click_heat')?.level || 0;
+});
+
+export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
+    let multiplier = 1 * $milestone.multiplier;
     
     // Original artifacts
     if ($gameStore.artifacts.includes(0)) multiplier += 0.20; // Scroll of Greed
     // Archmage set artifacts
-    if ($gameStore.artifacts.includes(3)) multiplier += 0.30; // Archmage Robe
-    if ($gameStore.artifacts.includes(6)) multiplier += 0.25; // Archmage Ring
+    if ($gameStore.artifacts.includes(3)) multiplier += 0.35; // Archmage Robe
+    if ($gameStore.artifacts.includes(6)) multiplier += 0.35; // Archmage Ring
     if ($gameStore.artifacts.includes(7)) multiplier += 1.00; // Archmage Eye
     // Archmage Set Completion Bonus
     if ($gameStore.unlockedCollections.includes('archmage_set')) multiplier += 1.50;
@@ -921,13 +1127,13 @@ export const globalIdleMultiplier = derived([gameStore, isVip], ([$gameStore, $i
     return multiplier;
 });
 
-export const globalClickMultiplier = derived([gameStore, isVip], ([$gameStore, $isVip]) => {
-    let multiplier = 1;
+export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
+    let multiplier = 1 * $milestone.multiplier;
     
     // Original artifacts
-    if ($gameStore.artifacts.includes(1)) multiplier += 0.15; // Ring of Power
+    if ($gameStore.artifacts.includes(1)) multiplier += 0.20; // Ring of Power
     // Archmage set artifacts
-    if ($gameStore.artifacts.includes(4)) multiplier += 0.50; // Archmage Staff
+    if ($gameStore.artifacts.includes(4)) multiplier += 0.60; // Archmage Staff
     // Archmage Set Completion Bonus
     if ($gameStore.unlockedCollections.includes('archmage_set')) multiplier += 1.00;
     
@@ -945,11 +1151,15 @@ export const globalClickMultiplier = derived([gameStore, isVip], ([$gameStore, $
     return multiplier;
 });
 
-// Update max offline time to account for new artifacts
+// Update max offline time to account for new artifacts and hearth upgrade
 export const maxOfflineTimeHours = derived(gameStore, $gameStore => {
     let hours = 2; // base
-    if ($gameStore.artifacts.includes(2)) hours = 12; // Time Amulet
-    if ($gameStore.artifacts.includes(5)) hours += 1; // Archmage Hat
+    const hearthUpgrade = $gameStore.upgrades.find(u => u.id === 'idle_hearth');
+    if (hearthUpgrade && hearthUpgrade.level > 0) {
+        hours += hearthUpgrade.level; // +1 hour per level
+    }
+    if ($gameStore.artifacts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
+    if ($gameStore.artifacts.includes(5)) hours += 2; // Archmage Hat (+2 hours)
     return hours;
 });
 
@@ -966,13 +1176,162 @@ export const currentIdleIncome = derived([gameStore, globalIdleMultiplier], ([$g
     return totalIdle * $idleMult * familiarMultiplier;
 });
 
-export const currentClickPower = derived([gameStore, globalClickMultiplier], ([$gameStore, $clickMult]) => {
+export const critChance = derived(gameStore, ($gameStore) => {
+    const critUpgrade = $gameStore.upgrades.find(u => u.id === 'click_crit');
+    if (!critUpgrade || critUpgrade.level <= 0) return 0;
+    // 3% chance per level, capped at 50%
+    return Math.min(0.50, critUpgrade.level * 0.03);
+});
+
+export const resonanceBonus = derived([gameStore, currentIdleIncome], ([$gameStore, $idleIncome]) => {
+    const resUpgrade = $gameStore.upgrades.find(u => u.id === 'click_resonance');
+    if (!resUpgrade || resUpgrade.level <= 0) return 0;
+    // +1% of current idle income per level
+    return Math.floor($idleIncome * (resUpgrade.level * 0.01));
+});
+
+export const currentClickPower = derived([gameStore, globalClickMultiplier, resonanceBonus], ([$gameStore, $clickMult, $resonanceBonus]) => {
     let totalClick = 1;
     $gameStore.upgrades.forEach(u => {
         if (u.type === 'click') totalClick += u.baseValue * u.level;
     });
-    return totalClick * $clickMult;
+    return Math.max(1, Math.floor((totalClick + $resonanceBonus) * $clickMult));
 });
+
+export const readyOrdersCount = derived(
+    [gameStore, ingredientsCount, potionsCount],
+    ([$gameStore, $ingCounts, $potCounts]) => {
+        let count = 0;
+        for (const order of $gameStore.activeOrders) {
+            let canFulfill = true;
+            for (const req of order.requirements) {
+                if (req.type === 'ingredient') {
+                    if (($ingCounts[req.id] || 0) < req.count) { canFulfill = false; break; }
+                } else {
+                    if (($potCounts[req.id] || 0) < req.count) { canFulfill = false; break; }
+                }
+            }
+            if (canFulfill) count++;
+        }
+        return count;
+    }
+);
+
+export const unclaimedQuestsCount = derived(gameStore, $gameStore => {
+    return $gameStore.quests.filter(q => q.isCompleted && !q.isClaimed).length;
+});
+
+export const freeChestCooldownRemaining = derived(gameStore, $state => {
+    const last = $state.lastFreeChestTime || 0;
+    const cooldown = 20 * 60 * 1000;
+    const elapsed = Date.now() - last;
+    return Math.max(0, cooldown - elapsed);
+});
+
+export const isFreeChestReady = derived(freeChestCooldownRemaining, $rem => $rem === 0);
+
+export const finishedExpeditionsCount = derived(gameStore, $state => {
+    const now = Date.now();
+    return ($state.activeExpeditions || []).filter(e => now >= e.startTime + e.durationMs).length;
+});
+
+export const totalInventoryCount = derived([ingredientsCount, potionsCount], ([$ings, $pots]) => {
+    const ingTotal = Object.values($ings || {}).reduce((s, v) => s + v, 0);
+    const potTotal = Object.values($pots || {}).reduce((s, v) => s + v, 0);
+    return ingTotal + potTotal;
+});
+
+export const archmageProgress = derived(gameStore, $state => {
+    const required = [3, 4, 5, 6, 7];
+    const owned = required.filter(id => ($state.artifacts || []).includes(id)).length;
+    return {
+        owned,
+        total: required.length,
+        isCompleted: owned === required.length
+    };
+});
+
+export interface BulkBuyInfo {
+    count: number;
+    totalCost: number;
+    canAfford: boolean;
+}
+
+export function calculateBulkBuy(
+    upgrade: Upgrade,
+    countMode: '1' | '10' | 'max',
+    availableGold: number
+): BulkBuyInfo {
+    const r = upgrade.costMultiplier;
+    const base = upgrade.baseCost;
+    const level = upgrade.level;
+
+    if (countMode === '1') {
+        const cost = Math.floor(base * Math.pow(r, level));
+        return {
+            count: 1,
+            totalCost: cost,
+            canAfford: availableGold >= cost
+        };
+    }
+
+    if (countMode === '10') {
+        let totalCost = 0;
+        for (let i = 0; i < 10; i++) {
+            totalCost += Math.floor(base * Math.pow(r, level + i));
+        }
+        return {
+            count: 10,
+            totalCost,
+            canAfford: availableGold >= totalCost
+        };
+    }
+
+    // 'max' mode: buy as many as possible
+    const singleCost = Math.floor(base * Math.pow(r, level));
+    if (availableGold < singleCost) {
+        return {
+            count: 1,
+            totalCost: singleCost,
+            canAfford: false
+        };
+    }
+
+    // Estimate k with geometric series
+    let k = Math.floor(
+        Math.log(1 + (availableGold * (r - 1)) / (base * Math.pow(r, level))) / Math.log(r)
+    );
+    k = Math.max(1, Math.min(k, 1000));
+
+    // Compute exact cost for k
+    let totalCost = 0;
+    for (let i = 0; i < k; i++) {
+        totalCost += Math.floor(base * Math.pow(r, level + i));
+    }
+
+    // Adjust if overshot due to floor differences
+    while (totalCost > availableGold && k > 1) {
+        totalCost -= Math.floor(base * Math.pow(r, level + k - 1));
+        k--;
+    }
+
+    // Adjust if undershot and can afford one more
+    while (k < 1000) {
+        const nextCost = Math.floor(base * Math.pow(r, level + k));
+        if (totalCost + nextCost <= availableGold) {
+            totalCost += nextCost;
+            k++;
+        } else {
+            break;
+        }
+    }
+
+    return {
+        count: k,
+        totalCost,
+        canAfford: true
+    };
+}
 
 // ============================================================
 // TIME-SKIP

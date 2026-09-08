@@ -1,6 +1,16 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import { gameStore, currentIdleIncome, maxOfflineTimeHours, formatNumber, crystals, isVip } from './store';
+    import { 
+        gameStore, 
+        currentIdleIncome, 
+        maxOfflineTimeHours, 
+        formatNumber, 
+        crystals, 
+        isVip,
+        readyOrdersCount,
+        unclaimedQuestsCount,
+        finishedExpeditionsCount
+    } from './store';
     import { initYandexSdk, saveGame, isAdActive, showInterstitialAd } from './yandex-sdk';
     import Cauldron from './components/Cauldron.svelte';
     import OfflineIncomePopup from './components/OfflineIncomePopup.svelte';
@@ -25,7 +35,7 @@
     let isReady = false;
     let gameLoop: number;
 
-    $: hasUnclaimedQuests = $gameStore.quests.some(q => q.isCompleted && !q.isClaimed);
+    $: totalCityNotifications = $readyOrdersCount + $unclaimedQuestsCount;
 
     onMount(async () => {
         // Init SDK and load game
@@ -80,27 +90,50 @@
     <ParallaxBackground />
     
     <div class="top-panel">
-        <div class="resource-box">
-            <span class="icon">💰</span>
+        <div class="resource-box gold-box" title="Золото">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="5" fill="#f39c12"/>
+                </svg>
+            </span>
             <span class="value">{formatNumber($gameStore.gold)}</span>
         </div>
-        <div class="resource-box">
-            <span class="icon">📈</span>
+        <div class="resource-box income-box" title="Пассивный доход в секунду">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <path d="M4 18 L9 13 L13 17 L20 7" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="15,7 20,7 20,12" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
             <span class="value">{formatNumber($currentIdleIncome)}/сек</span>
         </div>
         {#if $gameStore.stardust > 0 || $gameStore.artifacts.length > 0}
-        <div class="resource-box stardust-box">
-            <span class="icon">✨</span>
+        <div class="resource-box stardust-box" title="Звездная пыль">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
+                </svg>
+            </span>
             <span class="value">{formatNumber($gameStore.stardust)}</span>
         </div>
         {/if}
-        <div class="resource-box crystals-box" title="Откройте Премиум внизу экрана, чтобы купить больше!">
-            <span class="icon">💎</span>
+        <div class="resource-box crystals-box" title="Кристаллы">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
+                </svg>
+            </span>
             <span class="value">{formatNumber($crystals)}</span>
         </div>
         {#if $isVip}
-        <div class="resource-box vip-box">
-            <span class="icon">👑</span>
+        <div class="resource-box vip-box" title="VIP">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <path d="M4 17 L20 17 L22 8 L17 12 L12 4 L7 12 L2 8 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                    <circle cx="12" cy="17" r="1.5" fill="#e74c3c"/>
+                </svg>
+            </span>
             <span class="value">VIP</span>
         </div>
         {/if}
@@ -115,8 +148,10 @@
         </button>
 
         <button class="hub-btn city-btn" on:click={() => isCityOpen = true} title="Городской Рынок">
-            {#if hasUnclaimedQuests}
-                <div class="notification-dot"></div>
+            {#if totalCityNotifications > 0}
+                <div class="hub-badge" class:pulse={$readyOrdersCount > 0}>
+                    {totalCityNotifications}
+                </div>
             {/if}
             <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
                 <path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14.1,7.7 15.8,9.4 15.8,11.5C15.8,14.5 12,18 12,18C12,18 8.2,14.5 8.2,11.5C8.2,9.4 9.9,7.7 12,7.7Z" />
@@ -125,6 +160,11 @@
         </button>
 
         <button class="hub-btn grimoire-btn" on:click={() => isGrimoireOpen = true} title="Гримуар">
+            {#if $finishedExpeditionsCount > 0}
+                <div class="hub-badge pulse">
+                    {$finishedExpeditionsCount}
+                </div>
+            {/if}
             <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
                 <path d="M21,5C19.89,4.65 18.67,4.5 17.5,4.5C15.55,4.5 13.45,4.9 12,6C10.55,4.9 8.45,4.5 6.5,4.5C4.55,4.5 2.45,4.9 1,6V20.65C1,20.9 1.25,21.15 1.5,21.15C1.6,21.15 1.65,21.1 1.75,21.1C3.1,20.45 5.05,20 6.5,20C8.45,20 10.55,20.4 12,21.5C13.35,20.65 15.8,20 17.5,20C19.1,20 20.65,20.25 22.2,21C22.3,21.05 22.4,21.1 22.5,21.1C22.75,21.1 23,20.85 23,20.6V6C22.4,5.55 21.75,5.25 21,5M21,18.5C19.9,18.15 18.75,18 17.5,18C15.8,18 13.35,18.65 12,19.5V8C13.35,7.15 15.8,6.5 17.5,6.5C18.75,6.5 19.9,6.65 21,7V18.5Z" />
             </svg>
@@ -194,9 +234,12 @@
     main {
         display: flex;
         flex-direction: column;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
         background: transparent;
+        position: relative;
+        overflow: hidden;
     }
 
     .top-panel {
@@ -297,15 +340,36 @@
     }
     .vip-box .value { color: #f1c40f; }
 
-    .notification-dot {
+    .hub-badge {
         position: absolute;
-        top: -5px;
-        right: -5px;
-        width: 14px;
-        height: 14px;
+        top: -6px;
+        right: -6px;
         background: #e74c3c;
-        border-radius: 50%;
-        border: 2px solid #d35400;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 800;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        box-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        box-sizing: border-box;
+        z-index: 5;
+    }
+
+    .hub-badge.pulse {
+        background: #2ecc71;
+        box-shadow: 0 0 12px rgba(46, 204, 113, 0.9);
+        animation: hubPulse 1.6s infinite ease-in-out;
+    }
+
+    @keyframes hubPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.18); }
     }
 
     .stardust-box .value {
@@ -318,6 +382,7 @@
         justify-content: center;
         align-items: center;
         position: relative;
+        z-index: 1;
     }
 
     .loading {
@@ -344,5 +409,43 @@
 
     @keyframes spin {
         to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+        .top-panel {
+            padding: 10px 8px;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .resource-box {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            gap: 6px;
+        }
+
+        .hub-buttons {
+            bottom: 15px;
+            gap: 10px;
+            width: 96%;
+            max-width: 440px;
+            justify-content: center;
+        }
+
+        .hub-btn {
+            padding: 8px 10px;
+            border-radius: 14px;
+            font-size: 0.8rem;
+            gap: 4px;
+            flex: 1;
+            min-width: 65px;
+        }
+
+        .hub-btn svg {
+            width: 28px;
+            height: 28px;
+        }
     }
 </style>

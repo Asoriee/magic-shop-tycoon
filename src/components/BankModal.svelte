@@ -24,18 +24,18 @@
         try {
             await purchaseItem(itemId);
             if (itemId === 'pack_crystals_100') {
-                showMessage('✅ Вы получили 100 Кристаллов!');
+                showMessage('Вы получили 100 Кристаллов!');
             } else if (itemId === 'vip_status') {
-                showMessage('👑 VIP-статус активирован!');
+                showMessage('VIP-статус активирован!');
                 onClose();
             }
         } catch (e: any) {
             // User likely cancelled the payment
             const errMsg = e?.message || '';
             if (errMsg.toLowerCase().includes('cancel') || errMsg.toLowerCase().includes('closed')) {
-                showMessage('❌ Покупка отменена.');
+                showMessage('Покупка отменена.');
             } else {
-                showMessage('⚠️ Ошибка при покупке. Попробуйте позже.');
+                showMessage('Ошибка при покупке. Попробуйте позже.');
                 console.error('Purchase error:', e);
             }
         } finally {
@@ -52,40 +52,56 @@
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="modal" class:embedded-modal={isEmbedded} on:click|stopPropagation>
 
-        <div class="modal-header">
-            <div class="header-icon">
-                <svg viewBox="0 0 80 60" width="50" height="38">
-                    <rect x="5" y="28" width="70" height="27" rx="5" fill="#8B4513"/>
-                    <rect x="5" y="28" width="70" height="8" rx="2" fill="#5C2E00"/>
-                    <rect x="5" y="5" width="70" height="25" rx="5" fill="#A0522D"/>
-                    <rect x="5" y="5" width="70" height="8" rx="2" fill="#7A3B1E"/>
-                    <!-- Lock -->
-                    <rect x="30" y="24" width="20" height="14" rx="4" fill="#FFD700"/>
-                    <circle cx="40" cy="28" r="5" fill="#B8860B" stroke="#FFD700" stroke-width="1.5"/>
-                    <!-- Straps -->
-                    <rect x="5" y="28" width="70" height="4" fill="#D4AC6E" opacity="0.6"/>
-                    <rect x="5" y="14" width="70" height="4" fill="#D4AC6E" opacity="0.6"/>
-                    <!-- Jewels -->
-                    <circle cx="20" cy="16" r="4" fill="#e74c3c" opacity="0.9"/>
-                    <circle cx="60" cy="16" r="4" fill="#3498db" opacity="0.9"/>
-                </svg>
+        <div class="tab-header">
+            <div class="tab-title-row">
+                <div class="header-icon">
+                    <svg viewBox="0 0 80 60" width="40" height="30">
+                        <rect x="5" y="28" width="70" height="27" rx="5" fill="#8B4513"/>
+                        <rect x="5" y="28" width="70" height="8" rx="2" fill="#5C2E00"/>
+                        <rect x="5" y="5" width="70" height="25" rx="5" fill="#A0522D"/>
+                        <rect x="5" y="5" width="70" height="8" rx="2" fill="#7A3B1E"/>
+                        <!-- Lock -->
+                        <rect x="30" y="24" width="20" height="14" rx="4" fill="#FFD700"/>
+                        <circle cx="40" cy="28" r="5" fill="#B8860B" stroke="#FFD700" stroke-width="1.5"/>
+                        <!-- Straps -->
+                        <rect x="5" y="28" width="70" height="4" fill="#D4AC6E" opacity="0.6"/>
+                        <rect x="5" y="14" width="70" height="4" fill="#D4AC6E" opacity="0.6"/>
+                        <!-- Jewels -->
+                        <circle cx="20" cy="16" r="4" fill="#e74c3c" opacity="0.9"/>
+                        <circle cx="60" cy="16" r="4" fill="#3498db" opacity="0.9"/>
+                    </svg>
+                </div>
+                <h2 class="tab-title">Магическая Сокровищница</h2>
             </div>
-            <div class="header-text">
-                <h2>Магическая Сокровищница</h2>
-                <p class="header-sub">Приобретайте премиум-валюту и бонусы</p>
-            </div>
-            <button class="close-btn" on:click={onClose}>✕</button>
-        </div>
+            <p class="header-sub">Приобретайте премиум-валюту и бонусы</p>
 
-        <div class="balance-row">
-            <div class="balance-chip crystal">
-                <span>💎 {$crystals} кристаллов</span>
+            <div class="balance-row">
+                <div class="balance-chip crystal">
+                    <span class="icon">★</span>
+                    <span>{formatNumber($crystals)} кристаллов</span>
+                </div>
+                <div class="balance-chip gold">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none">
+                            <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="5" fill="#f39c12"/>
+                        </svg>
+                    </span>
+                    <span>{formatNumber($gameStore.gold)} золота</span>
+                </div>
+                {#if $isVip}
+                    <div class="vip-badge">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+                            <path d="M4 17 L20 17 L22 8 L17 12 L12 4 L7 12 L2 8 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                            <circle cx="12" cy="17" r="1.5" fill="#e74c3c"/>
+                        </svg>
+                        <span>VIP</span>
+                    </div>
+                {/if}
             </div>
-            <div class="balance-chip gold">
-                <span>🪙 {formatNumber($gameStore.gold)} золота</span>
-            </div>
-            {#if $isVip}
-                <div class="vip-badge">👑 VIP</div>
+
+            {#if !isEmbedded}
+                <button class="close-btn" on:click={onClose}>✕</button>
             {/if}
         </div>
 
@@ -165,13 +181,34 @@
                 <div class="item-info">
                     <h3>VIP Алхимик <span class="forever-tag">Навсегда</span></h3>
                     <ul class="vip-perks">
-                        <li>👑 Нет рекламы — награды сразу</li>
-                        <li>⚡ ×2 ко всему доходу (клик + пассивный)</li>
-                        <li>🔮 Доступ к эксклюзивным бустам</li>
+                        <li>
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                                <path d="M2 12 L14 12 L15 5 L11 8 L8 3 L5 8 L1 5 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1"/>
+                            </svg>
+                            <span>Нет рекламы — награды сразу</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                                <polygon points="9,1 2,9 7,9 6,15 14,7 8,7" fill="#ffeaa7" stroke="#f1c40f" stroke-width="1"/>
+                            </svg>
+                            <span>×2 ко всему доходу (клик + пассивный)</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                                <circle cx="8" cy="8" r="6" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
+                                <circle cx="6" cy="6" r="1.5" fill="#ffffff" opacity="0.7"/>
+                            </svg>
+                            <span>Доступ к эксклюзивным бустам</span>
+                        </li>
                     </ul>
                 </div>
                 {#if $isVip}
-                    <div class="owned-label">✅ Активирован</div>
+                    <div class="owned-label">
+                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,8 7,12 13,4"/>
+                        </svg>
+                        <span>Активирован</span>
+                    </div>
                 {:else}
                     <button 
                         class="buy-btn vip-btn" 
@@ -265,11 +302,14 @@
     .close-btn:hover { background: rgba(255,255,255,0.2); }
 
     .vip-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
         background: linear-gradient(90deg, #f1c40f, #e67e22);
         color: #1a0a2e;
         border-radius: 20px;
-        padding: 5px 12px;
-        font-size: 0.85rem;
+        padding: 4px 10px;
+        font-size: 0.82rem;
         font-weight: bold;
     }
 
@@ -378,6 +418,12 @@
         gap: 3px;
     }
 
+    .vip-perks li {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
     .buy-btn {
         grid-column: 2;
         padding: 10px 16px;
@@ -419,6 +465,7 @@
         font-size: 0.95rem;
         display: flex;
         align-items: center;
+        gap: 6px;
     }
 
     .spinner-small {

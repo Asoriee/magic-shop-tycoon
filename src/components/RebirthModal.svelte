@@ -44,21 +44,23 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="overlay" class:embedded={isEmbedded} bind:this={overlayEl} on:click={close}>
     <div class="modal" class:embedded-modal={isEmbedded} bind:this={modalEl} on:click|stopPropagation>
-        <div class="modal-header">
-            <div class="header-icon">
-                <svg viewBox="0 0 100 100" width="32" height="32">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e74c3c" stroke-width="6" stroke-dasharray="10 5" />
-                    <path d="M50 20 Q70 20 70 45 Q70 60 60 70 L60 80 L40 80 L40 70 Q30 60 30 45 Q30 20 50 20 Z" fill="#ecf0f1" />
-                    <circle cx="40" cy="45" r="8" fill="#2c3e50" />
-                    <circle cx="60" cy="45" r="8" fill="#2c3e50" />
-                    <path d="M45 75 L55 75 M48 70 L52 70" stroke="#2c3e50" stroke-width="3" />
-                </svg>
+        <div class="tab-header">
+            <div class="tab-title-row">
+                <div class="header-icon">
+                    <svg viewBox="0 0 100 100" width="32" height="32">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#e74c3c" stroke-width="6" stroke-dasharray="10 5" />
+                        <path d="M50 20 Q70 20 70 45 Q70 60 60 70 L60 80 L40 80 L40 70 Q30 60 30 45 Q30 20 50 20 Z" fill="#ecf0f1" />
+                        <circle cx="40" cy="45" r="8" fill="#2c3e50" />
+                        <circle cx="60" cy="45" r="8" fill="#2c3e50" />
+                        <path d="M45 75 L55 75 M48 70 L52 70" stroke="#2c3e50" stroke-width="3" />
+                    </svg>
+                </div>
+                <h2 class="tab-title">Тёмный Ритуал</h2>
             </div>
-            <div class="header-text">
-                <h2>Тёмный Ритуал</h2>
-                <p class="header-sub">Сброс прогресса ради могущества</p>
-            </div>
-            <button class="close-btn" on:click={close}>✕</button>
+            <p class="header-sub">Сброс прогресса ради могущества</p>
+            {#if !isEmbedded}
+                <button class="close-btn" on:click={close}>✕</button>
+            {/if}
         </div>
 
         <div class="ritual-content">
@@ -91,7 +93,13 @@
 
                 <div class="ritual-right">
                     <div class="sacrifice-box">
-                        <h4>🔴 Вы принесете в жертву:</h4>
+                        <h4 class="box-title">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                                <circle cx="12" cy="12" r="8" fill="#e74c3c" stroke="#c0392b" stroke-width="1.5"/>
+                                <line x1="8" y1="12" x2="16" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span>Вы принесете в жертву:</span>
+                        </h4>
                         <ul>
                             <li>Всё накопленное Золото</li>
                             <li>Все уровни улучшений</li>
@@ -99,9 +107,18 @@
                     </div>
 
                     <div class="reward-box">
-                        <h4>✨ Вы обретете навсегда:</h4>
+                        <h4 class="box-title">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                                <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                            </svg>
+                            <span>Вы обретете навсегда:</span>
+                        </h4>
                         <div class="reward">
-                            <span class="stardust-icon">✨</span>
+                            <span class="stardust-icon">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                                    <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
+                                </svg>
+                            </span>
                             <span class="stardust-amount">+{formatNumber(earnedStardust)}</span> Звездной пыли
                         </div>
                         <p class="reward-desc">Даст вечный бонус <strong>+{formatNumber(earnedStardust * 2)}%</strong> ко всем доходам!</p>
@@ -230,6 +247,15 @@
     .reward-box {
         border-left: 4px solid #f1c40f;
         background: linear-gradient(90deg, rgba(241, 196, 15, 0.1), rgba(0,0,0,0.3));
+    }
+
+    .box-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 0 10px 0;
+        font-size: 1.1rem;
+        color: #ecf0f1;
     }
 
     h4 {

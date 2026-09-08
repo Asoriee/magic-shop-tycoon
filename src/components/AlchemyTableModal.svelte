@@ -4,10 +4,10 @@
     import {
         ingredientsCount, crystals, failedBrewAttempts, unlockedRecipes,
         AVAILABLE_INGREDIENTS, AVAILABLE_POTIONS, RECIPES, HINT_COSTS,
-        brewPotion as doBrewPotion, buyRecipeHint,
-        type Rarity, formatNumber,
+        brewPotion as doBrewPotion, quickBrewRecipe, coolDownCauldron, buyRecipeHint,
+        type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
-    import { saveGame } from '../yandex-sdk';
+    import { saveGame, showRewardedAd } from '../yandex-sdk';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -19,11 +19,12 @@
     let flashEl:    HTMLElement;
 
     let slots: [string | null, string | null, string | null] = [null, null, null];
+    let lastResonanceMsg: string | null = null;
 
     type ToastType = 'success' | 'warning' | 'burn';
     let toast: { text: string; type: ToastType } | null = null;
     let toastTimer = 0;
-    function showToast(text: string, type: ToastType, ms = 3200) {
+    function showToast(text: string, type: ToastType, ms = 3500) {
         clearTimeout(toastTimer);
         toast = { text, type };
         toastTimer = window.setTimeout(() => (toast = null), ms);
@@ -82,36 +83,82 @@
         isBrewing = true;
         const result = doBrewPotion(slots as [string, string, string]);
 
-        if (result === 'success') {
+        if (result.status === 'success') {
             slots = [null, null, null];
+            lastResonanceMsg = null;
             gsap.timeline()
                 .to(cauldronEl, { y: -22, scale: 1.14, duration: 0.18, ease: 'power2.out' })
                 .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.55, ease: 'elastic.out(1, 0.5)' });
             gsap.fromTo(flashEl, { opacity: 0.65, backgroundColor: 'rgba(241,196,15,0.55)' }, { opacity: 0, duration: 0.7 });
-            showToast('Зелье успешно создано!', 'success');
+            showToast(`Успех! Сварено «${result.recipeName}»!`, 'success');
             await saveGame();
-        } else if (result === 'warning') {
-            const left = 3 - $failedBrewAttempts;
+        } else if (result.status === 'warning') {
+            const left = result.attemptsLeft ?? 1;
+            const matches = result.matches ?? 0;
             gsap.to(cauldronEl, { keyframes: [{ x:-7, duration:.07 },{ x:7, duration:.07 },{ x:-5, duration:.07 },{ x:5, duration:.07 },{ x:0, duration:.06 }] });
             gsap.fromTo(flashEl, { opacity: 0.35, backgroundColor: 'rgba(253,203,0,0.3)' }, { opacity: 0, duration: 0.5 });
-            showToast(`Неверный рецепт! Ингредиенты сгорят через ${left} ${left===1?'попытку':'попытки'}!`, 'warning');
+            
+            let resText = 'Резонанс 0/3: ни один ингредиент не подошёл!';
+            if (matches === 1) resText = 'Слабый резонанс: 1 из 3 ингредиентов подходит к тайному рецепту!';
+            if (matches === 2) resText = 'Мощный резонанс: 2 из 3 ингредиентов верны! Замените третий!';
+            
+            lastResonanceMsg = resText;
+            showToast(`${resText} До перегрева: ${left} ${left === 1 ? 'попытка' : 'попытки'}!`, 'warning', 4200);
         } else {
             slots = [null, null, null];
+            lastResonanceMsg = null;
             gsap.to(cauldronEl, { keyframes: [{ x:-14, duration:.07 },{ x:14, duration:.07 },{ x:-12, duration:.07 },{ x:12, duration:.07 },{ x:-10, duration:.07 },{ x:10, duration:.07 },{ x:0, duration:.07 }] });
             gsap.fromTo(flashEl, { opacity: 0.7, backgroundColor: 'rgba(231,76,60,0.6)' }, { opacity: 0, duration: 0.8 });
-            showToast('Ингредиенты сгорели! Котёл очищен.', 'burn', 4000);
+            showToast(`Ингредиенты сгорели! Собрана астральная зола (+${result.stardustAwarded ?? 2} звёздной пыли).`, 'burn', 4500);
             await saveGame();
         }
         isBrewing = false;
     }
 
+    async function handleQuickBrew(recipeId: string) {
+        const res = quickBrewRecipe(recipeId);
+        if (res.success) {
+            gsap.timeline()
+                .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
+                .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.4, ease: 'elastic.out(1, 0.5)' });
+            showToast('Зелье мгновенно сварено по рецепту!', 'success');
+            await saveGame();
+        } else {
+            showToast(res.reason ?? 'Недостаточно ингредиентов для варки!', 'warning');
+        }
+    }
+
+    function handleCoolDown() {
+        showRewardedAd(() => {
+            coolDownCauldron();
+            lastResonanceMsg = null;
+            showToast('Котёл благополучно остужен ледяной магией!', 'success');
+            saveGame();
+        }, () => {});
+    }
+
     async function handleHint(recipeId: string) {
         if (buyRecipeHint(recipeId)) {
-            showToast('Подсказка рецепта куплена!', 'success', 2000);
+            showToast('Подсказка рецепта раскрыта!', 'success', 2000);
             await saveGame();
         } else {
             showToast('Недостаточно кристаллов для подсказки!', 'warning');
         }
+    }
+
+    function canQuickBrew(recipe: AlchemyRecipe): { can: boolean; missingName?: string } {
+        const counts = $ingredientsCount;
+        const needed: Record<string, number> = {};
+        for (const ing of recipe.ingredients) {
+            needed[ing] = (needed[ing] ?? 0) + 1;
+        }
+        for (const [ing, cnt] of Object.entries(needed)) {
+            if ((counts[ing] ?? 0) < cnt) {
+                const ingObj = getIng(ing);
+                return { can: false, missingName: ingObj?.name ?? ing };
+            }
+        }
+        return { can: true };
     }
 
     function getIng(id: string) { return AVAILABLE_INGREDIENTS.find(i => i.id === id); }
@@ -166,13 +213,30 @@
         <div class="brew-panel">
             {#if $failedBrewAttempts > 0}
             <div class="danger-bar">
-                <svg viewBox="0 0 16 16" width="16" height="16" fill="#ff4757" class="danger-svg">
-                    <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
-                </svg>
-                <span class="danger-label">До сгорания: {3 - $failedBrewAttempts} {3 - $failedBrewAttempts === 1 ? 'попытка' : 'попытки'}</span>
-                <div class="pips">
-                    {#each [1,2,3] as p}<div class="pip" class:active={p <= $failedBrewAttempts}></div>{/each}
+                <div class="danger-left">
+                    <svg viewBox="0 0 16 16" width="16" height="16" fill="#ff4757" class="danger-svg">
+                        <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
+                    </svg>
+                    <div class="danger-info-col">
+                        <div class="danger-title-row">
+                            <span class="danger-label">До перегрева: {3 - $failedBrewAttempts} {3 - $failedBrewAttempts === 1 ? 'попытка' : 'попытки'}</span>
+                            <div class="pips">
+                                {#each [1,2,3] as p}<div class="pip" class:active={p <= $failedBrewAttempts}></div>{/each}
+                            </div>
+                        </div>
+                        {#if lastResonanceMsg}
+                            <span class="resonance-subtext">{lastResonanceMsg}</span>
+                        {/if}
+                    </div>
                 </div>
+
+                <button class="cooldown-btn" on:click={handleCoolDown} title="Остудить котёл ледяной магией">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#74b9ff" stroke-width="2.2">
+                        <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+                    </svg>
+                    <span>Остудить</span>
+                    <span class="ad-pill">AD</span>
+                </button>
             </div>
             {/if}
 
@@ -275,11 +339,14 @@
 
         <!-- RIGHT: RECIPE BOOK -->
         <div class="recipe-book">
-            <div class="book-title">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="#f1c40f" opacity="0.9">
-                    <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
-                </svg>
-                Книга Тайных Рецептов
+            <div class="book-title-row">
+                <div class="book-title">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="#f1c40f" opacity="0.9">
+                        <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
+                    </svg>
+                    Книга Рецептов ({RECIPES.length})
+                </div>
+                <span class="book-sub">Открыто: {Object.values($unlockedRecipes).filter(l => l === 3).length}/{RECIPES.length}</span>
             </div>
 
             {#each RECIPES as recipe}
@@ -332,6 +399,19 @@
                         </button>
                     {:else}
                         <div class="r-desc">{potion.description}</div>
+                        <!-- 1-Click Quick Craft Button -->
+                        {@const craftCheck = canQuickBrew(recipe)}
+                        <button 
+                            class="quick-brew-btn" 
+                            disabled={!craftCheck.can} 
+                            on:click={() => handleQuickBrew(recipe.id)}
+                            title={craftCheck.can ? 'Сварить зелье в 1 клик' : `Недостаточно ингредиентов`}
+                        >
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
+                            </svg>
+                            <span>{craftCheck.can ? 'Сварить в 1 клик' : `Не хватает: ${craftCheck.missingName}`}</span>
+                        </button>
                     {/if}
                 </div>
                 {/if}
@@ -443,19 +523,77 @@
     width:100%;
     display:flex;
     align-items:center;
-    gap:8px;
+    justify-content:space-between;
+    gap:10px;
     background:rgba(231,76,60,0.12);
     border:1px solid rgba(231,76,60,0.4);
-    border-radius:12px;
+    border-radius:14px;
     padding:8px 12px;
     color:#ff7675;
     box-sizing:border-box;
 }
-.danger-svg{flex-shrink:0}
-.danger-label{flex:1;font-size:0.75rem;font-weight:700}
+
+.danger-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.danger-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.danger-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.danger-label{font-size:0.75rem;font-weight:700}
+
+.resonance-subtext {
+    font-size: 0.68rem;
+    color: #ffd700;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
 .pips{display:flex;gap:4px}
-.pip{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);transition:background 0.3s}
+.pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);transition:background 0.3s}
 .pip.active{background:#e17055;box-shadow:0 0 6px #e17055}
+
+.cooldown-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: rgba(116, 185, 255, 0.15);
+    border: 1px solid rgba(116, 185, 255, 0.4);
+    color: #74b9ff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.cooldown-btn:hover {
+    background: rgba(116, 185, 255, 0.25);
+    transform: scale(1.04);
+}
+.ad-pill {
+    background: #e67e22;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 1px 4px;
+    border-radius: 4px;
+}
 
 .cauldron-wrap{will-change:transform;filter:drop-shadow(0 6px 20px rgba(108,92,231,0.5))}
 @keyframes bubbleFloat{0%,100%{transform:translateY(0) scale(1);opacity:.7}50%{transform:translateY(-5px) scale(1.1);opacity:1}}
@@ -517,7 +655,17 @@
 
 .recipe-book{display:flex;flex-direction:column;gap:12px;padding:16px 14px 20px;overflow-y:auto;max-height:85vh}
 .recipe-book::-webkit-scrollbar{width:4px}.recipe-book::-webkit-scrollbar-thumb{background:rgba(162,155,254,0.3);border-radius:10px}
-.book-title{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:800;color:#f1c40f;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+
+.book-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.book-title{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:800;color:#f1c40f;text-transform:uppercase;letter-spacing:.8px}
+.book-sub{font-size:0.72rem;color:#8395a7;font-weight:700}
+
 .recipe-entry{background:linear-gradient(135deg,rgba(255,255,255,0.03),rgba(162,155,254,0.03));border:1.5px solid rgba(255,255,255,0.08);border-radius:16px;padding:13px;display:flex;flex-direction:column;gap:9px;transition:border-color .3s,box-shadow .3s}
 .recipe-entry:hover{border-color:var(--acc,rgba(162,155,254,0.3));box-shadow:0 4px 16px rgba(0,0,0,0.4)}
 .recipe-head{display:flex;align-items:center;gap:10px}
@@ -534,6 +682,7 @@
 .r-ing.hidden{background:rgba(255,255,255,0.03);border:1.5px dashed rgba(255,255,255,0.18);font-size:.7rem;color:rgba(255,255,255,0.35);font-weight:bold}
 .r-ing-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center}
 .r-result{width:34px;height:42px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px rgba(162,155,254,0.4))}
+
 .hint-btn{
     padding:7px 12px;
     background:rgba(116,185,255,0.08);
@@ -551,7 +700,37 @@
 }
 .hint-btn:hover:not(:disabled){background:rgba(116,185,255,0.18);box-shadow:0 0 12px rgba(116,185,255,0.3)}
 .hint-btn:disabled{opacity:.28;cursor:not-allowed}
+
 .r-desc{font-size:.72rem;color:rgba(255,255,255,0.6);font-style:italic;padding:4px 8px;background:rgba(0,184,148,0.08);border-left:2px solid #00b894;border-radius:0 6px 6px 0}
+
+.quick-brew-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: linear-gradient(135deg, #2ed573, #10ac84);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #042410;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    align-self: flex-start;
+    box-shadow: 0 3px 10px rgba(46, 213, 115, 0.3);
+}
+.quick-brew-btn:hover:not(:disabled) {
+    transform: scale(1.04);
+    box-shadow: 0 4px 14px rgba(46, 213, 115, 0.5);
+}
+.quick-brew-btn:disabled {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #8395a7;
+    cursor: not-allowed;
+    box-shadow: none;
+}
 
 .toast{
     position:absolute;

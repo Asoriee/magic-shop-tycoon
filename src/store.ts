@@ -430,6 +430,114 @@ export const AVAILABLE_POTIONS: Potion[] = [
             <polygon points="17,14 23,14 20,4" fill="#2d3436"/>
             <path d="M20 20 Q15 30 20 40 Q25 30 20 20" fill="white" opacity="0.6"/>
         </svg>`
+    },
+    {
+        id: 'potion_fire',
+        name: 'Пламенное Зелье',
+        description: '+40% к золоту от кликов на 3 мин',
+        effect: 'click_multiplier',
+        value: 0.4,
+        durationMin: 3,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="firePotGrad" cx="40%" cy="30%" r="65%">
+                    <stop offset="0%" stop-color="#ffeaa7"/>
+                    <stop offset="50%" stop-color="#ff7675"/>
+                    <stop offset="100%" stop-color="#d63031"/>
+                </radialGradient>
+                <filter id="firePotGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <path d="M16 8 L16 20 L8 36 Q6 44 20 44 Q34 44 32 36 L24 20 L24 8 Z" fill="url(#firePotGrad)" filter="url(#firePotGlow)"/>
+            <rect x="14" y="4" width="12" height="5" rx="2" fill="#2d3436"/>
+            <path d="M16 32 Q20 24 24 32 Q20 38 16 32 Z" fill="#ffeaa7" opacity="0.85"/>
+        </svg>`
+    },
+    {
+        id: 'potion_berserk',
+        name: 'Зелье Берсерка',
+        description: '+75% к золоту от кликов на 3 мин',
+        effect: 'click_multiplier',
+        value: 0.75,
+        durationMin: 3,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="berserkGrad" cx="45%" cy="35%" r="60%">
+                    <stop offset="0%" stop-color="#ff7675"/>
+                    <stop offset="60%" stop-color="#c0392b"/>
+                    <stop offset="100%" stop-color="#2c0b0e"/>
+                </radialGradient>
+                <filter id="berserkGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <rect x="12" y="14" width="16" height="30" rx="6" fill="url(#berserkGrad)" filter="url(#berserkGlow)"/>
+            <rect x="15" y="6" width="10" height="8" rx="2" fill="#7f1d1d"/>
+            <path d="M14 22 L26 36 M26 22 L14 36" stroke="#fca5a5" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        </svg>`
+    },
+    {
+        id: 'potion_giant',
+        name: 'Кровь Великана',
+        description: '+80% к пассивному доходу на 7 мин',
+        effect: 'idle_multiplier',
+        value: 0.8,
+        durationMin: 7,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="giantGrad" cx="40%" cy="30%" r="60%">
+                    <stop offset="0%" stop-color="#55efc4"/>
+                    <stop offset="60%" stop-color="#00b894"/>
+                    <stop offset="100%" stop-color="#1b4d3e"/>
+                </radialGradient>
+                <filter id="giantGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="20" cy="28" r="15" fill="url(#giantGrad)" filter="url(#giantGlow)"/>
+            <rect x="16" y="6" width="8" height="8" rx="2" fill="#2d3436"/>
+            <ellipse cx="16" cy="24" rx="3" ry="5" fill="white" opacity="0.35"/>
+        </svg>`
+    },
+    {
+        id: 'potion_immortal',
+        name: 'Эликсир Бессмертия',
+        description: '+250% к пассивному доходу на 15 мин',
+        effect: 'idle_multiplier',
+        value: 2.5,
+        durationMin: 15,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="immortalGrad" cx="35%" cy="30%" r="65%">
+                    <stop offset="0%" stop-color="#fff"/>
+                    <stop offset="40%" stop-color="#ffd700"/>
+                    <stop offset="100%" stop-color="#b7791f"/>
+                </radialGradient>
+                <filter id="immortalGlow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <path d="M20 4 L33 16 L28 42 L12 42 L7 16 Z" fill="url(#immortalGrad)" filter="url(#immortalGlow)"/>
+            <polygon points="20,16 23,23 30,23 25,27 27,34 20,30 13,34 15,27 10,23 17,23" fill="#ffffff" opacity="0.9"/>
+            <rect x="15" y="2" width="10" height="4" rx="2" fill="#ffd700"/>
+        </svg>`
+    },
+    {
+        id: 'potion_chronos',
+        name: 'Хроносферный Эликсир',
+        description: '+300% ко всему золоту на 5 мин и -2ч экспедициям!',
+        effect: 'gold_multiplier',
+        value: 3.0,
+        durationMin: 5,
+        icon: `<svg viewBox="0 0 40 48" width="40" height="48">
+            <defs>
+                <radialGradient id="chronosGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#e056fd"/>
+                    <stop offset="60%" stop-color="#686de0"/>
+                    <stop offset="100%" stop-color="#130f40"/>
+                </radialGradient>
+                <filter id="chronosGlow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <!-- Orbit Ring -->
+            <ellipse cx="20" cy="28" rx="18" ry="7" fill="none" stroke="#f1c40f" stroke-width="1.8" transform="rotate(-20 20 28)"/>
+            <circle cx="20" cy="28" r="14" fill="url(#chronosGrad)" filter="url(#chronosGlow)"/>
+            <rect x="17" y="6" width="6" height="8" rx="2" fill="#a29bfe"/>
+            <!-- Hourglass / Core Rune -->
+            <path d="M16 22 L24 22 L20 28 L24 34 L16 34 L20 28 Z" fill="#ffeaa7" opacity="0.9"/>
+        </svg>`
     }
 ];
 
@@ -1050,6 +1158,16 @@ function createGameStore() {
                 return next;
             });
 
+            // Special effect for Chronos Elixir: accelerate all active expeditions by 2 hours!
+            let updatedExpeditions = state.activeExpeditions;
+            if (potionId === 'potion_chronos' && state.activeExpeditions.length > 0) {
+                const reductionMs = 2 * 3600 * 1000;
+                updatedExpeditions = state.activeExpeditions.map(e => ({
+                    ...e,
+                    startTime: e.startTime - reductionMs
+                }));
+            }
+
             const newBuff: ActiveBuff = {
                 potionId,
                 expiresAt: Date.now() + potion.durationMin * 60 * 1000,
@@ -1059,7 +1177,8 @@ function createGameStore() {
 
             return {
                 ...state,
-                activeBuffs: [...state.activeBuffs, newBuff]
+                activeBuffs: [...state.activeBuffs, newBuff],
+                activeExpeditions: updatedExpeditions
             };
         }),
         removeExpiredBuffs: () => update(state => {
@@ -1374,16 +1493,58 @@ export const RECIPES: AlchemyRecipe[] = [
         rarity: 'common',
     },
     {
+        id: 'recipe_fire',
+        ingredients: ['fire_salamander', 'herb_mundane', 'mushroom_gray'],
+        resultPotionId: 'potion_fire',
+        rarity: 'common',
+    },
+    {
         id: 'recipe_wealth',
-        ingredients: ['mushroom_gray', 'stardew', 'dragon_scale'],
+        ingredients: ['mushroom_gray', 'stardew', 'toadstone'],
         resultPotionId: 'potion_wealth',
         rarity: 'rare',
     },
     {
+        id: 'recipe_focus',
+        ingredients: ['fairy_breath', 'herb_mundane', 'stardew'],
+        resultPotionId: 'potion_focus',
+        rarity: 'rare',
+    },
+    {
+        id: 'recipe_berserk',
+        ingredients: ['fire_salamander', 'troll_blood', 'toadstone'],
+        resultPotionId: 'potion_berserk',
+        rarity: 'rare',
+    },
+    {
+        id: 'recipe_giant',
+        ingredients: ['troll_blood', 'mushroom_gray', 'moonpetal'],
+        resultPotionId: 'potion_giant',
+        rarity: 'rare',
+    },
+    {
+        id: 'recipe_sage',
+        ingredients: ['dragon_scale', 'moonpetal', 'stardew'],
+        resultPotionId: 'potion_sage',
+        rarity: 'epic',
+    },
+    {
         id: 'recipe_void',
-        ingredients: ['void_essence', 'philosophers_tear', 'time_crystal'],
+        ingredients: ['void_essence', 'fairy_breath', 'dragon_scale'],
         resultPotionId: 'potion_void',
         rarity: 'epic',
+    },
+    {
+        id: 'recipe_immortal',
+        ingredients: ['philosophers_tear', 'dragon_scale', 'troll_blood'],
+        resultPotionId: 'potion_immortal',
+        rarity: 'legendary',
+    },
+    {
+        id: 'recipe_chronos',
+        ingredients: ['time_crystal', 'philosophers_tear', 'void_essence'],
+        resultPotionId: 'potion_chronos',
+        rarity: 'legendary',
     },
 ];
 
@@ -1402,14 +1563,23 @@ export const unlockedRecipes = writable<Record<string, number>>({});
 /** How many consecutive wrong brews have been made (resets on success or burn) */
 export const failedBrewAttempts = writable<number>(0);
 
+export interface BrewResult {
+    status: 'success' | 'warning' | 'burn';
+    matches?: number; // 0, 1, or 2 matching ingredients in any unknown recipe
+    attemptsLeft?: number;
+    stardustAwarded?: number;
+    potionId?: string;
+    recipeName?: string;
+}
+
 /**
  * Attempt to brew a potion from exactly 3 ingredient slots.
- * Returns: 'success' | 'warning' | 'burn'
- *   - success: correct recipe → ingredients consumed, potion added
- *   - warning: wrong recipe, attempts 1–2 → ingredients NOT consumed, counter incremented
- *   - burn:    wrong recipe, attempt 3 → ingredients consumed/burned, counter resets
+ * Returns: BrewResult
+ *   - success: correct recipe → ingredients consumed, potion added, recipe unlocked to level 3
+ *   - warning: wrong recipe → ingredients NOT consumed, calculates alchemical resonance (0, 1, 2)
+ *   - burn:    wrong recipe (reached max attempts) → ingredients consumed, awarded +2 stardust consolation!
  */
-export function brewPotion(slots: [string, string, string]): 'success' | 'warning' | 'burn' {
+export function brewPotion(slots: [string, string, string]): BrewResult {
     const sorted = [...slots].sort();
     const recipe = RECIPES.find(r => {
         const rs = [...r.ingredients].sort();
@@ -1432,10 +1602,32 @@ export function brewPotion(slots: [string, string, string]): 'success' | 'warnin
         }));
         failedBrewAttempts.set(0);
         unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
-        return 'success';
+        
+        const pot = AVAILABLE_POTIONS.find(p => p.id === recipe.resultPotionId);
+        return { 
+            status: 'success', 
+            potionId: recipe.resultPotionId,
+            recipeName: pot?.name ?? 'Магическое зелье' 
+        };
     }
 
-    // ❌ Wrong recipe
+    // ❌ Wrong recipe — calculate Alchemical Resonance
+    let maxMatches = 0;
+    for (const r of RECIPES) {
+        let matches = 0;
+        const targetIngs = [...r.ingredients];
+        for (const s of slots) {
+            const idx = targetIngs.indexOf(s);
+            if (idx !== -1) {
+                matches++;
+                targetIngs.splice(idx, 1);
+            }
+        }
+        if (matches > maxMatches) {
+            maxMatches = matches;
+        }
+    }
+
     const current = get(failedBrewAttempts);
     const next = current + 1;
     
@@ -1444,7 +1636,7 @@ export function brewPotion(slots: [string, string, string]): 'success' | 'warnin
     const maxFailures = 3 + alchemyLevel;
 
     if (next >= maxFailures) {
-        // 🔥 Burn ingredients
+        // 🔥 Burn ingredients — award consolation Stardust!
         ingredientsCount.update(c => {
             const nextC = { ...c };
             for (const ing of slots) {
@@ -1454,11 +1646,68 @@ export function brewPotion(slots: [string, string, string]): 'success' | 'warnin
             return nextC;
         });
         failedBrewAttempts.set(0);
-        return 'burn';
+        gameStore.update(s => ({ ...s, stardust: s.stardust + 2 }));
+        return { status: 'burn', stardustAwarded: 2 };
     }
 
     failedBrewAttempts.set(next);
-    return 'warning';
+    return { 
+        status: 'warning', 
+        matches: maxMatches, 
+        attemptsLeft: maxFailures - next 
+    };
+}
+
+/**
+ * Instantly brew a known recipe in 1 click directly from the Recipe Book.
+ */
+export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: string } {
+    const recipe = RECIPES.find(r => r.id === recipeId);
+    if (!recipe) return { success: false, reason: 'Рецепт не найден' };
+
+    const counts = get(ingredientsCount);
+    // Count needed ingredients
+    const needed: Record<string, number> = {};
+    for (const ing of recipe.ingredients) {
+        needed[ing] = (needed[ing] ?? 0) + 1;
+    }
+
+    // Verify player has all ingredients
+    for (const [ing, cnt] of Object.entries(needed)) {
+        if ((counts[ing] ?? 0) < cnt) {
+            const ingObj = AVAILABLE_INGREDIENTS.find(i => i.id === ing);
+            return { success: false, reason: `Не хватает: ${ingObj?.name ?? ing}` };
+        }
+    }
+
+    // Deduct ingredients
+    ingredientsCount.update(c => {
+        const next = { ...c };
+        for (const [ing, cnt] of Object.entries(needed)) {
+            next[ing] = (next[ing] ?? 0) - cnt;
+            if (next[ing] <= 0) delete next[ing];
+        }
+        return next;
+    });
+
+    // Add potion
+    potionsCount.update(c => ({
+        ...c,
+        [recipe.resultPotionId]: (c[recipe.resultPotionId] ?? 0) + 1
+    }));
+
+    // Ensure fully unlocked in book
+    unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
+    failedBrewAttempts.set(0);
+
+    return { success: true };
+}
+
+/**
+ * Cooldown the cauldron temperature back to 0.
+ */
+export function coolDownCauldron(): void {
+    failedBrewAttempts.set(0);
 }
 
 /**

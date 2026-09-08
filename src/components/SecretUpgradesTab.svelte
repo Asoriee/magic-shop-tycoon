@@ -17,7 +17,7 @@
             if (btn) {
                 gsap.fromTo(btn, 
                     { scale: 0.9 }, 
-                    { scale: 1, duration: 0.3, ease: 'back.out(2)' }
+                    { scale: 1, duration: 0.25, ease: 'back.out(2)' }
                 );
             }
         } else {
@@ -25,12 +25,13 @@
             if (btn) {
                 gsap.to(btn, {
                     keyframes: [
-                        { x: -5, duration: 0.05 },
-                        { x: 5, duration: 0.05 },
-                        { x: -5, duration: 0.05 },
-                        { x: 5, duration: 0.05 },
-                        { x: 0, duration: 0.05 }
-                    ]
+                        { x: -5, duration: 0.04 },
+                        { x:  5, duration: 0.04 },
+                        { x: -4, duration: 0.04 },
+                        { x:  4, duration: 0.04 },
+                        { x:  0, duration: 0.04 }
+                    ],
+                    ease: 'none'
                 });
             }
         }
@@ -76,38 +77,10 @@
 </script>
 
 <div class="secret-tab">
-    <div class="tab-header">
-        <div class="tab-title-row">
-            <div class="header-icon">
-                <svg viewBox="0 0 40 40" width="32" height="32">
-                    <defs>
-                        <radialGradient id="secretOrb" cx="35%" cy="35%" r="65%">
-                            <stop offset="0%" stop-color="#fd79a8"/>
-                            <stop offset="60%" stop-color="#9b59b6"/>
-                            <stop offset="100%" stop-color="#341f97"/>
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="20" cy="35" rx="12" ry="4" fill="#1e1035" opacity="0.7"/>
-                    <rect x="14" y="30" width="12" height="5" rx="2" fill="#d4ac6e"/>
-                    <circle cx="20" cy="18" r="14" fill="url(#secretOrb)"/>
-                    <ellipse cx="16" cy="13" rx="4" ry="2" fill="white" opacity="0.6" transform="rotate(-30 16 13)"/>
-                    <circle cx="24" cy="22" r="1.5" fill="#f1c40f" opacity="0.8"/>
-                    <circle cx="16" cy="22" r="1" fill="#fff" opacity="0.7"/>
-                </svg>
-            </div>
-            <h2 class="tab-title">Тайные Знания</h2>
-        </div>
-        <p class="header-sub">Эти знания остаются с вами даже после Тёмного Ритуала.</p>
-
-        <div class="balance-row">
-            <div class="balance-chip stardust">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                        <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                    </svg>
-                </span>
-                <span>{formatNumber($gameStore.stardust)} Звездной Пыли</span>
-            </div>
+    <div class="secret-info-bar">
+        <div class="info-text">
+            <span class="info-title">Постоянные Рунические Знания</span>
+            <span class="info-sub">Эти улучшения не сбрасываются даже после проведения Тёмного Ритуала!</span>
         </div>
     </div>
     
@@ -117,38 +90,45 @@
             {@const isMax = upgrade.level >= upgrade.maxLevel}
             {@const canAfford = $gameStore.stardust >= cost}
             
-            <div class="card" class:disabled={!canAfford && !isMax}>
+            <div class="card" class:is-max={isMax}>
                 <div class="icon-wrap">
                     <span class="icon">{@html icons[upgrade.id] || defaultIcon}</span>
                 </div>
                 <div class="info">
-                    <h4>{upgrade.name}</h4>
+                    <div class="title-row">
+                        <h4 class="card-name">{upgrade.name}</h4>
+                        <span class="level-tag" class:max-tag={isMax}>
+                            {isMax ? 'MAX' : `${upgrade.level} / ${upgrade.maxLevel}`}
+                        </span>
+                    </div>
                     <p class="desc">{upgrade.description}</p>
-                    <div class="progress">
-                        <div class="level">Ур. {upgrade.level} / {upgrade.maxLevel}</div>
+                    <div class="progress-wrap">
                         <div class="bar">
                             <div class="fill" style="width: {(upgrade.level / upgrade.maxLevel) * 100}%"></div>
                         </div>
                     </div>
                 </div>
-                <button 
-                    class="buy-btn" 
-                    class:max={isMax}
-                    bind:this={buttons[upgrade.id]}
-                    on:click={() => { if(!isMax) buySecret(upgrade.id, cost); }}
-                    disabled={isMax}
-                >
-                    {#if isMax}
-                        МАКС
-                    {:else}
-                        <span class="btn-cost-row">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
-                                <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#ffeaa7" stroke="#fdcb6e" stroke-width="1.5"/>
-                            </svg>
-                            <span>{formatNumber(cost)}</span>
-                        </span>
-                    {/if}
-                </button>
+                <div class="action-wrap">
+                    <button 
+                        type="button"
+                        class="buy-btn" 
+                        class:max={isMax}
+                        bind:this={buttons[upgrade.id]}
+                        on:click={() => { if(!isMax) buySecret(upgrade.id, cost); }}
+                        disabled={isMax || !canAfford}
+                    >
+                        {#if isMax}
+                            <span>ИЗУЧЕНО</span>
+                        {:else}
+                            <span class="btn-cost-row">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+                                    <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
+                                </svg>
+                                <span>{formatNumber(cost)}</span>
+                            </span>
+                        {/if}
+                    </button>
+                </div>
             </div>
         {/each}
     </div>
@@ -158,157 +138,183 @@
     .secret-tab {
         display: flex;
         flex-direction: column;
-        height: 100%;
-        overflow: hidden;
+        gap: 12px;
+        padding-top: 4px;
     }
 
+    .secret-info-bar {
+        background: rgba(155, 89, 182, 0.12);
+        border: 1px solid rgba(162, 155, 254, 0.25);
+        border-radius: 12px;
+        padding: 10px 14px;
+    }
 
+    .info-title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #a29bfe;
+        margin-bottom: 2px;
+    }
+
+    .info-sub {
+        display: block;
+        font-size: 0.78rem;
+        color: #b2bec3;
+    }
 
     .list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        overflow-y: auto;
-        padding-right: 8px;
-        flex: 1;
-    }
-
-    .list::-webkit-scrollbar {
-        width: 6px;
-    }
-    .list::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-    }
-    .list::-webkit-scrollbar-thumb {
-        background: rgba(162, 155, 254, 0.5);
-        border-radius: 10px;
+        gap: 10px;
     }
 
     .card {
-        background: linear-gradient(145deg, rgba(162, 155, 254, 0.1), rgba(108, 92, 231, 0.05));
-        border-radius: 16px;
-        padding: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1.5px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 12px 14px;
         display: flex;
         align-items: center;
-        gap: 16px;
-        border: 1px solid rgba(162, 155, 254, 0.2);
-        transition: transform 0.2s, box-shadow 0.2s;
+        gap: 14px;
+        transition: transform 0.15s, border-color 0.15s;
     }
 
     .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-        border-color: rgba(162, 155, 254, 0.4);
+        border-color: rgba(162, 155, 254, 0.35);
+        transform: translateY(-1px);
     }
 
-    .card.disabled {
-        opacity: 0.6;
-        filter: grayscale(40%);
+    .card.is-max {
+        border-color: rgba(39, 174, 96, 0.35);
+        background: rgba(39, 174, 96, 0.04);
     }
 
     .icon-wrap {
-        width: 50px;
-        height: 50px;
-        background: rgba(0,0,0,0.3);
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.8rem;
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        background: rgba(162, 155, 254, 0.1);
         border: 1px solid rgba(162, 155, 254, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .info {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+        min-width: 0;
     }
 
-    .info h4 {
+    .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 3px;
+    }
+
+    .card-name {
         margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
         color: #fff;
-        font-size: 1.15rem;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .level-tag {
+        font-size: 0.72rem;
+        font-weight: 800;
+        background: rgba(162, 155, 254, 0.15);
+        border: 1px solid rgba(162, 155, 254, 0.3);
+        color: #a29bfe;
+        padding: 1px 6px;
+        border-radius: 6px;
+    }
+
+    .level-tag.max-tag {
+        background: rgba(46, 204, 113, 0.2);
+        border-color: #2ecc71;
+        color: #2ecc71;
     }
 
     .desc {
-        margin: 0;
-        color: #a29bfe;
-        font-size: 0.85rem;
+        margin: 0 0 6px;
+        font-size: 0.78rem;
+        color: #b2bec3;
     }
 
-    .progress {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 4px;
-    }
-
-    .level {
-        color: #81ecec;
-        font-size: 0.85rem;
-        font-weight: bold;
+    .progress-wrap {
+        width: 100%;
     }
 
     .bar {
-        flex: 1;
-        height: 6px;
-        background: rgba(0,0,0,0.5);
-        border-radius: 4px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
         overflow: hidden;
     }
 
     .fill {
         height: 100%;
-        background: linear-gradient(90deg, #a29bfe, #6c5ce7);
-        border-radius: 4px;
-        transition: width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: linear-gradient(90deg, #9b59b6, #e056fd);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .action-wrap {
+        flex-shrink: 0;
     }
 
     .buy-btn {
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-        border: none;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 12px;
-        font-weight: bold;
-        font-size: 1.1rem;
+        background: linear-gradient(135deg, #8e44ad, #a29bfe);
+        border: 1px solid #dcdde1;
+        border-radius: 10px;
+        padding: 8px 14px;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 800;
         cursor: pointer;
-        box-shadow: 0 4px #4834d4;
-        transition: filter 0.2s, transform 0.1s;
-        min-width: 90px;
-    }
-
-    .buy-btn:active:not(:disabled) {
-        transform: translateY(4px);
-        box-shadow: 0 0 #4834d4;
+        min-width: 80px;
+        box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
+        transition: transform 0.15s, filter 0.15s;
     }
 
     .buy-btn:hover:not(:disabled) {
-        filter: brightness(1.2);
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+    }
+
+    .buy-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow: none;
     }
 
     .buy-btn.max {
-        background: #2d3436;
-        color: #636e72;
-        box-shadow: 0 4px #1e272e;
+        background: rgba(46, 204, 113, 0.15);
+        border-color: rgba(46, 204, 113, 0.4);
+        color: #2ecc71;
         cursor: default;
-    }
-
-    .card.disabled .buy-btn:not(.max) {
-        background: #7f8c8d;
-        box-shadow: 0 4px #546566;
-        color: #ddd;
-        cursor: not-allowed;
+        opacity: 1;
     }
 
     .btn-cost-row {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         gap: 5px;
+    }
+
+    @media (max-width: 480px) {
+        .card {
+            flex-wrap: wrap;
+        }
+        .action-wrap {
+            width: 100%;
+        }
+        .buy-btn {
+            width: 100%;
+        }
     }
 </style>

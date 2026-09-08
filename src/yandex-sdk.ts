@@ -86,8 +86,15 @@ export async function purchaseItem(itemId: string): Promise<void> {
         if (itemId === 'pack_crystals_100') {
             crystals.update(n => n + 100);
             saveGame();
+        } else if (itemId === 'pack_crystals_300') {
+            crystals.update(n => n + 350);
+            saveGame();
+        } else if (itemId === 'pack_crystals_1000') {
+            crystals.update(n => n + 1250);
+            saveGame();
         } else if (itemId === 'vip_status') {
             isVip.set(true);
+            saveGame();
         }
         return;
     }
@@ -104,9 +111,26 @@ export async function purchaseItem(itemId: string): Promise<void> {
         } catch (e) {
             console.warn('Failed to consume purchase', e);
         }
+    } else if (itemId === 'pack_crystals_300') {
+        crystals.update(n => n + 350);
+        saveGame();
+        try {
+            await payments.consumePurchase(purchase.purchaseToken);
+        } catch (e) {
+            console.warn('Failed to consume purchase', e);
+        }
+    } else if (itemId === 'pack_crystals_1000') {
+        crystals.update(n => n + 1250);
+        saveGame();
+        try {
+            await payments.consumePurchase(purchase.purchaseToken);
+        } catch (e) {
+            console.warn('Failed to consume purchase', e);
+        }
     } else if (itemId === 'vip_status') {
         // Non-consumable — just activate and save
         isVip.set(true);
+        saveGame();
     }
 }
 
@@ -118,6 +142,7 @@ export async function saveGame() {
         ...state,
         lastSaveTime: Date.now(),
         crystals: get(crystals),
+        isVip: get(isVip),
         ingredientsCount: get(ingredientsCount),
         potionsCount: get(potionsCount),
         unlockedRecipes: get(unlockedRecipes),
@@ -175,6 +200,8 @@ export async function loadGame(): Promise<void> {
             if (merged.lastOrderSpawnTime === undefined) merged.lastOrderSpawnTime = Date.now();
             if (merged.activeBuffs === undefined) merged.activeBuffs = [];
             if (merged.unlockedCollections === undefined) merged.unlockedCollections = [];
+            if (merged.lastDragonGiftTime === undefined) merged.lastDragonGiftTime = 0;
+            if (merged.lastFreeTimeSkipTime === undefined) merged.lastFreeTimeSkipTime = 0;
             
             // Restore missing upgrades from default state
             if (!merged.upgrades) {
@@ -202,6 +229,9 @@ export async function loadGame(): Promise<void> {
         // Restore premium currency separately
         if ((savedData as any).crystals !== undefined) {
             crystals.set((savedData as any).crystals);
+        }
+        if ((savedData as any).isVip !== undefined) {
+            isVip.set(!!(savedData as any).isVip);
         }
 
         // Restore alchemy inventory

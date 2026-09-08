@@ -161,6 +161,8 @@ export interface GameState {
     activeBuffs: ActiveBuff[];
     unlockedCollections: string[];
     lastFreeChestTime?: number;
+    lastDragonGiftTime?: number;
+    lastFreeTimeSkipTime?: number;
 }
 
 // ============================================================
@@ -988,7 +990,9 @@ const defaultState: GameState = {
     lastOrderSpawnTime: Date.now(),
     activeBuffs: [],
     unlockedCollections: [],
-    lastFreeChestTime: 0
+    lastFreeChestTime: 0,
+    lastDragonGiftTime: 0,
+    lastFreeTimeSkipTime: 0
 };
 
 // --- Premium stores ---
@@ -1334,7 +1338,9 @@ function createGameStore() {
                 return { ...state, activeBuffs: validBuffs };
             }
             return state;
-        })
+        }),
+        claimDragonGift: () => update(state => ({ ...state, lastDragonGiftTime: Date.now() })),
+        claimFreeTimeSkip: () => update(state => ({ ...state, lastFreeTimeSkipTime: Date.now() }))
     };
 }
 
@@ -1630,6 +1636,14 @@ export function useTimeSkip(hours: number, crystalCost: number): number {
     crystals.update(n => n - crystalCost);
     gameStore.addGold(goldEarned);
 
+    return goldEarned;
+}
+
+export function useFreeTimeSkip(hours: number): number {
+    const idlePerSecond = get(currentIdleIncome);
+    const goldEarned = Math.floor(idlePerSecond * hours * 3600);
+    gameStore.addGold(goldEarned);
+    gameStore.claimFreeTimeSkip();
     return goldEarned;
 }
 

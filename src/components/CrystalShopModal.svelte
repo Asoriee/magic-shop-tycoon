@@ -1,21 +1,62 @@
 <script lang="ts">
+    import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
-    import { crystals, gameStore, currentIdleIncome, useTimeSkip, maxOfflineTimeHours, formatNumber } from '../store';
+    import { 
+        crystals, 
+        gameStore, 
+        currentIdleIncome, 
+        useTimeSkip, 
+        useFreeTimeSkip, 
+        formatNumber 
+    } from '../store';
+    import { showRewardedAd, saveGame } from '../yandex-sdk';
 
     export let isOpen = false;
     export let isEmbedded = false;
     export let onClose: () => void;
 
-    let overlayEl: HTMLElement;
-    let modalEl: HTMLElement;
-
     function close() {
         onClose();
+    }
+
+    // Cooldown for free 1h skip: 2 hours (7200 seconds)
+    const FREE_SKIP_COOLDOWN_MS = 2 * 60 * 60 * 1000;
+    let secondsToFreeSkip = 0;
+    let freeSkipTimerInterval: any;
+
+    function updateFreeSkipTimer() {
+        const lastTime = $gameStore?.lastFreeTimeSkipTime || 0;
+        const diff = Date.now() - lastTime;
+        if (diff >= FREE_SKIP_COOLDOWN_MS) {
+            secondsToFreeSkip = 0;
+        } else {
+            secondsToFreeSkip = Math.ceil((FREE_SKIP_COOLDOWN_MS - diff) / 1000);
+        }
+    }
+
+    onMount(() => {
+        updateFreeSkipTimer();
+        freeSkipTimerInterval = setInterval(updateFreeSkipTimer, 1000);
+    });
+
+    onDestroy(() => {
+        if (freeSkipTimerInterval) clearInterval(freeSkipTimerInterval);
+    });
+
+    function formatTime(secs: number): string {
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (h > 0) {
+            return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
     // GSAP button refs
     let btnRefs: Record<string, HTMLElement> = {};
     let resultMessages: Record<string, { text: string, visible: boolean }> = {
+        free1: { text: '', visible: false },
         skip4: { text: '', visible: false },
         skip8: { text: '', visible: false },
         skip24: { text: '', visible: false }
@@ -24,21 +65,21 @@
     const skips = [
         {
             id: 'skip4',
-            label: 'Малый прыжок',
+            label: 'Малый Скачок',
             hours: 4,
             cost: 20,
             desc: '4 часа пассивного дохода',
             color: '#74b9ff',
-            glow: 'rgba(116, 185, 255, 0.5)',
+            glow: 'rgba(116, 185, 255, 0.4)'
         },
         {
             id: 'skip8',
-            label: 'Средний прыжок',
+            label: 'Сдвиг Эпохи',
             hours: 8,
             cost: 35,
             desc: '8 часов пассивного дохода',
             color: '#a29bfe',
-            glow: 'rgba(162, 155, 254, 0.5)',
+            glow: 'rgba(162, 155, 254, 0.4)'
         },
         {
             id: 'skip24',
@@ -47,206 +88,261 @@
             cost: 90,
             desc: '24 часа пассивного дохода',
             color: '#fd79a8',
-            glow: 'rgba(253, 121, 168, 0.6)',
+            glow: 'rgba(253, 121, 168, 0.5)'
         }
     ];
 
+    function estimateGold(hours: number): string {
+        const perSec = $currentIdleIncome || 0;
+        if (perSec === 0) return '0';
+        const total = Math.floor(perSec * hours * 3600);
+        return formatNumber(total);
+    }
+
+    function triggerResultAnimation(id: string, earned: number) {
+        const formatted = `+${formatNumber(earned)} G`;
+        resultMessages[id] = { text: formatted, visible: true };
+
+        setTimeout(() => {
+            const el = document.getElementById(`result-${id}`);
+            if (el) {
+                gsap.fromTo(el,
+                    { opacity: 1, y: 0 },
+                    { opacity: 0, y: -28, duration: 1.2, ease: 'power2.out',
+                      onComplete: () => { resultMessages[id] = { text: '', visible: false }; } }
+                );
+            }
+        }, 30);
+    }
+
+    function handleFreeSkip() {
+        if (secondsToFreeSkip > 0) return;
+        showRewardedAd(
+            () => {
+                const earned = useFreeTimeSkip(1);
+                saveGame();
+                updateFreeSkipTimer();
+                triggerResultAnimation('free1', earned);
+            },
+            () => {}
+        );
+    }
+
     function handleSkip(skip: typeof skips[number]) {
         const btn = btnRefs[skip.id];
-
         const earned = useTimeSkip(skip.hours, skip.cost);
 
         if (earned === 0) {
-            // Not enough crystals — shake
+            // Not enough crystals — shake button
             if (btn) {
                 gsap.to(btn, {
                     keyframes: [
-                        { x: -8, duration: 0.06 },
-                        { x:  8, duration: 0.06 },
-                        { x: -6, duration: 0.06 },
-                        { x:  6, duration: 0.06 },
-                        { x:  0, duration: 0.06 },
+                        { x: -6, duration: 0.05 },
+                        { x:  6, duration: 0.05 },
+                        { x: -4, duration: 0.05 },
+                        { x:  4, duration: 0.05 },
+                        { x:  0, duration: 0.05 },
                     ],
                     ease: 'none'
                 });
             }
         } else {
-            // Success — flash green + show earned amount
+            saveGame();
+            // Success — green flash
             if (btn) {
                 gsap.fromTo(btn,
                     { backgroundColor: skip.color },
-                    { backgroundColor: '#2ecc71', yoyo: true, repeat: 1, duration: 0.25, ease: 'power1.inOut',
+                    { backgroundColor: '#2ecc71', yoyo: true, repeat: 1, duration: 0.25,
                       onComplete: () => { if (btn) gsap.set(btn, { clearProps: 'backgroundColor' }); } }
                 );
             }
-
-            const formatted = `+${formatNumber(earned)} G`;
-
-            resultMessages[skip.id] = { text: formatted, visible: true };
-
-            // Animate the result label
-            setTimeout(() => {
-                const el = document.getElementById(`result-${skip.id}`);
-                if (el) {
-                    gsap.fromTo(el,
-                        { opacity: 1, y: 0 },
-                        { opacity: 0, y: -30, duration: 1.2, ease: 'power2.out',
-                          onComplete: () => { resultMessages[skip.id] = { text: '', visible: false }; } }
-                    );
-                }
-            }, 50);
+            triggerResultAnimation(skip.id, earned);
         }
-    }
-
-    // Estimated gold for a skip (live derived)
-    function estimateGold(hours: number): string {
-        const perSec = $currentIdleIncome;
-        if (perSec === 0) return '—';
-        const total = Math.floor(perSec * hours * 3600);
-        return formatNumber(total);
     }
 </script>
 
 {#if isOpen}
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="overlay" class:embedded={isEmbedded} bind:this={overlayEl} on:click={close}>
+<div class="overlay" class:embedded={isEmbedded} on:click={close}>
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div class="modal" class:embedded-modal={isEmbedded} bind:this={modalEl} on:click|stopPropagation>
+    <div class="modal" class:embedded-modal={isEmbedded} on:click|stopPropagation>
 
-        <!-- Header -->
-        <div class="tab-header">
-            <div class="tab-title-row">
-                <div class="header-icon">
-                    <svg viewBox="0 0 48 60" width="32" height="40">
-                        <!-- Hourglass body -->
-                        <path d="M6,4 L42,4 L42,8 Q42,30 24,30 Q6,30 6,8 Z" fill="#a29bfe" opacity="0.9"/>
-                        <path d="M6,56 L42,56 L42,52 Q42,30 24,30 Q6,30 6,52 Z" fill="#74b9ff" opacity="0.9"/>
-                        <!-- Frames -->
-                        <rect x="4" y="2" width="40" height="6" rx="3" fill="#6c5ce7"/>
-                        <rect x="4" y="52" width="40" height="6" rx="3" fill="#0984e3"/>
-                        <!-- Sand flow -->
-                        <circle cx="24" cy="30" r="3" fill="#f1c40f" opacity="0.8"/>
-                        <line x1="24" y1="33" x2="24" y2="45" stroke="#f1c40f" stroke-width="2" opacity="0.6"/>
+        {#if !isEmbedded}
+            <div class="tab-header">
+                <div class="tab-title-row">
+                    <div class="header-icon">
+                        <svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+                            <circle cx="20" cy="20" r="18" fill="#1b1236" stroke="#74b9ff" stroke-width="1.5"/>
+                            <path d="M20 8 V20 L26 26" stroke="#f1c40f" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h2 class="tab-title">Хрономантия</h2>
+                </div>
+                <button class="close-btn" on:click={onClose} aria-label="Закрыть">✕</button>
+            </div>
+        {/if}
+
+        {#if $currentIdleIncome === 0}
+            <div class="no-income-warning">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                    <circle cx="10" cy="10" r="9" stroke="#f39c12" stroke-width="1.5"/>
+                    <line x1="10" y1="6" x2="10" y2="10" stroke="#f39c12" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="10" cy="14" r="1.2" fill="#f39c12"/>
+                </svg>
+                <span>У вас пока нет пассивного дохода. Улучшайте лавку, чтобы временные скачки приносили золото!</span>
+            </div>
+        {/if}
+
+        <div class="chrono-list">
+
+            <!-- 1. Free 1-Hour Impulse (Rewarded Ad) -->
+            <div class="skip-card free-card" style="--accent: #2ecc71; --glow: rgba(46, 204, 113, 0.3)">
+                <div class="card-visual">
+                    <svg viewBox="0 0 50 60" width="44" height="52" fill="none">
+                        <defs>
+                            <radialGradient id="freePulseAura" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#2ecc71"/>
+                                <stop offset="100%" stop-color="#27ae60" stop-opacity="0"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="25" cy="30" r="22" fill="url(#freePulseAura)" opacity="0.2"/>
+                        <!-- Small Hourglass -->
+                        <rect x="10" y="8" width="30" height="4" rx="2" fill="#2ecc71"/>
+                        <rect x="10" y="48" width="30" height="4" rx="2" fill="#2ecc71"/>
+                        <path d="M12 12 L38 12 Q38 30 25 30 Q12 30 12 12 Z" fill="#2ecc71" opacity="0.7"/>
+                        <path d="M12 48 L38 48 Q38 30 25 30 Q12 30 12 48 Z" fill="#2ecc71" opacity="0.4"/>
+                        <circle cx="25" cy="30" r="3" fill="#ffeaa7"/>
                     </svg>
                 </div>
-                <h2 class="tab-title">Машина Времени</h2>
-            </div>
-            <p class="header-sub">Потрать кристаллы — получи мгновенный доход</p>
 
-            <!-- Crystal Balance -->
-            <div class="balance-row">
-                <div class="balance-chip crystal">
-                    <span class="icon">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                            <polygon points="12,2 21,9 12,22 3,9"/>
+                <div class="card-content">
+                    <div class="card-title-row">
+                        <h4 class="card-label">Малый Хроно-Импульс</h4>
+                        <span class="free-pill">БЕСПЛАТНО</span>
+                    </div>
+                    <p class="card-desc">1 час пассивного дохода за рекламу</p>
+                    <div class="card-estimate">
+                        <svg viewBox="0 0 20 20" width="13" height="13" fill="none">
+                            <circle cx="10" cy="10" r="8" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                            <circle cx="10" cy="10" r="4" fill="#f39c12"/>
                         </svg>
-                    </span>
-                    <span>{formatNumber($crystals)} кристаллов</span>
+                        <span>≈ +{estimateGold(1)} золота</span>
+                    </div>
                 </div>
-                {#if $currentIdleIncome === 0}
-                    <span class="no-idle-hint">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f1c40f" stroke-width="2">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        Нужен пассивный доход
-                    </span>
-                {/if}
+
+                <div class="card-action">
+                    {#if secondsToFreeSkip === 0}
+                        <button 
+                            type="button" 
+                            class="action-btn free-btn" 
+                            on:click={handleFreeSkip} 
+                            bind:this={btnRefs['free1']}
+                        >
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            <span>Смотреть</span>
+                        </button>
+                    {:else}
+                        <div class="cooldown-badge">
+                            <svg viewBox="0 0 20 20" width="12" height="12" fill="none">
+                                <circle cx="10" cy="10" r="8" stroke="#b2bec3" stroke-width="1.5"/>
+                                <path d="M10 6 V10 L13 12" stroke="#b2bec3" stroke-width="1.5"/>
+                            </svg>
+                            <span>{formatTime(secondsToFreeSkip)}</span>
+                        </div>
+                    {/if}
+
+                    {#if resultMessages['free1'].visible}
+                        <div class="result-flyout" id="result-free1">
+                            {resultMessages['free1'].text}
+                        </div>
+                    {/if}
+                </div>
             </div>
 
-            {#if !isEmbedded}
-                <button class="close-btn" on:click={onClose}>✕</button>
-            {/if}
-        </div>
-
-        <!-- Skip Cards -->
-        <div class="skip-grid">
+            <!-- 2. Premium Skips Grid -->
             {#each skips as skip}
                 <div class="skip-card" style="--accent: {skip.color}; --glow: {skip.glow}">
-                    <!-- SVG Icon per card -->
+                    
                     <div class="card-visual">
                         {#if skip.hours === 4}
-                            <!-- Small: simple hourglass -->
-                            <svg viewBox="0 0 60 80" width="52" height="70">
-                                <defs><filter id="glow4" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-                                <rect x="8" y="4" width="44" height="8" rx="4" fill="#74b9ff" filter="url(#glow4)"/>
-                                <rect x="8" y="68" width="44" height="8" rx="4" fill="#74b9ff" filter="url(#glow4)"/>
-                                <path d="M10,12 L50,12 Q50,42 30,42 Q10,42 10,12 Z" fill="#74b9ff" opacity="0.7"/>
-                                <path d="M10,68 L50,68 Q50,42 30,42 Q10,42 10,68 Z" fill="#74b9ff" opacity="0.4"/>
-                                <circle cx="30" cy="42" r="5" fill="#f1c40f" filter="url(#glow4)"/>
+                            <!-- 4h Hourglass -->
+                            <svg viewBox="0 0 50 60" width="44" height="52" fill="none">
+                                <rect x="8" y="6" width="34" height="5" rx="2" fill="#74b9ff"/>
+                                <rect x="8" y="49" width="34" height="5" rx="2" fill="#74b9ff"/>
+                                <path d="M10 11 L40 11 Q40 30 25 30 Q10 30 10 11 Z" fill="#74b9ff" opacity="0.6"/>
+                                <path d="M10 49 L40 49 Q40 30 25 30 Q10 30 10 49 Z" fill="#74b9ff" opacity="0.3"/>
+                                <circle cx="25" cy="30" r="3.5" fill="#ffeaa7"/>
                             </svg>
                         {:else if skip.hours === 8}
-                            <!-- Medium: clock face -->
-                            <svg viewBox="0 0 80 80" width="70" height="70">
-                                <defs><filter id="glow8" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-                                <circle cx="40" cy="40" r="34" fill="#2d1b4e" stroke="#a29bfe" stroke-width="3" filter="url(#glow8)"/>
-                                <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(162,155,254,0.2)" stroke-width="1"/>
-                                <!-- Hour markers -->
-                                {#each [0,30,60,90,120,150,180,210,240,270,300,330] as angle}
-                                    <line 
-                                        x1={40 + 24 * Math.sin(angle * Math.PI / 180)}
-                                        y1={40 - 24 * Math.cos(angle * Math.PI / 180)}
-                                        x2={40 + 29 * Math.sin(angle * Math.PI / 180)}
-                                        y2={40 - 29 * Math.cos(angle * Math.PI / 180)}
-                                        stroke="rgba(162,155,254,0.5)" stroke-width="2"
-                                    />
-                                {/each}
-                                <!-- Hands -->
-                                <line x1="40" y1="40" x2="40" y2="20" stroke="#f1c40f" stroke-width="3" stroke-linecap="round"/>
-                                <line x1="40" y1="40" x2="52" y2="40" stroke="#f1c40f" stroke-width="3" stroke-linecap="round"/>
-                                <circle cx="40" cy="40" r="3" fill="#f1c40f"/>
+                            <!-- 8h Arcane Astrolabe -->
+                            <svg viewBox="0 0 54 54" width="46" height="46" fill="none">
+                                <circle cx="27" cy="27" r="23" fill="#1e1035" stroke="#a29bfe" stroke-width="1.8"/>
+                                <circle cx="27" cy="27" r="18" fill="none" stroke="rgba(162, 155, 254, 0.3)" stroke-dasharray="3 3"/>
+                                <line x1="27" y1="27" x2="27" y2="12" stroke="#f1c40f" stroke-width="2.5" stroke-linecap="round"/>
+                                <line x1="27" y1="27" x2="36" y2="27" stroke="#f1c40f" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="27" cy="27" r="3" fill="#f1c40f"/>
                             </svg>
                         {:else}
-                            <!-- Large: portal/galaxy -->
-                            <svg viewBox="0 0 100 60" width="80" height="48">
-                                <defs><filter id="glow24" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-                                <ellipse cx="50" cy="30" rx="40" ry="15" fill="none" stroke="#fd79a8" stroke-width="2" opacity="0.6"/>
-                                <ellipse cx="50" cy="30" rx="30" ry="10" fill="none" stroke="#a29bfe" stroke-width="2" filter="url(#glow24)"/>
-                                <ellipse cx="50" cy="30" rx="20" ry="6" fill="#2d1b4e"/>
-                                <circle cx="50" cy="30" r="4" fill="#fd79a8" filter="url(#glow24)"/>
-                                <circle cx="15" cy="20" r="2" fill="#fff" opacity="0.8"/>
-                                <circle cx="85" cy="40" r="2" fill="#fff" opacity="0.6"/>
-                                <circle cx="25" cy="45" r="1.5" fill="#a29bfe" opacity="0.7"/>
-                                <circle cx="75" cy="15" r="1.5" fill="#a29bfe" opacity="0.9"/>
+                            <!-- 24h Temporal Vortex -->
+                            <svg viewBox="0 0 60 50" width="50" height="42" fill="none">
+                                <defs>
+                                    <radialGradient id="vortexGlow" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#fd79a8"/>
+                                        <stop offset="70%" stop-color="#6c5ce7"/>
+                                        <stop offset="100%" stop-color="#0984e3" stop-opacity="0"/>
+                                    </radialGradient>
+                                </defs>
+                                <ellipse cx="30" cy="25" rx="26" ry="18" fill="url(#vortexGlow)" opacity="0.4"/>
+                                <ellipse cx="30" cy="25" rx="22" ry="12" fill="none" stroke="#fd79a8" stroke-width="1.8"/>
+                                <ellipse cx="30" cy="25" rx="14" ry="7" fill="none" stroke="#a29bfe" stroke-width="1.5"/>
+                                <circle cx="30" cy="25" r="3.5" fill="#fff"/>
                             </svg>
                         {/if}
                     </div>
 
                     <div class="card-content">
-                        <h3>{skip.label}</h3>
+                        <h4 class="card-label">{skip.label}</h4>
                         <p class="card-desc">{skip.desc}</p>
-                        <p class="card-reward">
-                            ≈ <strong>{estimateGold(skip.hours)}</strong>
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" style="vertical-align: middle; display: inline-block;">
-                                <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
-                                <circle cx="12" cy="12" r="5" fill="#f39c12"/>
+                        <div class="card-estimate">
+                            <svg viewBox="0 0 20 20" width="13" height="13" fill="none">
+                                <circle cx="10" cy="10" r="8" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                                <circle cx="10" cy="10" r="4" fill="#f39c12"/>
                             </svg>
-                        </p>
+                            <span>≈ +{estimateGold(skip.hours)} золота</span>
+                        </div>
                     </div>
 
                     <div class="card-action">
-                        <button class="buy-btn" on:click={() => handleSkip(skip)} bind:this={btnRefs[skip.id]} disabled={$crystals < skip.cost}>
+                        <button 
+                            type="button"
+                            class="action-btn crystal-btn" 
+                            on:click={() => handleSkip(skip)} 
+                            bind:this={btnRefs[skip.id]} 
+                            disabled={$crystals < skip.cost}
+                        >
                             <span class="btn-cost">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff" style="vertical-align: middle; display: inline-block;">
-                                    <polygon points="12,2 21,9 12,22 3,9"/>
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
+                                    <polygon points="12,2 20,7 16,21 8,21 4,7"/>
                                 </svg>
                                 {skip.cost}
                             </span>
-                            <span class="btn-label">Купить</span>
+                            <span class="btn-sub">Купить</span>
                         </button>
+
+                        {#if resultMessages[skip.id].visible}
+                            <div class="result-flyout" id="result-{skip.id}">
+                                {resultMessages[skip.id].text}
+                            </div>
+                        {/if}
                     </div>
 
-                    <!-- Result popup overlay for this specific card -->
-                    {#if resultMessages[skip.id].visible}
-                        <div class="skip-result-overlay">
-                            <span class="result-text">{resultMessages[skip.id].text}</span>
-                        </div>
-                    {/if}
                 </div>
             {/each}
+
         </div>
 
     </div>
@@ -266,20 +362,17 @@
     }
 
     .modal {
-        background: linear-gradient(145deg, #0d0720, #1a0a2e);
-        border: 2px solid rgba(162, 155, 254, 0.3);
-        border-radius: 24px;
-        box-shadow:
-            0 0 60px rgba(108, 92, 231, 0.3),
-            0 25px 60px rgba(0, 0, 0, 0.7),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        width: 92%;
-        max-width: 500px;
-        max-height: 90vh;
+        background: linear-gradient(150deg, #1b0a33 0%, #100620 100%);
+        border: 2px solid rgba(162, 155, 254, 0.4);
+        border-radius: 20px;
+        box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        width: 95%;
+        max-width: 580px;
+        max-height: 88vh;
         overflow-y: auto;
         color: white;
-        padding: 22px;
-        animation: modalIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 20px;
+        box-sizing: border-box;
     }
 
     .embedded {
@@ -289,6 +382,7 @@
         z-index: 1;
         padding: 0;
         inset: auto;
+        display: block;
     }
 
     .embedded-modal {
@@ -298,176 +392,232 @@
         width: 100%;
         max-width: none;
         max-height: none;
-        height: 100%;
         background: transparent;
-        animation: none;
+        padding: 4px 0 16px;
     }
 
-    @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.85) translateY(20px); }
-        to   { opacity: 1; transform: scale(1)   translateY(0); }
+    .tab-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(162, 155, 254, 0.2);
+        padding-bottom: 12px;
+    }
+
+    .tab-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .tab-title {
+        font-size: 1.3rem;
+        color: #74b9ff;
+        margin: 0;
     }
 
     .close-btn {
-        position: absolute;
-        right: 0;
-        top: 0;
         background: none;
         border: none;
-        color: #bdc3c7;
-        font-size: 1.5rem;
+        color: #b2bec3;
+        font-size: 1.4rem;
         cursor: pointer;
-        padding: 4px;
-        transition: transform 0.2s, color 0.2s;
     }
 
-    .close-btn:hover {
-        transform: scale(1.1);
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
+    .no-income-warning {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(243, 156, 18, 0.15);
+        border: 1px solid rgba(243, 156, 18, 0.4);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #f39c12;
+        font-size: 0.82rem;
+        margin-bottom: 14px;
     }
 
-
-    .no-idle-hint {
-        font-size: 0.78rem;
-        color: rgba(255, 200, 100, 0.7);
-    }
-
-    /* Cards */
-    .skip-grid {
+    .chrono-list {
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 12px;
     }
 
     .skip-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 16px;
-        padding: 16px;
         position: relative;
-        overflow: hidden;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1.5px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 14px 16px;
         display: flex;
-        flex-direction: row;
         align-items: center;
         gap: 16px;
-        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
 
     .skip-card:hover {
         border-color: var(--accent);
-        box-shadow: 0 0 20px var(--glow);
+        box-shadow: 0 4px 16px var(--glow);
+    }
+
+    .free-card {
+        background: linear-gradient(135deg, rgba(46, 204, 113, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+        border-color: rgba(46, 204, 113, 0.35);
     }
 
     .card-visual {
+        flex-shrink: 0;
         display: flex;
-        justify-content: center;
         align-items: center;
-        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+        justify-content: center;
     }
 
     .card-content {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        min-width: 0;
     }
 
-    .card-content h3 {
-        margin: 0 0 4px;
-        font-size: 1.2rem;
-        color: var(--accent);
-        text-shadow: 0 0 10px var(--glow);
+    .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 2px;
+    }
+
+    .card-label {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .free-pill {
+        background: #27ae60;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 4px;
     }
 
     .card-desc {
         margin: 0 0 6px;
-        font-size: 0.85rem;
-        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        color: #b2bec3;
     }
 
-    .card-reward {
-        margin: 0;
-        font-size: 1.05rem;
+    .card-estimate {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.85rem;
+        font-weight: 700;
         color: #f1c40f;
     }
 
     .card-action {
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
+        flex-shrink: 0;
+        position: relative;
     }
 
-    .buy-btn {
-        background: transparent;
-        border: 1px solid var(--accent);
-        color: white;
-        border-radius: 12px;
-        padding: 12px 18px;
+    .action-btn {
+        border: none;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font-weight: 800;
         cursor: pointer;
-        font-weight: bold;
-        transition: all 0.2s;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 2px;
-        min-width: 100px;
+        min-width: 90px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: transform 0.15s, filter 0.15s;
+    }
+
+    .action-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+    }
+
+    .action-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .free-btn {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: #fff;
+        flex-direction: row;
+        gap: 6px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+
+    .crystal-btn {
+        background: linear-gradient(135deg, #0984e3, #74b9ff);
+        color: #fff;
     }
 
     .btn-cost {
-        color: #74b9ff;
-        font-size: 1.15rem;
-        text-shadow: 0 0 5px rgba(116, 185, 255, 0.5);
-    }
-    
-    .btn-label {
-        font-size: 0.9rem;
-        color: var(--accent);
-    }
-
-    .buy-btn:hover:not(:disabled) {
-        background: var(--accent);
-        box-shadow: 0 0 15px var(--glow);
-    }
-    .buy-btn:hover:not(:disabled) .btn-label, .buy-btn:hover:not(:disabled) .btn-cost {
-        color: #000;
-        text-shadow: none;
-    }
-
-    .buy-btn:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    .buy-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        border-color: rgba(255,255,255,0.2);
-        filter: grayscale(0.8);
-    }
-
-    .skip-result-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.6);
         display: flex;
         align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(2px);
-        border-radius: 16px;
+        gap: 4px;
+        font-size: 1rem;
+        font-weight: 900;
     }
 
-    .result-text {
-        font-size: 1.3rem;
-        font-weight: bold;
-        color: #f1c40f;
-        text-shadow: 0 2px 10px #d35400;
-        animation: popUp 0.3s ease-out;
+    .btn-sub {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        opacity: 0.9;
     }
 
-    @keyframes popUp {
-        0% { transform: scale(0.5); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+    .cooldown-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 8px 12px;
+        border-radius: 10px;
+        color: #b2bec3;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .result-flyout {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #2ecc71;
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-weight: 900;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    @media (max-width: 480px) {
+        .skip-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        .card-title-row {
+            justify-content: center;
+        }
+        .card-estimate {
+            justify-content: center;
+        }
+        .action-btn {
+            width: 100%;
+            min-width: 140px;
+        }
     }
 </style>

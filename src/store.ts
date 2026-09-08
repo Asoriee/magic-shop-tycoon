@@ -630,6 +630,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     }
 ];
 
+export const POTIONS_CATALOGUE = AVAILABLE_POTIONS;
+
 
 
 /**

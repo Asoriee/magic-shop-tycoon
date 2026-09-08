@@ -171,14 +171,14 @@
                 class:active={activeTab === 'bank'} 
                 on:click={() => switchTab('bank')}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <rect x="3" y="10" width="18" height="11" rx="2" fill="#8B4513" stroke="#f1c40f" stroke-width="1.2"/>
                         <path d="M3 10 C3 6 7 4 12 4 C17 4 21 6 21 10 Z" fill="#a0522d" stroke="#f1c40f" stroke-width="1.2"/>
                         <circle cx="12" cy="15" r="2" fill="#f1c40f"/>
                     </svg>
-                    <span class="tab-label">Сокровищница</span>
                 </div>
+                <span class="tab-label">Сокровищница</span>
                 {#if isDragonGiftReady}
                     <span class="tab-badge badge-free">ДАР</span>
                 {/if}
@@ -193,16 +193,16 @@
                 class:active={activeTab === 'timeskip'} 
                 on:click={() => switchTab('timeskip')}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <rect x="5" y="2" width="14" height="3" rx="1.5" fill="#74b9ff"/>
                         <rect x="5" y="19" width="14" height="3" rx="1.5" fill="#74b9ff"/>
                         <path d="M6 5 L18 5 Q18 12 12 12 Q6 12 6 5 Z" fill="#74b9ff" opacity="0.6"/>
                         <path d="M6 19 L18 19 Q18 12 12 12 Q6 12 6 19 Z" fill="#74b9ff" opacity="0.3"/>
                         <circle cx="12" cy="12" r="1.5" fill="#f1c40f"/>
                     </svg>
-                    <span class="tab-label">Хрономантия</span>
                 </div>
+                <span class="tab-label">Хрономантия</span>
                 {#if isFreeSkipReady}
                     <span class="tab-badge badge-ready">1Ч FREE</span>
                 {/if}
@@ -217,13 +217,13 @@
                 class:active={activeTab === 'secret'} 
                 on:click={() => switchTab('secret')}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <circle cx="12" cy="12" r="8" fill="#1e1035" stroke="#a29bfe" stroke-width="1.5"/>
                         <polygon points="12,5 14,10 19,12 14,14 12,19 10,14 5,12 10,10" fill="#a29bfe"/>
                     </svg>
-                    <span class="tab-label">Тайные Знания</span>
                 </div>
+                <span class="tab-label">Тайные Знания</span>
             </button>
 
             <!-- 4. Rebirth / Prestige -->
@@ -235,16 +235,21 @@
                 class:active={activeTab === 'rebirth'} 
                 on:click={() => switchTab('rebirth')}
             >
-                <div class="tab-btn-content">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" class="tab-svg">
+                <div class="tab-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="tab-svg">
                         <circle cx="12" cy="12" r="9" stroke="#e74c3c" stroke-width="1.5"/>
                         <polygon points="12,4 19,17 5,17" stroke="#f1c40f" stroke-width="1.2" fill="none"/>
                         <circle cx="12" cy="12" r="2" fill="#e74c3c"/>
                     </svg>
-                    <span class="tab-label">Тёмный Ритуал</span>
                 </div>
+                <span class="tab-label">Тёмный Ритуал</span>
                 {#if earnedStardust > 0}
-                    <span class="tab-badge badge-rebirth">+{formatNumber(earnedStardust)} ✦</span>
+                    <span class="tab-badge badge-rebirth">
+                        +{formatNumber(earnedStardust)}
+                        <svg viewBox="0 0 24 24" width="9" height="9" fill="#ffeaa7" class="badge-svg">
+                            <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                        </svg>
+                    </span>
                 {/if}
             </button>
 
@@ -416,67 +421,103 @@
         letter-spacing: 0.5px;
     }
 
-    /* Tab navigation bar */
+    /* Master Tab Navigation Bar */
     .arcanum-tabs-bar {
-        display: flex;
-        background: rgba(0, 0, 0, 0.3);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
-    .arcanum-tabs-bar::-webkit-scrollbar {
-        display: none;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: rgba(8, 3, 16, 0.85);
+        border-bottom: 2px solid rgba(241, 196, 15, 0.25);
+        padding: 4px 6px 0;
+        gap: 4px;
+        flex-shrink: 0;
+        z-index: 2;
     }
 
     .arcanum-tab {
-        flex: 1;
-        min-width: 120px;
-        background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        padding: 12px 10px;
-        color: #b2bec3;
-        cursor: pointer;
+        position: relative;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        position: relative;
-        transition: all 0.2s;
-    }
-
-    .tab-btn-content {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .tab-label {
-        font-size: 0.88rem;
-        font-weight: 700;
-        white-space: nowrap;
+        gap: 4px;
+        padding: 8px 4px 6px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 8px 8px 0 0;
+        color: #b2bec3;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .arcanum-tab:hover {
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.05);
         color: #dfe6e9;
     }
 
     .arcanum-tab.active {
         color: #f1c40f;
+        background: linear-gradient(180deg, rgba(241, 196, 15, 0.15) 0%, rgba(241, 196, 15, 0.02) 100%);
         border-bottom-color: #f1c40f;
-        background: rgba(241, 196, 15, 0.08);
+    }
+
+    .tab-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: transform 0.2s ease;
+    }
+
+    .tab-svg {
+        flex-shrink: 0;
+        transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .arcanum-tab.active .tab-svg {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.5));
+    }
+
+    .tab-label {
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.15;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        word-break: normal;
     }
 
     .tab-badge {
-        font-size: 0.65rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 10px;
+        position: absolute;
+        top: 2px;
+        right: 3px;
+        font-size: 0.56rem;
+        font-weight: 900;
+        padding: 1px 4px;
+        border-radius: 6px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
+        line-height: 1.2;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 2px;
         white-space: nowrap;
+    }
+
+    .badge-svg {
+        flex-shrink: 0;
     }
 
     .badge-free {
@@ -499,6 +540,7 @@
     .tab-content-area {
         flex: 1;
         overflow-y: auto;
+        overflow-x: hidden;
         padding: 16px 20px;
         position: relative;
         box-sizing: border-box;
@@ -534,14 +576,46 @@
             font-size: 0.75rem;
         }
         .tab-content-area {
-            padding: 12px 14px;
+            padding: 12px 10px;
+        }
+        .arcanum-tabs-bar {
+            padding: 3px 4px 0;
+            gap: 2px;
         }
         .arcanum-tab {
-            padding: 10px 8px;
-            min-width: 100px;
+            padding: 6px 2px 5px;
+            gap: 2px;
+        }
+        .tab-svg {
+            width: 17px;
+            height: 17px;
         }
         .tab-label {
-            font-size: 0.8rem;
+            font-size: 0.68rem;
+            line-height: 1.1;
+        }
+        .tab-badge {
+            top: 1px;
+            right: 2px;
+            font-size: 0.52rem;
+            padding: 1px 3px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .arcanum-tabs-bar {
+            padding: 2px 2px 0;
+            gap: 1px;
+        }
+        .arcanum-tab {
+            padding: 5px 1px 4px;
+        }
+        .tab-label {
+            font-size: 0.62rem;
+        }
+        .tab-badge {
+            font-size: 0.46rem;
+            padding: 1px 2px;
         }
     }
 </style>

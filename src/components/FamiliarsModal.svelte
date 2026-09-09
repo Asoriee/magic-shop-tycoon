@@ -36,9 +36,8 @@
         }, 2500);
     }
 
-    // Computed properties
     $: unlockedPets = AVAILABLE_PETS.filter(p => $gameStore.unlockedPets.includes(p.id));
-    $: lockedPets = AVAILABLE_PETS.filter(p => !$gameStore.unlockedPets.includes(p.id));
+    $: lockedPets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive && !$gameStore.unlockedPets.includes(p.id));
     $: activeExps = $gameStore.activeExpeditions;
 
     // Timers update
@@ -180,8 +179,12 @@
         if (pet?.rarity === 'legendary') chestType = 'astral';
         
         openChest(chestType);
-        gameStore.update(s => ({ ...s, stardust: s.stardust + 10 }));
-        showToast('Добыча и +10 звёздной пыли получены!');
+        let stardustGain = 10;
+        if (petId === 'pet_phoenix') stardustGain = 25;
+        if (petId === 'pet_void_titan') stardustGain = 50;
+
+        gameStore.update(s => ({ ...s, stardust: s.stardust + stardustGain }));
+        showToast(`Добыча и +${stardustGain} звёздной пыли получены!`);
         saveGame();
     }
 

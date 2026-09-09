@@ -11,6 +11,7 @@
         readyOrdersCount, 
         unclaimedQuestsCount,
         isFreeChestReady,
+        AVAILABLE_ARTIFACTS,
         formatNumber 
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
@@ -224,7 +225,7 @@
                     </svg>
                 </div>
                 <span class="tab-label">Древности</span>
-                <span class="tab-badge badge-count">{$gameStore.artifacts.length}/8</span>
+                <span class="tab-badge badge-count">{$gameStore.artifacts.length}/{AVAILABLE_ARTIFACTS.length}</span>
             </button>
         </div>
 

@@ -45,10 +45,10 @@
                 <div class="vitrine-crest">
                     <svg viewBox="0 0 36 36" width="32" height="32">
                         <path d="M18 3L6 7v9c0 9 5.5 15 12 17 6.5-2 12-8 12-17V7l-12-4z" 
-                              fill={isUnlocked ? "#f1c40f" : "#2d1b4e"} 
-                              stroke="#ffd700" stroke-width="1.8"/>
+                              fill={isUnlocked ? (collection.themeColor || "#f1c40f") : "#2d1b4e"} 
+                              stroke={collection.themeColor || "#ffd700"} stroke-width="1.8"/>
                         <path d="M18 9l2 5h5l-4 3.5 1.5 5.5-4.5-3-4.5 3 1.5-5.5-4-3.5h5z" 
-                              fill={isUnlocked ? "#9b59b6" : "#f1c40f"}/>
+                              fill={isUnlocked ? "#ffffff" : (collection.themeColor || "#f1c40f")}/>
                     </svg>
                 </div>
 
@@ -59,7 +59,7 @@
                             <span class="complete-badge">Собрано</span>
                         {/if}
                     </div>
-                    <span class="vitrine-desc">Соберите комплект реликвий в Лавке Древностей Города, чтобы пробудить великую силу!</span>
+                    <span class="vitrine-desc">{collection.description || 'Соберите комплект реликвий в Лавке Древностей Города, чтобы пробудить великую силу!'}</span>
                 </div>
 
                 <div class="vitrine-progress-badge">
@@ -127,24 +127,14 @@
                         <div class="reward-details">
                             <h4 class="reward-pet-title">{rewardPet.name}</h4>
                             <div class="perks-list">
-                                <div class="perk-item">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="#f1c40f">
-                                        <polygon points="12,2 15,8.5 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,8.5"/>
-                                    </svg>
-                                    <span><strong>+150%</strong> к пассивному доходу золота</span>
-                                </div>
-                                <div class="perk-item">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                                        <polygon points="12,2 15,8.5 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,8.5"/>
-                                    </svg>
-                                    <span><strong>+100%</strong> к силе магического клика</span>
-                                </div>
-                                <div class="perk-item">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="#e056fd">
-                                        <polygon points="12,2 15,8.5 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,8.5"/>
-                                    </svg>
-                                    <span>Уникальный спутник и экспедиции за редкими сокровищами</span>
-                                </div>
+                                {#each (collection.perks || []) as perk}
+                                    <div class="perk-item">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill={perk.iconColor}>
+                                            <polygon points="12,2 15,8.5 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,8.5"/>
+                                        </svg>
+                                        <span>{@html perk.text}</span>
+                                    </div>
+                                {/each}
                             </div>
                         </div>
                     {/if}
@@ -163,8 +153,8 @@
             </svg>
         </div>
         <div class="future-info">
-            <h4 class="future-title">Тайны Стихийного Плана</h4>
-            <p class="future-desc">Древние гримуары шепчут о будущих реликвиях пламени и пустоты. Исследуйте мир, чтобы первыми узнать о новых сокровищах!</p>
+            <h4 class="future-title">Обитель Забытых Богов</h4>
+            <p class="future-desc">Древнейшие летописи хранят молчание о реликвиях Первозданного Хаоса. Следите за обновлениями лавки!</p>
         </div>
     </div>
 </div>
@@ -484,7 +474,7 @@
         color: #dcdde1;
     }
 
-    .perk-item strong {
+    .perk-item :global(strong) {
         color: #ffd700;
     }
 

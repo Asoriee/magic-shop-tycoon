@@ -98,6 +98,7 @@ export interface Pet {
     rarity: Rarity;
     icon: string;
     description: string;
+    isCollectionExclusive?: boolean;
 }
 
 export interface ActiveExpedition {
@@ -137,11 +138,19 @@ export interface Artifact {
     svg: string;
 }
 
+export interface CollectionPerk {
+    iconColor: string;
+    text: string;
+}
+
 export interface Collection {
     id: string;
     name: string;
+    description: string;
+    themeColor: string;
     requiredArtifactIds: number[];
     rewardPetId: string;
+    perks: CollectionPerk[];
 }
 
 export interface GameState {
@@ -892,7 +901,7 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         cost: 500,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#34495e" stroke="#ecf0f1" stroke-width="5"/><circle cx="50" cy="50" r="3" fill="#ecf0f1"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="65" y2="65" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/></svg>`
     },
-    // Archmage Set
+    // --- Archmage Set ---
     {
         id: 3,
         name: 'Мантия Архимага',
@@ -927,6 +936,64 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         description: '+100% к пассивному доходу',
         cost: 15000,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="25" fill="#ecf0f1" stroke="#f39c12" stroke-width="5"/><circle cx="50" cy="50" r="18" fill="#e74c3c"/><circle cx="50" cy="50" r="6" fill="#c0392b"/><circle cx="55" cy="45" r="4" fill="white"/></svg>`
+    },
+    // --- Phoenix Flame Set ---
+    {
+        id: 8,
+        name: 'Жемчужина Феникса',
+        description: '+40% золота за заказы и зелья',
+        cost: 20000,
+        svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="phoenixPearlGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="35%" stop-color="#f39c12"/><stop offset="70%" stop-color="#e74c3c"/><stop offset="100%" stop-color="#962d22"/></radialGradient><linearGradient id="goldFiligree" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="50%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#d35400"/></linearGradient></defs><path d="M50 12 Q38 30 42 45 Q30 50 35 68 Q40 85 50 90 Q60 85 65 68 Q70 50 58 45 Q62 30 50 12 Z" fill="#e74c3c" opacity="0.35"/><path d="M28 78 C35 70 42 75 50 82 C58 75 65 70 72 78 C65 88 35 88 28 78 Z" fill="url(#goldFiligree)" stroke="#b7791f" stroke-width="1.5"/><path d="M22 60 Q28 68 34 66" stroke="url(#goldFiligree)" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M78 60 Q72 68 66 66" stroke="url(#goldFiligree)" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M50 84 L50 94 M42 94 L58 94" stroke="url(#goldFiligree)" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="50" r="24" fill="url(#phoenixPearlGlow)"/><ellipse cx="44" cy="42" rx="7" ry="4" fill="#ffffff" opacity="0.75" transform="rotate(-30 44 42)"/><polygon points="50,22 52,28 58,30 52,32 50,38 48,32 42,30 48,28" fill="#ffeaa7"/><circle cx="34" cy="36" r="2" fill="#fdcb6e"/><circle cx="66" cy="38" r="2.5" fill="#fdcb6e"/></svg>`
+    },
+    {
+        id: 9,
+        name: 'Печать Вулкана',
+        description: '+80% к силе клика',
+        cost: 35000,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="volcanoStone" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3d3d3d"/><stop offset="50%" stop-color="#1e1e1e"/><stop offset="100%" stop-color="#0a0a0a"/></linearGradient><linearGradient id="magmaFlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff9f43"/><stop offset="50%" stop-color="#ee5253"/><stop offset="100%" stop-color="#ff3838"/></linearGradient></defs><polygon points="30,12 70,12 88,30 88,70 70,88 30,88 12,70 12,30" fill="url(#volcanoStone)" stroke="#c0392b" stroke-width="2.5"/><polygon points="33,18 67,18 82,33 82,67 67,82 33,82 18,67 18,33" fill="#151515" stroke="#4a1c17" stroke-width="1.5"/><path d="M22 35 L38 45 L34 56 L46 64 L50 78" stroke="url(#magmaFlow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M78 35 L62 45 L66 58 L54 65 L50 78" stroke="url(#magmaFlow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M50 20 L50 36 M38 45 L50 48 L62 45" stroke="url(#magmaFlow)" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="50" cy="50" r="14" fill="#2d0c0a" stroke="#ff7675" stroke-width="1.8"/><path d="M50 40 L57 56 L43 56 Z" fill="url(#magmaFlow)"/><circle cx="50" cy="50" r="3.5" fill="#fff"/></svg>`
+    },
+    {
+        id: 10,
+        name: 'Чаша Вечного Огня',
+        description: '+120% к пассивному доходу',
+        cost: 60000,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="chaliceGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#fdcb6e"/><stop offset="100%" stop-color="#e17055"/></linearGradient><linearGradient id="fireCore" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#e74c3c"/><stop offset="40%" stop-color="#ff7675"/><stop offset="80%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><path d="M50 10 Q32 30 42 50 Q28 42 36 28 Q44 20 50 10 Z" fill="#ff7675" opacity="0.6"/><path d="M50 10 Q68 30 58 50 Q72 42 64 28 Q56 20 50 10 Z" fill="#ff7675" opacity="0.6"/><path d="M50 14 Q38 32 44 48 Q50 54 56 48 Q62 32 50 14 Z" fill="url(#fireCore)"/><path d="M50 24 Q44 36 48 45 Q50 48 52 45 Q56 36 50 24 Z" fill="#ffffff"/><path d="M25 46 C25 65 38 72 46 73 L46 84 L36 88 L36 92 L64 92 L64 88 L54 84 L54 73 C62 72 75 65 75 46 Z" fill="url(#chaliceGold)" stroke="#d35400" stroke-width="1.8"/><ellipse cx="50" cy="46" rx="25" ry="5" fill="#f39c12" stroke="#b7791f" stroke-width="1.5"/><circle cx="50" cy="62" r="4.5" fill="#d63031" stroke="#ffeaa7" stroke-width="1"/><circle cx="38" cy="58" r="3" fill="#e74c3c"/><circle cx="62" cy="58" r="3" fill="#e74c3c"/><path d="M25 50 Q14 54 18 64 Q22 70 28 66" fill="none" stroke="url(#chaliceGold)" stroke-width="2.5" stroke-linecap="round"/><path d="M75 50 Q86 54 82 64 Q78 70 72 66" fill="none" stroke="url(#chaliceGold)" stroke-width="2.5" stroke-linecap="round"/></svg>`
+    },
+    {
+        id: 11,
+        name: 'Перо Возрождения',
+        description: '+3 ч офлайн-времени и +10% золота после ритуала',
+        cost: 100000,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="featherPlume" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff200"/><stop offset="35%" stop-color="#ff9f43"/><stop offset="70%" stop-color="#ee5253"/><stop offset="100%" stop-color="#5f27cd"/></linearGradient></defs><path d="M78 14 C70 20 62 18 52 24 C40 32 30 46 26 62 C22 75 25 86 24 90 C26 86 32 82 40 80 C56 75 68 62 74 46 C78 35 84 24 78 14 Z" fill="url(#featherPlume)"/><path d="M52 24 C45 32 38 42 34 50 M44 38 C38 48 32 58 29 66 M58 48 C50 60 42 70 36 78" stroke="#ffeaa7" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M78 14 Q52 46 24 90" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="68" cy="20" r="2.5" fill="#f1c40f"/><circle cx="82" cy="35" r="2" fill="#ff7675"/><circle cx="60" cy="12" r="1.5" fill="#feca57"/><polygon points="38,40 40,43 43,44 40,45 38,48 36,45 33,44 36,43" fill="#ffffff" opacity="0.9"/></svg>`
+    },
+    // --- Titans Chronicle Set ---
+    {
+        id: 12,
+        name: 'Хронометр Вечности',
+        description: '+4 ч офлайн-времени и -20% времени экспедиций',
+        cost: 150000,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="astroTitan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dfe6e9"/><stop offset="50%" stop-color="#74b9ff"/><stop offset="100%" stop-color="#0984e3"/></linearGradient><radialGradient id="chronoCore" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#00cec9"/><stop offset="80%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2d3436"/></radialGradient></defs><circle cx="50" cy="50" r="40" fill="none" stroke="url(#astroTitan)" stroke-width="3" stroke-dasharray="8 4"/><ellipse cx="50" cy="50" rx="32" ry="18" fill="none" stroke="#81ecec" stroke-width="2.5" transform="rotate(35 50 50)"/><ellipse cx="50" cy="50" rx="32" ry="18" fill="none" stroke="#a29bfe" stroke-width="2.5" transform="rotate(-35 50 50)"/><circle cx="50" cy="10" r="3" fill="#00cec9"/><circle cx="90" cy="50" r="3" fill="#00cec9"/><circle cx="50" cy="90" r="3" fill="#00cec9"/><circle cx="10" cy="50" r="3" fill="#00cec9"/><circle cx="50" cy="50" r="16" fill="url(#chronoCore)" stroke="#dfe6e9" stroke-width="1.8"/><line x1="50" y1="50" x2="50" y2="38" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="50" x2="60" y2="54" stroke="#81ecec" stroke-width="2" stroke-linecap="round"/><circle cx="50" cy="50" r="3" fill="#ffffff"/></svg>`
+    },
+    {
+        id: 13,
+        name: 'Скрижаль Созидания',
+        description: '+200% к пассивному доходу',
+        cost: 250000,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="monolithGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2c3e50"/><stop offset="60%" stop-color="#1e272e"/><stop offset="100%" stop-color="#0f141d"/></linearGradient><linearGradient id="glyphGlow" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#00cec9"/><stop offset="100%" stop-color="#6c5ce7"/></linearGradient></defs><rect x="22" y="12" width="56" height="76" rx="6" fill="url(#monolithGrad)" stroke="#6c5ce7" stroke-width="2.5"/><rect x="26" y="16" width="48" height="68" rx="4" fill="#121824" stroke="#00cec9" stroke-width="1" stroke-dasharray="6 3"/><circle cx="50" cy="30" r="7" fill="none" stroke="url(#glyphGlow)" stroke-width="2"/><line x1="50" y1="20" x2="50" y2="40" stroke="url(#glyphGlow)" stroke-width="1.8"/><line x1="40" y1="30" x2="60" y2="30" stroke="url(#glyphGlow)" stroke-width="1.8"/><path d="M36 50 L50 44 L64 50 L50 56 Z" fill="none" stroke="url(#glyphGlow)" stroke-width="2"/><circle cx="50" cy="50" r="2" fill="#fff"/><line x1="34" y1="64" x2="66" y2="64" stroke="url(#glyphGlow)" stroke-width="2.5" stroke-linecap="round"/><line x1="38" y1="72" x2="62" y2="72" stroke="url(#glyphGlow)" stroke-width="2.5" stroke-linecap="round"/><polygon points="50,14 52,18 56,20 52,22 50,26 48,22 44,20 48,18" fill="#81ecec"/></svg>`
+    },
+    {
+        id: 14,
+        name: 'Корона Пустоты',
+        description: '+250% к силе клика',
+        cost: 400000,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="voidMetal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4834d4"/><stop offset="50%" stop-color="#24135f"/><stop offset="100%" stop-color="#130838"/></linearGradient><linearGradient id="crystalGlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00d2d3"/><stop offset="50%" stop-color="#54a0ff"/><stop offset="100%" stop-color="#5f27cd"/></linearGradient></defs><path d="M15 72 Q50 86 85 72 L82 66 Q50 78 18 66 Z" fill="url(#voidMetal)" stroke="#a29bfe" stroke-width="1.8"/><polygon points="50,16 57,66 43,66" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="28,30 36,68 22,68" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="72,30 78,68 64,68" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="50,22 58,40 50,54 42,40" fill="url(#crystalGlow)" stroke="#ffffff" stroke-width="1.2"/><line x1="50" y1="22" x2="50" y2="54" stroke="#ffffff" stroke-width="1" opacity="0.8"/><polygon points="28,34 34,46 28,56 22,46" fill="url(#crystalGlow)" stroke="#81ecec" stroke-width="1"/><polygon points="72,34 78,46 72,56 66,46" fill="url(#crystalGlow)" stroke="#81ecec" stroke-width="1"/><circle cx="50" cy="74" r="3.5" fill="#00d2d3"/></svg>`
+    },
+    {
+        id: 15,
+        name: 'Сердце Титана',
+        description: '+300% ко всему доходу золота',
+        cost: 750000,
+        svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="titanHeart" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#81ecec"/><stop offset="60%" stop-color="#0984e3"/><stop offset="90%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2c2c54"/></radialGradient><linearGradient id="orbitRings" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="url(#orbitRings)" stroke-width="2.5" transform="rotate(-30 50 50)"/><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="#a29bfe" stroke-width="2" stroke-dasharray="6 3" transform="rotate(45 50 50)"/><circle cx="18" cy="32" r="4" fill="#00d2d3" stroke="#fff" stroke-width="1"/><circle cx="82" cy="68" r="4" fill="#ffeaa7" stroke="#fff" stroke-width="1"/><circle cx="78" cy="26" r="3" fill="#a29bfe"/><polygon points="50,15 75,50 50,85 25,50" fill="url(#titanHeart)" stroke="#ffffff" stroke-width="2"/><polygon points="50,26 67,50 50,74 33,50" fill="#ffffff" opacity="0.4"/><polygon points="50,35 60,50 50,65 40,50" fill="#ffffff"/><line x1="50" y1="6" x2="50" y2="94" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/><line x1="6" y1="50" x2="94" y2="50" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/></svg>`
     }
 ];
 
@@ -934,8 +1001,43 @@ export const AVAILABLE_COLLECTIONS: Collection[] = [
     {
         id: 'archmage_set',
         name: 'Наследие Архимага',
+        description: 'Соберите облачение великого Архимага, чтобы подчинить тайные потоки магии и призвать Астрального Дракона.',
+        themeColor: '#9b59b6',
         requiredArtifactIds: [3, 4, 5, 6, 7],
-        rewardPetId: 'pet_astral_dragon'
+        rewardPetId: 'pet_astral_dragon',
+        perks: [
+            { iconColor: '#f1c40f', text: '<strong>+150%</strong> к пассивному доходу золота' },
+            { iconColor: '#74b9ff', text: '<strong>+100%</strong> к силе магического клика' },
+            { iconColor: '#e056fd', text: 'Уникальный спутник и экспедиции за редкими сокровищами' }
+        ]
+    },
+    {
+        id: 'phoenix_set',
+        name: 'Пламя Феникса',
+        description: 'Древние реликвии из сердца огнедышащего вулкана. Усиливают заказы, алхимию и даруют покровительство Солнечного Феникса.',
+        themeColor: '#e17055',
+        requiredArtifactIds: [8, 9, 10, 11],
+        rewardPetId: 'pet_phoenix',
+        perks: [
+            { iconColor: '#ff7675', text: '<strong>+250%</strong> к пассивному доходу золота' },
+            { iconColor: '#f39c12', text: '<strong>+150%</strong> к силе магического клика' },
+            { iconColor: '#fdcb6e', text: '<strong>+30%</strong> к золоту за все городские заказы' },
+            { iconColor: '#e17055', text: 'Солнечный Феникс приносит +25 ✦ пыли за экспедицию' }
+        ]
+    },
+    {
+        id: 'titan_set',
+        name: 'Хроники Титанов',
+        description: 'Космические печати первых творцов вселенной. Искажают законы времени и открывают путь к Эфирному Грифону-Титану.',
+        themeColor: '#00cec9',
+        requiredArtifactIds: [12, 13, 14, 15],
+        rewardPetId: 'pet_void_titan',
+        perks: [
+            { iconColor: '#00cec9', text: '<strong>+400%</strong> к пассивному доходу золота' },
+            { iconColor: '#6c5ce7', text: '<strong>+300%</strong> к силе магического клика' },
+            { iconColor: '#a29bfe', text: '<strong>+15%</strong> больше Звёздной Пыли при ритуале перерождения' },
+            { iconColor: '#81ecec', text: 'Эфирный Грифон гарантирует Астральный сундук и +50 ✦' }
+        ]
     }
 ];
 
@@ -972,8 +1074,25 @@ export const AVAILABLE_PETS: Pet[] = [
         id: 'pet_astral_dragon',
         name: 'Астральный Дракончик',
         rarity: 'legendary',
+        isCollectionExclusive: true,
         description: 'Уникальный питомец Сета Архимага. Находит редчайшие материалы из пустоты.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="astralGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#9b59b6"/><stop offset="100%" stop-color="#2c3e50"/></radialGradient></defs><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="url(#astralGrad)"/><circle cx="15" cy="20" r="2" fill="#00cec9"/><circle cx="25" cy="20" r="2" fill="#00cec9"/><path d="M5 25 L10 10 L15 25 Z" fill="#6c5ce7"/><path d="M35 25 L30 10 L25 25 Z" fill="#6c5ce7"/></svg>`
+    },
+    {
+        id: 'pet_phoenix',
+        name: 'Солнечный Феникс',
+        rarity: 'legendary',
+        isCollectionExclusive: true,
+        description: 'Легендарный хранитель пламени. Экспедиция приносит редчайшие астральные сундуки и +25 звёздной пыли.',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="phoenixBodyGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#e17055"/><stop offset="100%" stop-color="#d63031"/></radialGradient></defs><path d="M20 28 Q15 38 8 36 Q18 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q25 38 32 36 Q22 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q20 40 20 40 Q20 32 20 28Z" fill="#f1c40f"/><path d="M20 18 C14 8 4 12 6 22 C10 24 16 22 20 24 Z" fill="#ff7675"/><path d="M20 18 C26 8 36 12 34 22 C30 24 24 22 20 24 Z" fill="#ff7675"/><ellipse cx="20" cy="20" rx="6" ry="9" fill="url(#phoenixBodyGrad)"/><circle cx="20" cy="11" r="5" fill="#f1c40f"/><path d="M20 6 L18 10 L22 10 Z" fill="#d63031"/><path d="M16 8 L18 11 L16 12 Z" fill="#e67e22"/><path d="M24 8 L22 11 L24 12 Z" fill="#e67e22"/><circle cx="18" cy="11" r="1.2" fill="#2d3436"/><circle cx="22" cy="11" r="1.2" fill="#2d3436"/><polygon points="19,13 21,13 20,16" fill="#d35400"/></svg>`
+    },
+    {
+        id: 'pet_void_titan',
+        name: 'Эфирный Грифон',
+        rarity: 'legendary',
+        isCollectionExclusive: true,
+        description: 'Мифический страж вечности и пустоты. Экспедиция гарантирует высший астральный сундук и +50 звёздной пыли.',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="voidTitanGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#81ecec"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1347"/></radialGradient></defs><path d="M20 18 C12 6 3 10 5 22 C11 22 16 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><path d="M20 18 C28 6 37 10 35 22 C29 22 24 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><ellipse cx="20" cy="22" rx="7" ry="10" fill="url(#voidTitanGrad)"/><path d="M15 28 L14 36 M25 28 L26 36" stroke="#00cec9" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="12" r="6" fill="#4834d4"/><path d="M15 10 L12 4 L17 8 Z" fill="#00d2d3"/><path d="M25 10 L28 4 L23 8 Z" fill="#00d2d3"/><polygon points="18,14 22,14 20,18" fill="#ffeaa7"/><circle cx="17" cy="11" r="1.5" fill="#00ffff"/><circle cx="23" cy="11" r="1.5" fill="#00ffff"/><circle cx="20" cy="22" r="2" fill="#fff"/></svg>`
     }
 ];
 
@@ -1229,11 +1348,17 @@ function createGameStore() {
             return state;
         }),
         performRebirth: () => update(state => {
-            const earnedStardust = Math.floor(state.gold / 1_000_000);
+            let stardustMultiplier = 1;
+            if (state.unlockedCollections?.includes('titan_set')) stardustMultiplier += 0.15;
+            const earnedStardust = Math.floor((state.gold / 1_000_000) * stardustMultiplier);
             
             // Secret Upgrade: Тяжелый Кошелек (+100 start gold per level)
             const walletLevel = state.secretUpgrades.find(u => u.id === 'wallet')?.level || 0;
-            const startingGold = walletLevel * 100;
+            let startingGold = walletLevel * 100;
+            // Artifact 11 (Перо Возрождения): сохраняет 10% золота после ритуала
+            if (state.artifacts?.includes(11)) {
+                startingGold += Math.floor(state.gold * 0.10);
+            }
 
             return {
                 ...state,
@@ -1327,12 +1452,18 @@ function createGameStore() {
                 return q;
             });
 
+            let effectiveHours = durationHours;
+            // Artifact 12 (Хронометр Вечности): -20% к времени экспедиций
+            if (state.artifacts?.includes(12)) {
+                effectiveHours *= 0.8;
+            }
+
             return {
                 ...state,
                 quests: newQuests,
                 activeExpeditions: [
                     ...state.activeExpeditions,
-                    { petId, startTime: Date.now(), durationMs: durationHours * 3600 * 1000 }
+                    { petId, startTime: Date.now(), durationMs: effectiveHours * 3600 * 1000 }
                 ]
             };
         }),
@@ -1413,7 +1544,12 @@ function createGameStore() {
 
             // Secret Upgrade: Щедрые Клиенты (+20% gold per level)
             const ordersLevel = state.secretUpgrades.find(u => u.id === 'orders')?.level || 0;
-            const goldMultiplier = 1 + (ordersLevel * 0.20);
+            let goldMultiplier = 1 + (ordersLevel * 0.20);
+            // Artifact 8 (Жемчужина Феникса): +40% золота за заказы
+            if (state.artifacts?.includes(8)) goldMultiplier += 0.40;
+            // Phoenix Set Grand Bonus: +30% золота за заказы
+            if (state.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
+
             const finalGold = Math.floor(order.rewardGold * goldMultiplier);
 
             const newQuests = state.quests.map(q => {
@@ -1540,8 +1676,16 @@ export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
     if (arts.includes(3)) multiplier += 0.35; // Archmage Robe
     if (arts.includes(6)) multiplier += 0.35; // Archmage Ring
     if (arts.includes(7)) multiplier += 1.00; // Archmage Eye
-    // Archmage Set Completion Bonus
+    // Phoenix set artifacts
+    if (arts.includes(10)) multiplier += 1.20; // Chalice of Eternal Flame
+    // Titan set artifacts
+    if (arts.includes(13)) multiplier += 2.00; // Tablet of Creation
+    if (arts.includes(15)) multiplier += 3.00; // Titan's Core
+    
+    // Set Completion Bonuses
     if (colls.includes('archmage_set')) multiplier += 1.50;
+    if (colls.includes('phoenix_set')) multiplier += 2.50;
+    if (colls.includes('titan_set')) multiplier += 4.00;
     
     if ($isVip) multiplier *= 2;
     
@@ -1567,8 +1711,15 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     if (arts.includes(1)) multiplier += 0.20; // Ring of Power
     // Archmage set artifacts
     if (arts.includes(4)) multiplier += 0.60; // Archmage Staff
-    // Archmage Set Completion Bonus
+    // Phoenix set artifacts
+    if (arts.includes(9)) multiplier += 0.80; // Volcanic Seal
+    // Titan set artifacts
+    if (arts.includes(14)) multiplier += 2.50; // Void Crown
+
+    // Set Completion Bonuses
     if (colls.includes('archmage_set')) multiplier += 1.00;
+    if (colls.includes('phoenix_set')) multiplier += 1.50;
+    if (colls.includes('titan_set')) multiplier += 3.00;
     
     if ($isVip) multiplier *= 2;
 
@@ -1595,6 +1746,8 @@ export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $is
     }
     if (arts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
     if (arts.includes(5)) hours += 2; // Archmage Hat (+2 hours)
+    if (arts.includes(11)) hours += 3; // Plume of Rebirth (+3 hours)
+    if (arts.includes(12)) hours += 4; // Chronometer of Eternity (+4 hours)
     if ($isVip) hours += 5; // VIP Bonus: +5 hours offline limit
     return hours;
 });

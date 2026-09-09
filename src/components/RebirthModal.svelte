@@ -12,7 +12,9 @@
     let modalEl: HTMLElement;
     let showConfirm = false;
 
-    $: earnedStardust = Math.floor(($gameStore?.gold || 0) / 1_000_000);
+    $: hasTitanBonus = $gameStore?.unlockedCollections?.includes('titan_set') || false;
+    $: rawStardust = Math.floor(($gameStore?.gold || 0) / 1_000_000);
+    $: earnedStardust = Math.floor(rawStardust * (hasTitanBonus ? 1.15 : 1));
     $: goldRemainder = ($gameStore?.gold || 0) % 1_000_000;
     $: goldNeededForNext = 1_000_000 - goldRemainder;
     $: progressToNext = Math.min(100, Math.max(0, (goldRemainder / 1_000_000) * 100));
@@ -134,6 +136,9 @@
                         </svg>
                         <span class="gain-value">+{formatNumber(earnedStardust)}</span>
                         <span class="gain-label">Звёздной Пыли</span>
+                        {#if hasTitanBonus}
+                            <span class="titan-bonus-badge">✦ +15% Хроники Титанов</span>
+                        {/if}
                     </div>
 
                     <div class="stardust-progress-box">
@@ -363,6 +368,17 @@
         font-size: 0.9rem;
         font-weight: 800;
         color: #a29bfe;
+    }
+
+    .titan-bonus-badge {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #00cec9;
+        background: rgba(0, 206, 201, 0.15);
+        border: 1px solid rgba(0, 206, 201, 0.4);
+        border-radius: 6px;
+        padding: 2px 6px;
+        margin-left: auto;
     }
 
     .stardust-progress-box {

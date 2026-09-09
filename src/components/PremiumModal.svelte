@@ -25,8 +25,8 @@
 
     // Badges calculation
     $: earnedStardust = Math.floor(($gameStore?.gold || 0) / 1_000_000);
-    $: isDragonGiftReady = (Date.now() - ($gameStore?.lastDragonGiftTime || 0)) >= 15 * 60 * 1000;
-    $: isFreeSkipReady = (Date.now() - ($gameStore?.lastFreeTimeSkipTime || 0)) >= 2 * 60 * 60 * 1000;
+    $: isDragonGiftReady = (Date.now() - ($gameStore?.lastDragonGiftTime || 0)) >= 5 * 60 * 1000;
+    $: isFreeSkipReady = (Date.now() - ($gameStore?.lastFreeTimeSkipTime || 0)) >= 45 * 60 * 1000;
 
     $: if (isOpen) {
         tick().then(() => {

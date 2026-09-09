@@ -41,8 +41,8 @@
 
     function scheduleSpawn() {
         if (spawnTimer) clearTimeout(spawnTimer);
-        // Интервал от 3 до 5 минут (180 - 300 секунд)
-        const delay = Math.random() * 120000 + 180000;
+        // Интервал от 1.5 до 2.5 минут (90 - 150 секунд)
+        const delay = Math.random() * 60000 + 90000;
         spawnTimer = window.setTimeout(() => {
             spawnSpark();
         }, delay);
@@ -86,8 +86,8 @@
     function rollBlessing(): SparkBlessing {
         const roll = Math.random();
         const baseIncome = $currentIdleIncome || 0;
-        // 15 минут пассивного дохода, минимум 300 золота
-        const baseGold = Math.max(300, Math.floor(baseIncome * 900));
+        // 7 минут пассивного дохода, минимум 200 золота
+        const baseGold = Math.max(200, Math.floor(baseIncome * 420));
 
         if (roll < 0.20) {
             // 20% Эпический дар: Астральная Вспышка (Золото + Звездная пыль ИЛИ редкое зелье)
@@ -100,7 +100,7 @@
                     rarity: 'epic',
                     rarityLabel: 'Эпический дар',
                     description: 'Искра сконденсировалась в редкое зелье и гору золота!',
-                    gold: Math.floor(baseGold * 0.8),
+                    gold: Math.floor(baseGold * 0.85),
                     crystals: 0,
                     stardust: 0,
                     potion
@@ -112,14 +112,14 @@
                     rarity: 'epic',
                     rarityLabel: 'Эпический дар',
                     description: 'Искра осыпала мастерскую чистейшей звёздной пылью!',
-                    gold: Math.floor(baseGold * 0.8),
+                    gold: Math.floor(baseGold * 0.85),
                     crystals: 0,
-                    stardust: Math.random() < 0.35 ? 2 : 1
+                    stardust: 1
                 };
             }
         } else if (roll < 0.50) {
-            // 30% Редкий дар: Кристаллический Разряд (Золото + 3..5 кристаллов)
-            const crystalAmount = Math.floor(Math.random() * 3) + 3; // 3, 4 или 5
+            // 30% Редкий дар: Кристаллический Разряд (Золото + 2..3 кристалла)
+            const crystalAmount = Math.floor(Math.random() * 2) + 2; // 2 или 3 кристалла
             return {
                 type: 'crystals',
                 title: 'Кристаллический Разряд',
@@ -131,7 +131,7 @@
                 stardust: 0
             };
         } else {
-            // 50% Обычный дар: Золотая Энергия (Полный 15-минутный поток золота)
+            // 50% Обычный дар: Золотая Энергия (Поток золота за 7 минут)
             return {
                 type: 'gold',
                 title: 'Золотая Энергия',

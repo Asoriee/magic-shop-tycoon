@@ -20,8 +20,8 @@
     let purchaseMessage = '';
     let messageTimeout: any;
 
-    // Cooldown for Dragon Gift: 15 minutes (900 seconds)
-    const DRAGON_GIFT_COOLDOWN_MS = 15 * 60 * 1000;
+    // Cooldown for Dragon Gift: 5 minutes (300 seconds)
+    const DRAGON_GIFT_COOLDOWN_MS = 5 * 60 * 1000;
     let secondsToDragonGift = 0;
     let giftTimerInterval: any;
 
@@ -84,7 +84,7 @@
         const success = claimVipDailyReward();
         if (success) {
             saveGame();
-            showMessage('Ежедневный алтарь VIP: получено +10 Кристаллов!');
+            showMessage('Ежедневный алтарь VIP: получено +15 Кристаллов!');
         }
     }
 
@@ -92,10 +92,10 @@
         if (secondsToDragonGift > 0) return;
         showRewardedAd(
             () => {
-                crystals.update(n => n + 5);
+                crystals.update(n => n + 3);
                 gameStore.claimDragonGift();
                 saveGame();
-                showMessage('Дар Дракона получен: +5 Кристаллов!');
+                showMessage('Дар Дракона получен: +3 Кристалла!');
                 updateGiftTimer();
             },
             () => {}
@@ -200,7 +200,7 @@
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>+10 кристаллов каждый день</strong> в алтаре лавки</span>
+                                <span><strong>+15 кристаллов каждый день</strong> в алтаре лавки</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
@@ -248,7 +248,7 @@
                                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" class="claim-gem-icon">
                                             <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#ffffff" stroke="#74b9ff" stroke-width="1.5"/>
                                         </svg>
-                                        <span>Забрать +10</span>
+                                        <span>Забрать +15</span>
                                     </button>
                                 {:else}
                                     <div class="vip-daily-collected-pill">
@@ -326,7 +326,7 @@
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="#f1c40f">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
                             </svg>
-                            <span>+5 Кристаллов</span>
+                            <span>+3 Кристалла</span>
                         </button>
                     {:else}
                         <div class="gift-cooldown-badge">

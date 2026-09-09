@@ -19,8 +19,8 @@
         onClose();
     }
 
-    // Cooldown for free 1h skip: 2 hours (7200 seconds)
-    const FREE_SKIP_COOLDOWN_MS = 2 * 60 * 60 * 1000;
+    // Cooldown for free 1h skip: 45 minutes (2700 seconds)
+    const FREE_SKIP_COOLDOWN_MS = 45 * 60 * 1000;
     let secondsToFreeSkip = 0;
     let freeSkipTimerInterval: any;
 
@@ -67,7 +67,7 @@
             id: 'skip4',
             label: 'Малый Скачок',
             hours: 4,
-            cost: 20,
+            cost: 15,
             desc: '4 часа пассивного дохода',
             color: '#74b9ff',
             glow: 'rgba(116, 185, 255, 0.4)'
@@ -76,7 +76,7 @@
             id: 'skip8',
             label: 'Сдвиг Эпохи',
             hours: 8,
-            cost: 35,
+            cost: 25,
             desc: '8 часов пассивного дохода',
             color: '#a29bfe',
             glow: 'rgba(162, 155, 254, 0.4)'
@@ -85,7 +85,7 @@
             id: 'skip24',
             label: 'Временной Разлом',
             hours: 24,
-            cost: 90,
+            cost: 60,
             desc: '24 часа пассивного дохода',
             color: '#fd79a8',
             glow: 'rgba(253, 121, 168, 0.5)'

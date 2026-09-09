@@ -23,7 +23,7 @@
     let cooldownTimer: any;
 
     function updateCooldown() {
-        const remaining = Math.max(0, 20 * 60 * 1000 - (Date.now() - ($gameStore.lastFreeChestTime || 0)));
+        const remaining = Math.max(0, 10 * 60 * 1000 - (Date.now() - ($gameStore.lastFreeChestTime || 0)));
         if (remaining <= 0) {
             freeCooldownText = '';
         } else {
@@ -67,7 +67,7 @@
             type: 'wooden' as ChestType,
             name: 'Деревянный сундук',
             desc: '3 ингредиента · Обычные + шанс Редкого',
-            costLabel: 'Бесплатно (раз в 20 мин или за Рекламу)',
+            costLabel: 'Бесплатно (раз в 10 мин или за Рекламу)',
             crystalCost: 0,
             free: true,
             color: '#8B4513',
@@ -80,8 +80,8 @@
             type: 'magical' as ChestType,
             name: 'Магический сундук',
             desc: '5 ингредиентов · Гарантирован Эпический',
-            costLabel: '30 кристаллов',
-            crystalCost: 30,
+            costLabel: '20 кристаллов',
+            crystalCost: 20,
             free: false,
             color: '#6c5ce7',
             accentColor: '#a29bfe',
@@ -93,8 +93,8 @@
             type: 'astral' as ChestType,
             name: 'Астральный сундук',
             desc: '10 ингредиентов · Гарантирован Легендарный',
-            costLabel: '100 кристаллов',
-            crystalCost: 100,
+            costLabel: '50 кристаллов',
+            crystalCost: 50,
             free: false,
             color: '#f1c40f',
             accentColor: '#fdcb6e',
@@ -124,7 +124,7 @@
 
     async function handleOpen(chest: typeof CHESTS[number]) {
         if (chest.free) {
-            const isReady = (Date.now() - ($gameStore.lastFreeChestTime || 0)) >= 20 * 60 * 1000;
+            const isReady = (Date.now() - ($gameStore.lastFreeChestTime || 0)) >= 10 * 60 * 1000;
             if (isReady) {
                 gameStore.recordFreeChest();
                 await saveGame();

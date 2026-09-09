@@ -1142,7 +1142,7 @@ export function claimVipDailyReward(): boolean {
     if (!active || lastClaim === today) return false;
 
     vipLastDailyClaimDate.set(today);
-    crystals.update(c => c + 10);
+    crystals.update(c => c + 15);
     return true;
 }
 
@@ -1665,7 +1665,7 @@ export const unclaimedQuestsCount = derived(gameStore, $gameStore => {
 
 export const freeChestCooldownRemaining = derived(gameStore, $state => {
     const last = $state.lastFreeChestTime || 0;
-    const cooldown = 20 * 60 * 1000;
+    const cooldown = 10 * 60 * 1000;
     const elapsed = Date.now() - last;
     return Math.max(0, cooldown - elapsed);
 });
@@ -1904,7 +1904,7 @@ export const RECIPES: AlchemyRecipe[] = [
 ];
 
 /** Crystal costs to reveal each successive hint (0→1, 1→2, 2→3) */
-export const HINT_COSTS = [10, 30, 75] as const;
+export const HINT_COSTS = [10, 20, 35] as const;
 
 /**
  * unlockedRecipes: Record<recipeId, hintLevel>

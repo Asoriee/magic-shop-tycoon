@@ -11,6 +11,7 @@
         formatNumber 
     } from '../store';
     import { purchaseItem, showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -245,9 +246,7 @@
                                         on:click={handleClaimVipDaily}
                                         title="Получить ежедневную награду VIP"
                                     >
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" class="claim-gem-icon">
-                                            <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#ffffff" stroke="#74b9ff" stroke-width="1.5"/>
-                                        </svg>
+                                        <ResourceIcon type="crystals" size={16} class="claim-gem-icon" />
                                         <span>Забрать +15</span>
                                     </button>
                                 {:else}
@@ -330,10 +329,7 @@
                         </button>
                     {:else}
                         <div class="gift-cooldown-badge">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="#b2bec3" stroke-width="1.5"/>
-                                <path d="M12 7 V12 L15 14" stroke="#b2bec3" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
+                            <ResourceIcon type="time" size={14} />
                             <span>{formatTime(secondsToDragonGift)}</span>
                         </div>
                     {/if}
@@ -342,9 +338,7 @@
 
             <!-- 3. Crystal Packs Grid -->
             <div class="packs-section-title">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                    <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
-                </svg>
+                <ResourceIcon type="crystals" size={18} />
                 <span>Наборы Кристаллов</span>
             </div>
 
@@ -365,9 +359,7 @@
                     <div class="pack-details">
                         <h4 class="pack-name">Горсть Кристаллов</h4>
                         <div class="pack-amount">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="#74b9ff">
-                                <polygon points="12,2 20,7 16,21 8,21 4,7"/>
-                            </svg>
+                            <ResourceIcon type="crystals" size={16} />
                             <span>+100</span>
                         </div>
                     </div>
@@ -398,9 +390,7 @@
                     <div class="pack-details">
                         <h4 class="pack-name">Сундук Алхимика</h4>
                         <div class="pack-amount">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="#74b9ff">
-                                <polygon points="12,2 20,7 16,21 8,21 4,7"/>
-                            </svg>
+                            <ResourceIcon type="crystals" size={16} />
                             <span>+350</span>
                             <span class="bonus-sub">+50 Бонус</span>
                         </div>
@@ -439,9 +429,7 @@
                     <div class="pack-details">
                         <h4 class="pack-name">Казна Архимага</h4>
                         <div class="pack-amount">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="#74b9ff">
-                                <polygon points="12,2 20,7 16,21 8,21 4,7"/>
-                            </svg>
+                            <ResourceIcon type="crystals" size={16} />
                             <span>+1250</span>
                             <span class="bonus-sub">+250 Бонус</span>
                         </div>
@@ -726,7 +714,7 @@
         }
     }
 
-    .claim-gem-icon {
+    :global(.claim-gem-icon) {
         flex-shrink: 0;
         filter: drop-shadow(0 0 4px rgba(255,255,255,0.7));
     }

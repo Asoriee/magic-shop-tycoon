@@ -12,6 +12,7 @@
         ORDER_SPAWN_INTERVAL_MS
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isEmbedded = false;
 
@@ -211,10 +212,7 @@
                 <div class="customer-row">
                     <div class="customer-avatar" class:vip={order.isVip}>
                         {#if order.isVip}
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
-                                <path d="M5 16 L19 16 L21 8 L16 12 L12 4 L8 12 L3 8 Z" fill="#f1c40f" stroke="#b7791f" stroke-width="1.5"/>
-                                <circle cx="12" cy="16" r="1.5" fill="#e74c3c"/>
-                            </svg>
+                            <ResourceIcon type="vip" size={26} />
                         {:else if order.name.includes('Маг')}
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <polygon points="12,2 19,10 17,20 7,20 5,10" fill="#6c5ce7" stroke="#a29bfe" stroke-width="1.5"/>
@@ -271,18 +269,13 @@
                 <!-- Rewards Row -->
                 <div class="rewards-row">
                     <div class="reward-chip gold">
-                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                            <circle cx="8" cy="8" r="7" fill="#f1c40f" stroke="#b7791f" stroke-width="1.5"/>
-                            <circle cx="8" cy="8" r="4" fill="#f39c12"/>
-                        </svg>
+                        <ResourceIcon type="gold" size={14} />
                         <span>+{formatNumber(order.rewardGold)}</span>
                     </div>
 
                     {#if order.rewardStardust > 0}
                         <div class="reward-chip stardust">
-                            <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                                <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
-                            </svg>
+                            <ResourceIcon type="stardust" size={14} />
                             <span>+{formatNumber(order.rewardStardust)}</span>
                         </div>
                     {/if}

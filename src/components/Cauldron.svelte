@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
     import { gameStore, currentClickPower, critChance, heatBonusLevel, crystals, formatNumber } from '../store';
+    import ResourceIcon from './ResourceIcon.svelte';
     
     let cauldronGroup: SVGGElement;
 
@@ -253,10 +254,7 @@
     >
         {#if effect.isCrystal}
             <span class="crystal-float">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                    <polygon points="12,2 22,9 18,22 6,22 2,9" fill="#00cec9" stroke="#74b9ff" stroke-width="1.5"/>
-                    <polygon points="12,2 18,9 12,22 6,9" fill="#81ecec" opacity="0.6"/>
-                </svg>
+                <ResourceIcon type="crystals" size={22} />
                 +1
             </span>
         {:else if effect.isCrit}

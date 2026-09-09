@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
     import { currentIdleIncome } from '../store';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     let petNode: SVGGElement;
     let bodyGroup: SVGGElement;
@@ -152,10 +153,7 @@
                 style="left: {effect.x}px; top: {effect.y}px;"
             >
                 {#if effect.type === 'coin'}
-                    <svg width="16" height="16" viewBox="0 0 20 20">
-                        <circle cx="10" cy="10" r="8" fill="#f1c40f" stroke="#d35400" stroke-width="2"/>
-                        <circle cx="10" cy="10" r="5" fill="none" stroke="#f39c12" stroke-width="1"/>
-                    </svg>
+                    <ResourceIcon type="gold" size={16} />
                 {:else}
                     <svg width="24" height="24" viewBox="0 0 24 24">
                         <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.28 2,8.5C2,5.42 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.09C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.42 22,8.5C22,12.28 18.6,15.36 13.45,20.04L12,21.35Z" fill="#e74c3c"/>

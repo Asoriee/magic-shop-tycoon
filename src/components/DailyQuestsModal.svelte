@@ -11,6 +11,7 @@
     } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -161,15 +162,11 @@
 
                 <div class="balance-row">
                     <div class="balance-chip stardust">
-                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                            <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
-                        </svg>
+                        <ResourceIcon type="stardust" size={14} />
                         <span>{formatNumber($gameStore?.stardust ?? 0)}</span>
                     </div>
                     <div class="balance-chip crystals">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                            <polygon points="12,2 21,9 12,22 3,9"/>
-                        </svg>
+                        <ResourceIcon type="crystals" size={14} />
                         <span>{formatNumber($crystals ?? 0)}</span>
                     </div>
                 </div>
@@ -227,23 +224,17 @@
                     </div>
                 {:else if isAllClaimed}
                     <button class="mastery-claim-btn" on:click={claimDailyMastery}>
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                            <polygon points="12,2 21,9 12,22 3,9"/>
-                        </svg>
+                        <ResourceIcon type="crystals" size={14} />
                         <span>Забрать (+10 крист.)</span>
                     </button>
                 {:else}
                     <div class="mastery-reward-tag">
                         <span class="m-loot" title="Кристаллы">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff">
-                                <polygon points="12,2 21,9 12,22 3,9"/>
-                            </svg>
+                            <ResourceIcon type="crystals" size={12} />
                             +10
                         </span>
                         <span class="m-loot" title="Звёздная Пыль">
-                            <svg viewBox="0 0 16 16" width="11" height="11" fill="none">
-                                <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
-                            </svg>
+                            <ResourceIcon type="stardust" size={12} />
                             +10
                         </span>
                     </div>
@@ -300,24 +291,17 @@
                             {#if quest.rewardType === 'gold'}
                                 {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 150)}
                                 <div class="reward-pill gold-pill" title="Золото от дохода лавки">
-                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#f1c40f">
-                                        <circle cx="12" cy="12" r="9"/>
-                                        <text x="12" y="16" font-size="11" font-weight="900" fill="#1e1035" text-anchor="middle">G</text>
-                                    </svg>
+                                    <ResourceIcon type="gold" size={14} />
                                     <span>+{formatNumber(dynGold || 3000)}</span>
                                 </div>
                             {:else if quest.rewardType === 'crystals'}
                                 <div class="reward-pill crystal-pill" title="Алмазы">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="#74b9ff">
-                                        <polygon points="12,2 21,9 12,22 3,9"/>
-                                    </svg>
+                                    <ResourceIcon type="crystals" size={13} />
                                     <span>+{quest.rewardAmount || 10}</span>
                                 </div>
                             {:else}
                                 <div class="reward-pill stardust-pill" title="Звёздная пыль">
-                                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
-                                        <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1"/>
-                                    </svg>
+                                    <ResourceIcon type="stardust" size={13} />
                                     <span>+{quest.rewardAmount || quest.reward || 8}</span>
                                 </div>
                             {/if}

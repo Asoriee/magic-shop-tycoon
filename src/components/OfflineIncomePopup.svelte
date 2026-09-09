@@ -3,6 +3,7 @@
     import gsap from 'gsap';
     import { gameStore, isVip, formatNumber } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let offlineGold = 0;
@@ -192,10 +193,7 @@
             <!-- Time Away & Cap Status Row -->
             <div class="time-stat-row">
                 <div class="time-chip">
-                    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" class="time-icon">
-                        <circle cx="10" cy="10" r="8.5" stroke="#74b9ff" stroke-width="1.6"/>
-                        <polyline points="10,5.5 10,10 13.5,12" stroke="#74b9ff" stroke-width="1.6" stroke-linecap="round"/>
-                    </svg>
+                    <ResourceIcon type="time" size={16} class="time-icon" />
                     <span>Отсутствовали: <strong>{formatDuration(offlineSeconds)}</strong></span>
                 </div>
 
@@ -232,11 +230,7 @@
                     <span class="plus-sign">+</span>
                     <span class="gold-amount">{formatNumber(offlineGold)}</span>
                     <div class="gold-coin-badge">
-                        <svg viewBox="0 0 28 28" width="28" height="28">
-                            <circle cx="14" cy="14" r="12" fill="#f1c40f" stroke="#b7791f" stroke-width="2"/>
-                            <circle cx="14" cy="14" r="8.5" fill="none" stroke="#f39c12" stroke-width="1.2"/>
-                            <circle cx="14" cy="14" r="4.5" fill="#f39c12"/>
-                        </svg>
+                        <ResourceIcon type="gold" size={28} />
                     </div>
                 </div>
                 {#if currentRate > 0}
@@ -447,10 +441,6 @@
 
     .time-chip strong {
         color: #74b9ff;
-    }
-
-    .time-icon {
-        flex-shrink: 0;
     }
 
     .cap-badge {

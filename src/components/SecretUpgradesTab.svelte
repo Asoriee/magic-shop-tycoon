@@ -2,6 +2,7 @@
     import { gameStore, formatNumber } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     let buttons: Record<string, HTMLElement> = {};
 
@@ -121,9 +122,7 @@
                             <span>ИЗУЧЕНО</span>
                         {:else}
                             <span class="btn-cost-row">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
-                                    <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                                </svg>
+                                <ResourceIcon type="stardust" size={13} />
                                 <span>{formatNumber(cost)}</span>
                             </span>
                         {/if}

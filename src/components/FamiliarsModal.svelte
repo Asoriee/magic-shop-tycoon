@@ -12,6 +12,7 @@
         getExpeditionSkipCost
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -230,9 +231,7 @@
             
             <div class="balance-row">
                 <div class="balance-chip crystal">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                        <polygon points="12,2 21,9 12,22 3,9"/>
-                    </svg>
+                    <ResourceIcon type="crystals" size={14} />
                     <span>{formatNumber($crystals)} кристаллов</span>
                 </div>
             </div>
@@ -352,9 +351,7 @@
                                                 on:click={() => instantSkipExpedition(pet.id, timeRem)}
                                                 title="Мгновенно завершить экспедицию за кристаллы"
                                             >
-                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#74b9ff">
-                                                    <polygon points="12,2 21,9 12,22 3,9"/>
-                                                </svg>
+                                                <ResourceIcon type="crystals" size={13} />
                                                 <span>Пропуск ({skipCost})</span>
                                             </button>
                                         </div>
@@ -384,9 +381,7 @@
                             <div class="cost-badge">
                                 <span>Стоимость призыва:</span>
                                 <div class="cost-crystal">
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="#74b9ff">
-                                        <polygon points="12,2 21,9 12,22 3,9"/>
-                                    </svg>
+                                    <ResourceIcon type="crystals" size={18} />
                                     <span class="cost-num">{GACHA_COST}</span>
                                 </div>
                             </div>

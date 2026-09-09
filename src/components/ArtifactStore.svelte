@@ -9,6 +9,7 @@
     } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -90,9 +91,7 @@
                 <div class="balance-row">
                     <div class="balance-chip stardust">
                         <span class="icon">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                                <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                            </svg>
+                            <ResourceIcon type="stardust" size={16} />
                         </span>
                         <span>{formatNumber($gameStore.stardust)} Звездной Пыли</span>
                     </div>
@@ -222,9 +221,7 @@
                                 disabled={!canAfford}
                                 on:click={() => buy(art.id, art.cost)}
                             >
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
-                                    <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#ffeaa7" stroke="#fdcb6e" stroke-width="1.5"/>
-                                </svg>
+                                <ResourceIcon type="stardust" size={14} />
                                 <span>{formatNumber(art.cost)}</span>
                             </button>
                         {/if}

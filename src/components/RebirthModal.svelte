@@ -3,6 +3,7 @@
     import { gameStore, formatNumber } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -131,9 +132,7 @@
                 <div class="reward-highlight">
                     <span class="reward-title">Вы получите после Ритуала:</span>
                     <div class="stardust-gain">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                            <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                        </svg>
+                        <ResourceIcon type="stardust" size={28} />
                         <span class="gain-value">+{formatNumber(earnedStardust)}</span>
                         <span class="gain-label">Звёздной Пыли</span>
                         {#if hasTitanBonus}
@@ -224,9 +223,7 @@
                     {#if earnedStardust === 0}
                         <span>Накопите 1,000,000 Золота для Ритуала</span>
                     {:else}
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                            <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#f1c40f"/>
-                        </svg>
+                        <ResourceIcon type="stardust" size={18} />
                         <span>Совершить Тёмный Ритуал (+{formatNumber(earnedStardust)} ✦)</span>
                     {/if}
                 </button>

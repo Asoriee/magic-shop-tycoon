@@ -9,6 +9,7 @@
         type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -213,9 +214,7 @@
 
         <div class="balance-row">
             <div class="balance-chip crystal">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                    <polygon points="12,2 21,9 12,22 3,9"/>
-                </svg>
+                <ResourceIcon type="crystals" size={14} />
                 <span>{formatNumber($crystals)} кристаллов</span>
             </div>
         </div>
@@ -407,9 +406,7 @@
                             <button class="hint-btn crystal-hint-btn" disabled={$crystals < HINT_COSTS[hints]}
                                 on:click={() => handleHint(recipe.id)}
                                 title="Раскрыть ингредиент за кристаллы">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#74b9ff">
-                                    <polygon points="12,2 21,9 12,22 3,9"/>
-                                </svg>
+                                <ResourceIcon type="crystals" size={13} />
                                 <span>{HINT_COSTS[hints]}</span>
                                 <span class="hint-step-tag">({hints+1}/3)</span>
                             </button>

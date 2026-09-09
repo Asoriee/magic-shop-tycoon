@@ -12,6 +12,7 @@
         type Potion
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     interface SparkBlessing {
         type: 'gold' | 'crystals' | 'astral';
@@ -464,11 +465,7 @@
                     {#if currentBlessing.gold > 0}
                         <div class="reward-chip gold-chip">
                             <span class="reward-svg-icon">
-                                <svg viewBox="0 0 24 24" width="22" height="22">
-                                    <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#b7791f" stroke-width="1.8"/>
-                                    <circle cx="12" cy="12" r="6.5" fill="#f39c12"/>
-                                    <circle cx="12" cy="12" r="3" fill="#ffeaa7"/>
-                                </svg>
+                                <ResourceIcon type="gold" size={22} />
                             </span>
                             <div class="reward-data">
                                 <span class="reward-label">Золото</span>
@@ -481,10 +478,7 @@
                     {#if currentBlessing.crystals > 0}
                         <div class="reward-chip crystal-chip">
                             <span class="reward-svg-icon">
-                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                                    <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
-                                    <polygon points="12,2 16,7 12,16 8,7" fill="#a0d2ff"/>
-                                </svg>
+                                <ResourceIcon type="crystals" size={22} />
                             </span>
                             <div class="reward-data">
                                 <span class="reward-label">Самоцветы</span>
@@ -497,10 +491,7 @@
                     {#if currentBlessing.stardust > 0}
                         <div class="reward-chip stardust-chip">
                             <span class="reward-svg-icon">
-                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                                    <path d="M12 2 L14.5 9 L22 12 L14.5 15 L12 22 L9.5 15 L2 12 L9.5 9 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                                    <circle cx="12" cy="12" r="2.5" fill="#ffffff"/>
-                                </svg>
+                                <ResourceIcon type="stardust" size={22} />
                             </span>
                             <div class="reward-data">
                                 <span class="reward-label">Звёздная пыль</span>

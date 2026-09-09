@@ -27,8 +27,7 @@
     import CityModal from './components/CityModal.svelte';
     import PremiumModal from './components/PremiumModal.svelte';
     import FlyingBonus from './components/FlyingBonus.svelte';
-    
-    
+    import ResourceIcon from './components/ResourceIcon.svelte';
 
     let isOfflinePopupOpen = false;
     let isGrimoireOpen = false;
@@ -223,11 +222,7 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="hud-chip gold-chip" title="Золото (нажмите для перехода в Лавку)" on:click={() => isShopOpen = true}>
                 <span class="chip-svg-wrap">
-                    <svg viewBox="0 0 24 24" width="20" height="20">
-                        <circle cx="12" cy="12" r="10" fill="#f1c40f" stroke="#b7791f" stroke-width="1.8"/>
-                        <circle cx="12" cy="12" r="6.5" fill="#f39c12"/>
-                        <circle cx="12" cy="12" r="3" fill="#ffeaa7"/>
-                    </svg>
+                    <ResourceIcon type="gold" size={18} />
                 </span>
                 <span class="chip-val gold-val">{formatNumber($gameStore.gold)}</span>
             </div>
@@ -237,10 +232,7 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="hud-chip income-chip" title="Пассивный доход в секунду (нажмите для перехода в Лавку)" on:click={() => isShopOpen = true}>
                 <span class="chip-svg-wrap">
-                    <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
-                        <path d="M3 14 L8 9 L12 13 L18 5" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="13,5 18,5 18,10" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <ResourceIcon type="income" size={16} />
                 </span>
                 <span class="chip-val income-val">+{formatNumber($currentIdleIncome)}/с</span>
             </div>
@@ -250,10 +242,7 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="hud-chip crystal-chip" title="Кристаллы (нажмите для перехода в Сокровищницу)" on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                        <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
-                        <polygon points="12,2 16,7 12,16 8,7" fill="#a0d2ff"/>
-                    </svg>
+                    <ResourceIcon type="crystals" size={18} />
                 </span>
                 <span class="chip-val crystal-val">{formatNumber($crystals)}</span>
             </div>
@@ -264,9 +253,7 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="hud-chip stardust-chip" title="Звёздная Пыль (нажмите для перехода к Алтарю Перерождения)" on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                        <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                    </svg>
+                    <ResourceIcon type="stardust" size={18} />
                 </span>
                 <span class="chip-val stardust-val">{formatNumber($gameStore.stardust)}</span>
             </div>
@@ -278,10 +265,7 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="hud-chip vip-chip" title="VIP-статус: активно {$vipDaysLeft} дн. (нажмите для управления)" on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                        <path d="M4 17 L20 17 L22 8 L17 12 L12 4 L7 12 L2 8 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
-                        <circle cx="12" cy="17" r="1.5" fill="#e74c3c"/>
-                    </svg>
+                    <ResourceIcon type="vip" size={18} />
                 </span>
                 <span class="chip-val vip-val">VIP {$vipDaysLeft}д</span>
                 {#if $isVipDailyRewardAvailable}

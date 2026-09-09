@@ -15,6 +15,7 @@
         formatNumber 
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -110,26 +111,19 @@
             <div class="currencies-panel">
                 <!-- Gold -->
                 <div class="curr-chip gold-chip" title="Золото">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
-                        <circle cx="12" cy="12" r="5" fill="#f39c12"/>
-                    </svg>
+                    <ResourceIcon type="gold" size={16} />
                     <span class="curr-val">{formatNumber($gameStore.gold)}</span>
                 </div>
 
                 <!-- Crystals -->
                 <div class="curr-chip crystal-chip" title="Кристаллы">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <polygon points="12,2 20,7 16,21 8,21 4,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
-                    </svg>
+                    <ResourceIcon type="crystals" size={16} />
                     <span class="curr-val">{formatNumber($crystals)}</span>
                 </div>
 
                 <!-- Stardust -->
                 <div class="curr-chip stardust-chip" title="Звёздная Пыль">
-                    <svg viewBox="0 0 24 24" width="16" height="16">
-                        <path d="M12 2 L14 8 L20 10 L15 14 L17 21 L12 17 L7 21 L9 14 L4 10 L10 8 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.5"/>
-                    </svg>
+                    <ResourceIcon type="stardust" size={16} />
                     <span class="curr-val">{formatNumber($gameStore.stardust)}</span>
                 </div>
             </div>

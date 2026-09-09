@@ -10,6 +10,7 @@
         formatNumber 
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -224,10 +225,7 @@
                     </div>
                     <p class="card-desc">1 час пассивного дохода за рекламу</p>
                     <div class="card-estimate">
-                        <svg viewBox="0 0 20 20" width="13" height="13" fill="none">
-                            <circle cx="10" cy="10" r="8" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
-                            <circle cx="10" cy="10" r="4" fill="#f39c12"/>
-                        </svg>
+                        <ResourceIcon type="gold" size={13} />
                         <span>≈ +{estimateGold(1)} золота</span>
                     </div>
                 </div>
@@ -247,10 +245,7 @@
                         </button>
                     {:else}
                         <div class="cooldown-badge">
-                            <svg viewBox="0 0 20 20" width="12" height="12" fill="none">
-                                <circle cx="10" cy="10" r="8" stroke="#b2bec3" stroke-width="1.5"/>
-                                <path d="M10 6 V10 L13 12" stroke="#b2bec3" stroke-width="1.5"/>
-                            </svg>
+                            <ResourceIcon type="time" size={12} />
                             <span>{formatTime(secondsToFreeSkip)}</span>
                         </div>
                     {/if}
@@ -308,26 +303,21 @@
                         <h4 class="card-label">{skip.label}</h4>
                         <p class="card-desc">{skip.desc}</p>
                         <div class="card-estimate">
-                            <svg viewBox="0 0 20 20" width="13" height="13" fill="none">
-                                <circle cx="10" cy="10" r="8" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
-                                <circle cx="10" cy="10" r="4" fill="#f39c12"/>
-                            </svg>
+                            <ResourceIcon type="gold" size={13} />
                             <span>≈ +{estimateGold(skip.hours)} золота</span>
                         </div>
                     </div>
 
                     <div class="card-action">
                         <button 
-                            type="button"
+                            type="button" 
                             class="action-btn crystal-btn" 
                             on:click={() => handleSkip(skip)} 
                             bind:this={btnRefs[skip.id]} 
                             disabled={$crystals < skip.cost}
                         >
                             <span class="btn-cost">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="#74b9ff">
-                                    <polygon points="12,2 20,7 16,21 8,21 4,7"/>
-                                </svg>
+                                <ResourceIcon type="crystals" size={14} />
                                 {skip.cost}
                             </span>
                             <span class="btn-sub">Купить</span>

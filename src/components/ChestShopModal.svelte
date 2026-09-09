@@ -3,6 +3,7 @@
     import gsap from 'gsap';
     import { crystals, gameStore, openChest, AVAILABLE_INGREDIENTS, type Ingredient, type ChestType, type Rarity, formatNumber } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -246,9 +247,7 @@
 
                 <div class="balance-row">
                     <div class="balance-chip crystal">
-                        <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
-                            <polygon points="8,1 14,5 11,14 5,14 2,5" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
-                        </svg>
+                        <ResourceIcon type="crystals" size={16} />
                         <span>{formatNumber($crystals)} кристаллов</span>
                     </div>
                 </div>
@@ -327,9 +326,7 @@
                                 <span>Открыть (Реклама)</span>
                             {/if}
                         {:else}
-                            <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
-                                <polygon points="8,1 14,5 11,14 5,14 2,5" fill="currentColor"/>
-                            </svg>
+                            <ResourceIcon type="crystals" size={13} />
                             <span>{chest.crystalCost} Открыть</span>
                         {/if}
                     </button>

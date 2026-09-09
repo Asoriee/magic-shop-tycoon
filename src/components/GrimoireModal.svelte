@@ -15,6 +15,7 @@
         formatNumber 
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -147,31 +148,19 @@
             <div class="currencies-panel">
                 <!-- Gold -->
                 <div class="curr-chip gold-chip" title="Золото">
-                    <svg viewBox="0 0 24 24" width="16" height="16" class="chip-svg">
-                        <circle cx="12" cy="12" r="10" fill="#f39c12" stroke="#f1c40f" stroke-width="2"/>
-                        <circle cx="12" cy="12" r="7" fill="#f1c40f" opacity="0.6"/>
-                        <path d="M12 6 V18 M8.5 9.5 C8.5 7.5 15.5 7.5 15.5 10.5 C15.5 13.5 8.5 12.5 8.5 15 C8.5 17.5 15.5 17.5 15.5 15" 
-                              stroke="#7a4700" stroke-width="2" stroke-linecap="round" fill="none"/>
-                    </svg>
+                    <ResourceIcon type="gold" size={16} class="chip-svg" />
                     <span class="curr-val">{formatNumber($gameStore.gold)}</span>
                 </div>
 
                 <!-- Crystals -->
                 <div class="curr-chip crystal-chip" title="Кристаллы">
-                    <svg viewBox="0 0 24 24" width="16" height="16" class="chip-svg">
-                        <path d="M12 2 L21 9 L12 22 L3 9 Z" fill="#3498db" stroke="#2980b9" stroke-width="1.5"/>
-                        <path d="M12 2 L12 22 M3 9 L21 9" stroke="#74b9ff" stroke-width="1.2" opacity="0.8"/>
-                        <path d="M7.5 9 L12 22 L16.5 9" fill="#74b9ff" opacity="0.4"/>
-                    </svg>
+                    <ResourceIcon type="crystals" size={16} class="chip-svg" />
                     <span class="curr-val">{formatNumber($crystals)}</span>
                 </div>
 
                 <!-- Stardust -->
                 <div class="curr-chip stardust-chip" title="Звёздная пыль">
-                    <svg viewBox="0 0 24 24" width="16" height="16" class="chip-svg">
-                        <path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z" fill="#e056fd" stroke="#be2edd" stroke-width="1.2"/>
-                        <circle cx="12" cy="12" r="2.5" fill="#fff"/>
-                    </svg>
+                    <ResourceIcon type="stardust" size={16} class="chip-svg" />
                     <span class="curr-val">{formatNumber($gameStore.stardust)}</span>
                 </div>
             </div>
@@ -431,7 +420,7 @@
         box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
 
-    .chip-svg {
+    :global(.chip-svg) {
         flex-shrink: 0;
         filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
     }

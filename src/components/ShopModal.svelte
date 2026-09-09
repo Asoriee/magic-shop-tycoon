@@ -12,6 +12,7 @@
         type Upgrade 
     } from '../store';
     import gsap from 'gsap';
+    import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -134,25 +135,17 @@
                 <!-- Economic Stats Row -->
                 <div class="currencies-panel">
                     <div class="curr-chip gold-chip" title="Золото">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                            <circle cx="12" cy="12" r="9" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/>
-                            <circle cx="12" cy="12" r="5" fill="#f39c12"/>
-                        </svg>
+                        <ResourceIcon type="gold" size={16} />
                         <span class="curr-val">{formatNumber($gameStore.gold)} золота</span>
                     </div>
 
                     <div class="curr-chip click-chip" title="Сила клика">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                            <polygon points="13,2 4,14 11,14 10,22 20,9 13,9" fill="#ff7675" stroke="#d63031" stroke-width="1.5"/>
-                        </svg>
+                        <ResourceIcon type="click" size={16} />
                         <span class="curr-val">+{formatNumber($currentClickPower)}/клик</span>
                     </div>
 
                     <div class="curr-chip idle-chip" title="Доход в секунду">
-                        <svg viewBox="0 0 24 24" width="16" height="16">
-                            <circle cx="12" cy="12" r="9" stroke="#74b9ff" stroke-width="2"/>
-                            <polyline points="12,6 12,12 16,14" stroke="#74b9ff" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
+                        <ResourceIcon type="income" size={16} />
                         <span class="curr-val">+{formatNumber($currentIdleIncome)}/сек</span>
                     </div>
                 </div>
@@ -325,10 +318,7 @@
                     >
                         <span class="buy-count">+{bulk.count}</span>
                         <span class="buy-price">
-                            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="display:inline-block; vertical-align:middle; margin-right:2px;">
-                                <circle cx="8" cy="8" r="7" fill="#f1c40f" stroke="#b7791f" stroke-width="1.5"/>
-                                <circle cx="8" cy="8" r="4" fill="#f39c12"/>
-                            </svg>
+                            <ResourceIcon type="gold" size={13} />
                             {formatNumber(bulk.totalCost)}
                         </span>
                     </button>

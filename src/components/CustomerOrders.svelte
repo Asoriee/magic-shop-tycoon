@@ -3,6 +3,7 @@
     import gsap from 'gsap';
     import { 
         gameStore, 
+        currentIdleIncome,
         ingredientsCount, 
         potionsCount, 
         AVAILABLE_INGREDIENTS, 
@@ -15,6 +16,31 @@
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isEmbedded = false;
+
+    // Toast notification for completed orders
+    let toastMessage: string | null = null;
+    let toastTimer: any;
+
+    function showToast(msg: string) {
+        toastMessage = msg;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toastMessage = null;
+        }, 3400);
+    }
+
+    export function getDynamicOrderGold(order: CustomerOrder, idleIncome: number): number {
+        const goldSecs = order.goldSeconds || (order.isVip ? 1200 : (order.requirements.some(r => r.type === 'potion') ? 480 : 120));
+        const minFloor = order.minGold || (order.isVip ? 50000 : (order.requirements.some(r => r.type === 'potion') ? 10000 : 1500));
+        const base = Math.max(minFloor, Math.round((idleIncome || 0) * goldSecs), order.rewardGold || 0);
+
+        const ordersLevel = $gameStore.secretUpgrades?.find(u => u.id === 'orders')?.level || 0;
+        let goldMultiplier = 1 + (ordersLevel * 0.20);
+        if ($gameStore.artifacts?.includes(8)) goldMultiplier += 0.40;
+        if ($gameStore.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
+
+        return Math.floor(base * goldMultiplier);
+    }
 
     // ----------------------------------------------------------------
     // Spawn logic: глобальный цикл появления заказа — 3 минуты
@@ -47,6 +73,7 @@
 
     onDestroy(() => {
         if (tickInterval) clearInterval(tickInterval);
+        if (toastTimer) clearTimeout(toastTimer);
     });
 
     function getRequirementItem(type: 'ingredient' | 'potion', id: string) {
@@ -97,6 +124,10 @@
                     });
                 }
             }
+
+            const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0);
+            const crystalTxt = order.rewardCrystals ? `, +${order.rewardCrystals} 💎` : '';
+            const chestName = order.rewardChest === 'astral' ? ', Астральный ларец 📦' : (order.rewardChest === 'magical' ? ', Волшебный ларец 📦' : (order.rewardChest === 'wooden' ? ', Деревянный ларец 📦' : ''));
             
             // Complete animation
             const el = document.getElementById(`order-${order.id}`);
@@ -109,11 +140,13 @@
                     ease: 'power2.in',
                     onComplete: () => {
                         gameStore.completeOrder(order.id);
+                        showToast(`Заказ «${order.name}» сдан! +${formatNumber(dynGold)} золота${crystalTxt}${chestName}`);
                         saveGame();
                     }
                 });
             } else {
                 gameStore.completeOrder(order.id);
+                showToast(`Заказ «${order.name}» сдан! +${formatNumber(dynGold)} золота${crystalTxt}${chestName}`);
                 saveGame();
             }
         };
@@ -149,6 +182,16 @@
 </script>
 
 <div class="orders-wrapper" class:standalone={!isEmbedded}>
+    <!-- Toast Feedback -->
+    {#if toastMessage}
+        <div class="order-toast">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2ed573" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>{toastMessage}</span>
+        </div>
+    {/if}
+
     {#if !isEmbedded}
         <div class="tab-header">
             <div class="tab-title-row">
@@ -198,6 +241,7 @@
     <div class="orders-grid">
         {#each $gameStore.activeOrders as order (order.id)}
             {@const canFulfill = checkCanFulfill(order)}
+            {@const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0)}
             <div class="order-card" class:vip={order.isVip} id="order-{order.id}">
                 <button 
                     type="button" 
@@ -213,7 +257,7 @@
                     <div class="customer-avatar" class:vip={order.isVip}>
                         {#if order.isVip}
                             <ResourceIcon type="vip" size={26} />
-                        {:else if order.name.includes('Маг')}
+                        {:else if order.name.includes('Маг') || order.name.includes('Чародей') || order.name.includes('Ведьма')}
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <polygon points="12,2 19,10 17,20 7,20 5,10" fill="#6c5ce7" stroke="#a29bfe" stroke-width="1.5"/>
                                 <circle cx="12" cy="11" r="2.5" fill="#ffeaa7"/>
@@ -235,11 +279,15 @@
                         <div class="name-line">
                             <span class="customer-name">{order.name}</span>
                             {#if order.isVip}
-                                <span class="vip-tag">VIP</span>
+                                <span class="order-badge vip-badge">КОРОЛЕВСКИЙ VIP</span>
+                            {:else if order.orderType === 'potion' || order.requirements.some(r => r.type === 'potion')}
+                                <span class="order-badge potion-badge">АЛХИМИЯ</span>
+                            {:else}
+                                <span class="order-badge common-badge">ГОРОЖАНИН</span>
                             {/if}
                         </div>
                         <span class="order-type-hint">
-                            {order.requirements.some(r => r.type === 'potion') ? 'Заказ на зелья' : 'Запрос ингредиентов'}
+                            {order.requirements.some(r => r.type === 'potion') ? 'Заказ на готовое зелье' : 'Запрос редких ингредиентов'}
                         </span>
                     </div>
                 </div>
@@ -268,15 +316,26 @@
                 
                 <!-- Rewards Row -->
                 <div class="rewards-row">
-                    <div class="reward-chip gold">
+                    <div class="reward-chip gold" title="Награда золотом">
                         <ResourceIcon type="gold" size={14} />
-                        <span>+{formatNumber(order.rewardGold)}</span>
+                        <span>+{formatNumber(dynGold)}</span>
                     </div>
 
                     {#if order.rewardCrystals && order.rewardCrystals > 0}
-                        <div class="reward-chip crystals">
+                        <div class="reward-chip crystals" title="Награда самоцветами">
                             <ResourceIcon type="crystals" size={14} />
                             <span>+{formatNumber(order.rewardCrystals)}</span>
+                        </div>
+                    {/if}
+
+                    {#if order.rewardChest}
+                        <div class="reward-chip chest chest-{order.rewardChest}" title="Награда: {order.rewardChest === 'astral' ? 'Астральный ларец' : (order.rewardChest === 'magical' ? 'Волшебный ларец' : 'Деревянный ларец')}">
+                            <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+                                <rect x="2" y="7" width="16" height="10" rx="2" fill={order.rewardChest === 'astral' ? '#a29bfe' : (order.rewardChest === 'magical' ? '#e056fd' : '#d35400')} stroke="#ffeaa7" stroke-width="1.2"/>
+                                <path d="M2 7 Q10 2 18 7" fill={order.rewardChest === 'astral' ? '#6c5ce7' : (order.rewardChest === 'magical' ? '#8e44ad' : '#b85900')} stroke="#ffeaa7" stroke-width="1.2"/>
+                                <circle cx="10" cy="11" r="1.5" fill="#ffeaa7"/>
+                            </svg>
+                            <span>+{order.rewardChest === 'astral' ? 'Астральный' : (order.rewardChest === 'magical' ? 'Волшебный' : 'Деревянный')} ларец</span>
                         </div>
                     {/if}
                 </div>
@@ -469,10 +528,35 @@
         flex: 1;
     }
 
+    .order-toast {
+        position: sticky;
+        top: 6px;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 12, 30, 0.95);
+        border: 1px solid rgba(46, 204, 113, 0.6);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(46, 204, 113, 0.25);
+        border-radius: 10px;
+        padding: 8px 14px;
+        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        animation: toastIn 0.25s ease-out;
+    }
+
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .name-line {
         display: flex;
         align-items: center;
         gap: 6px;
+        flex-wrap: wrap;
     }
 
     .customer-name {
@@ -482,6 +566,34 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .order-badge {
+        font-size: 0.62rem;
+        font-weight: 900;
+        padding: 2px 6px;
+        border-radius: 5px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        line-height: 1;
+    }
+
+    .vip-badge {
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
+        color: #1e1035;
+        box-shadow: 0 0 8px rgba(241, 196, 15, 0.4);
+    }
+
+    .potion-badge {
+        background: rgba(224, 86, 253, 0.18);
+        color: #e056fd;
+        border: 1px solid rgba(224, 86, 253, 0.45);
+    }
+
+    .common-badge {
+        background: rgba(0, 206, 201, 0.15);
+        color: #00cec9;
+        border: 1px solid rgba(0, 206, 201, 0.35);
     }
 
     .vip-tag {
@@ -582,16 +694,17 @@
     .rewards-row {
         display: flex;
         align-items: center;
-        gap: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .reward-chip {
         display: flex;
         align-items: center;
         gap: 5px;
-        padding: 3px 8px;
+        padding: 4px 8px;
         border-radius: 8px;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
         background: rgba(0, 0, 0, 0.35);
     }
@@ -604,6 +717,27 @@
     .reward-chip.crystals {
         color: #74b9ff;
         border: 1px solid rgba(116, 185, 255, 0.4);
+    }
+
+    .reward-chip.chest {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .reward-chip.chest.chest-wooden {
+        color: #f5cd79;
+        border: 1px solid rgba(230, 126, 34, 0.5);
+    }
+
+    .reward-chip.chest.chest-magical {
+        color: #e056fd;
+        border: 1px solid rgba(224, 86, 253, 0.5);
+        box-shadow: 0 0 6px rgba(224, 86, 253, 0.2);
+    }
+
+    .reward-chip.chest.chest-astral {
+        color: #a29bfe;
+        border: 1px solid rgba(162, 155, 254, 0.6);
+        box-shadow: 0 0 8px rgba(162, 155, 254, 0.3);
     }
 
     /* Action button */

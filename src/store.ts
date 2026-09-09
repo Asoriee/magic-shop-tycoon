@@ -120,9 +120,13 @@ export interface CustomerOrder {
     id: string;
     name: string;
     icon: string;
+    orderType?: 'common' | 'potion' | 'vip';
     requirements: OrderRequirement[];
+    goldSeconds?: number;
+    minGold?: number;
     rewardGold: number;
     rewardCrystals?: number;
+    rewardChest?: ChestType | null;
     rewardStardust?: number;
     isVip: boolean;
 }
@@ -1383,46 +1387,102 @@ export function calculateQuestGoldReward(secondsFactor: number = 150): number {
 export const ORDER_SPAWN_INTERVAL_MS = 3 * 60 * 1000; // 3 минуты
 
 export function generateSingleOrder(): CustomerOrder {
-    const isVip = Math.random() < 0.2; // 20% chance for VIP
-    const isPotionReq = Math.random() < 0.5;
+    const roll = Math.random();
     const reqs: OrderRequirement[] = [];
-    
-    let rewardGold = Math.floor(Math.random() * 100) + 50;
-    let rewardCrystals = 0;
+    const idle = get(currentIdleIncome) || 0;
 
-    if (isPotionReq) {
-        // Pick a random potion
-        const potionId = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)].id;
-        reqs.push({ type: 'potion', id: potionId, count: 1 });
-        rewardGold += 300;
-        if (isVip) rewardCrystals += 1;
-    } else {
-        // Pick random ingredients
-        for (let i = 0; i < 2; i++) {
-            const ing = AVAILABLE_INGREDIENTS[Math.floor(Math.random() * AVAILABLE_INGREDIENTS.length)];
-            reqs.push({ type: 'ingredient', id: ing.id, count: Math.floor(Math.random() * 3) + 1 });
-            rewardGold += 50;
+    if (roll < 0.20) {
+        // 1. Королевский VIP-заказ (20% шанс, за просмотр рекламы)
+        const isPotion = Math.random() < 0.6 && AVAILABLE_POTIONS.length > 0;
+        if (isPotion) {
+            const pot = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
+            reqs.push({ type: 'potion', id: pot.id, count: 1 });
+        } else {
+            for (let i = 0; i < 3; i++) {
+                const ing = AVAILABLE_INGREDIENTS[Math.floor(Math.random() * AVAILABLE_INGREDIENTS.length)];
+                reqs.push({ type: 'ingredient', id: ing.id, count: Math.floor(Math.random() * 2) + 2 });
+            }
         }
+
+        const vipNames = ['Королевский Казначей', 'Архимаг Совета', 'Посланник Принцессы', 'Богатый Вельможа'];
+        const goldSeconds = 1200; // 20 минут пассивного дохода!
+        const minGold = 50000;
+        const rewardGold = Math.max(minGold, Math.round(idle * goldSeconds));
+        const rewardCrystals = Math.floor(Math.random() * 6) + 10; // 10..15 кристаллов
+        const rewardChest: ChestType = Math.random() < 0.20 ? 'astral' : 'magical'; // 100% сундук!
+
+        return {
+            id: 'ord_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+            name: vipNames[Math.floor(Math.random() * vipNames.length)],
+            icon: 'vip',
+            orderType: 'vip',
+            requirements: reqs,
+            goldSeconds,
+            minGold,
+            rewardGold,
+            rewardCrystals,
+            rewardChest,
+            rewardStardust: 0,
+            isVip: true
+        };
+    } else if (roll < 0.55 && AVAILABLE_POTIONS.length > 0) {
+        // 2. Алхимический заказ чародеев (35% шанс, требует готовое зелье)
+        const pot = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
+        reqs.push({ type: 'potion', id: pot.id, count: 1 });
+
+        const potionNames = ['Боевой Маг', 'Рыцарь Ордена', 'Странствующий Чародей', 'Ведьма Пустошей'];
+        const goldSeconds = 480; // 8 минут пассивного дохода
+        const minGold = 10000;
+        const rewardGold = Math.max(minGold, Math.round(idle * goldSeconds));
+        const rewardCrystals = Math.floor(Math.random() * 3) + 3; // 3..5 кристаллов
+        // 40% шанс на сундук (из них 25% на магический, 75% на деревянный)
+        const chestRoll = Math.random();
+        const rewardChest: ChestType | null = chestRoll < 0.40 ? (chestRoll < 0.10 ? 'magical' : 'wooden') : null;
+
+        return {
+            id: 'ord_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+            name: potionNames[Math.floor(Math.random() * potionNames.length)],
+            icon: 'mage',
+            orderType: 'potion',
+            requirements: reqs,
+            goldSeconds,
+            minGold,
+            rewardGold,
+            rewardCrystals,
+            rewardChest,
+            rewardStardust: 0,
+            isVip: false
+        };
+    } else {
+        // 3. Обычный заказ горожан (45% шанс, базовые ингредиенты)
+        const countIngs = Math.random() < 0.6 ? 2 : 3;
+        for (let i = 0; i < countIngs; i++) {
+            const ing = AVAILABLE_INGREDIENTS[Math.floor(Math.random() * AVAILABLE_INGREDIENTS.length)];
+            reqs.push({ type: 'ingredient', id: ing.id, count: Math.floor(Math.random() * 2) + 1 });
+        }
+
+        const commonNames = ['Ученик Мага', 'Травник', 'Горожанин', 'Страж Ворот'];
+        const goldSeconds = 120; // 2 минуты пассивного дохода
+        const minGold = 1500;
+        const rewardGold = Math.max(minGold, Math.round(idle * goldSeconds));
+        const rewardCrystals = Math.floor(Math.random() * 2) + 1; // 1..2 кристалла
+        const rewardChest: ChestType | null = Math.random() < 0.15 ? 'wooden' : null; // 15% шанс на деревянный сундук
+
+        return {
+            id: 'ord_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+            name: commonNames[Math.floor(Math.random() * commonNames.length)],
+            icon: 'mage',
+            orderType: 'common',
+            requirements: reqs,
+            goldSeconds,
+            minGold,
+            rewardGold,
+            rewardCrystals,
+            rewardChest,
+            rewardStardust: 0,
+            isVip: false
+        };
     }
-
-    if (isVip) {
-        rewardGold *= 3; // VIP pays 3x
-        rewardCrystals += 1;
-    }
-
-    const names = ['Странствующий Маг', 'Алхимик-ученик', 'Рыцарь', 'Местный Житель'];
-    const vipNames = ['Королевский Посланник', 'Архимаг', 'Герой', 'Богатый Торговец'];
-
-    return {
-        id: 'ord_' + Date.now() + Math.floor(Math.random() * 1000),
-        name: isVip ? vipNames[Math.floor(Math.random() * vipNames.length)] : names[Math.floor(Math.random() * names.length)],
-        icon: isVip ? 'vip' : 'mage',
-        requirements: reqs,
-        rewardGold,
-        rewardCrystals,
-        rewardStardust: 0,
-        isVip
-    };
 }
 
 function createGameStore() {
@@ -1685,6 +1745,12 @@ function createGameStore() {
             const order = state.activeOrders.find(o => o.id === orderId);
             if (!order) return state;
 
+            // Динамический пересчёт золота по текущему доходу лавки
+            const idle = get(currentIdleIncome) || 0;
+            const goldSecs = order.goldSeconds || (order.isVip ? 1200 : (order.requirements.some(r => r.type === 'potion') ? 480 : 120));
+            const minFloor = order.minGold || (order.isVip ? 50000 : (order.requirements.some(r => r.type === 'potion') ? 10000 : 1500));
+            const baseGold = Math.max(minFloor, Math.round(idle * goldSecs), order.rewardGold || 0);
+
             // Secret Upgrade: Щедрые Клиенты (+20% gold per level)
             const ordersLevel = state.secretUpgrades.find(u => u.id === 'orders')?.level || 0;
             let goldMultiplier = 1 + (ordersLevel * 0.20);
@@ -1693,7 +1759,7 @@ function createGameStore() {
             // Phoenix Set Grand Bonus: +30% золота за заказы
             if (state.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
 
-            const finalGold = Math.floor(order.rewardGold * goldMultiplier);
+            const finalGold = Math.floor(baseGold * goldMultiplier);
 
             const newQuests = state.quests.map(q => {
                 if (q.type === 'complete_orders' && !q.isCompleted) {
@@ -1712,7 +1778,11 @@ function createGameStore() {
                 crystals.update(c => c + order.rewardCrystals!);
             }
 
-            // Give rewards - NO stardust!
+            // Награда за ларец, если он выпал в заказе
+            if (order.rewardChest) {
+                openChest(order.rewardChest);
+            }
+
             return {
                 ...state,
                 gold: state.gold + finalGold,

@@ -66,7 +66,7 @@
             } else if (itemId === 'pack_crystals_1000') {
                 showMessage('Вы получили 1250 Кристаллов (с бонусом)!');
             } else if (itemId === 'vip_status' || itemId === 'vip_month') {
-                showMessage('VIP-статус успешно активирован на 30 дней! (+50 Кристаллов начислено)');
+                showMessage('ВИП-статус успешно активирован на 30 дней! (+50 Кристаллов начислено)');
             }
         } catch (e: any) {
             const errMsg = e?.message || '';
@@ -85,7 +85,7 @@
         const success = claimVipDailyReward();
         if (success) {
             saveGame();
-            showMessage('Ежедневный алтарь VIP: получено +15 Кристаллов!');
+            showMessage('Ежедневный алтарь ВИП: получено +15 Кристаллов!');
         }
     }
 
@@ -183,7 +183,7 @@
 
                     <div class="vip-info">
                         <div class="vip-header-row">
-                            <h3 class="vip-title">VIP-Пропуск Алхимика</h3>
+                            <h3 class="vip-title">ВИП-Пропуск Алхимика</h3>
                             {#if $isVip}
                                 <span class="vip-badge-tag vip-active-tag">Активен: {$vipDaysLeft} дн.</span>
                             {:else}
@@ -231,7 +231,7 @@
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span>Золотая корона VIP и статус почётного жителя лавки</span>
+                                <span>Золотая корона ВИП и статус почётного жителя лавки</span>
                             </li>
                         </ul>
                     </div>
@@ -244,7 +244,7 @@
                                         type="button" 
                                         class="claim-vip-daily-btn" 
                                         on:click={handleClaimVipDaily}
-                                        title="Получить ежедневную награду VIP"
+                                        title="Получить ежедневную награду ВИП"
                                     >
                                         <ResourceIcon type="crystals" size={16} class="claim-gem-icon" />
                                         <span>Забрать +15</span>
@@ -263,7 +263,7 @@
                                     class="extend-vip-btn" 
                                     on:click={() => handleBuy('vip_status')} 
                                     disabled={isPurchasing}
-                                    title="Продлить VIP ещё на 30 дней"
+                                    title="Продлить ВИП ещё на 30 дней"
                                 >
                                     {#if isPurchasing}
                                         <span class="btn-spinner-sm"></span>

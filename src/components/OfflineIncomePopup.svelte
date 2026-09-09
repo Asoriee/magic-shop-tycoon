@@ -211,7 +211,7 @@
                     <span class="storage-values">
                         {formatDuration(Math.min(offlineSeconds, maxOfflineSeconds))} из {formatCapacity(maxOfflineSeconds)}
                         {#if $isVip}
-                            <span class="vip-capacity-chip">+5ч VIP</span>
+                            <span class="vip-capacity-chip">+5ч ВИП</span>
                         {/if}
                     </span>
                 </div>
@@ -249,7 +249,7 @@
                     <line x1="10" y1="6" x2="10" y2="11" stroke="#f1c40f" stroke-width="2" stroke-linecap="round"/>
                     <circle cx="10" cy="14" r="1" fill="#f1c40f"/>
                 </svg>
-                <span>Хранилище заполнено. Увеличьте «Очаг» в Лавке или оформите VIP, чтобы накапливать больше!</span>
+                <span>Хранилище заполнено. Увеличьте «Очаг» в Лавке или оформите ВИП, чтобы накапливать больше!</span>
             </div>
         {/if}
 
@@ -269,7 +269,7 @@
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="btn-crown-svg">
                                 <path d="M4 18 L20 18 L22 8 L17 12 L12 4 L7 12 L2 8 Z" fill="#ffeaa7" stroke="#fff" stroke-width="1.5"/>
                             </svg>
-                            <span>УДВОИТЬ (VIP БОНУС)</span>
+                            <span>УДВОИТЬ (ВИП БОНУС)</span>
                         </div>
                         <span class="btn-sub-label">Мгновенно без рекламы: +{formatNumber(offlineGold * 2)}</span>
                     {:else}

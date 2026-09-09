@@ -263,13 +263,13 @@
             {#if $isVip}
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="hud-chip vip-chip" title="VIP-статус: активно {$vipDaysLeft} дн. (нажмите для управления)" on:click={() => isPremiumOpen = true}>
+            <div class="hud-chip vip-chip" title="ВИП-статус: активно {$vipDaysLeft} дн. (нажмите для управления)" on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="vip" size={18} />
                 </span>
-                <span class="chip-val vip-val">VIP {$vipDaysLeft}д</span>
+                <span class="chip-val vip-val">ВИП {$vipDaysLeft}д</span>
                 {#if $isVipDailyRewardAvailable}
-                    <span class="vip-reward-dot" title="Доступна ежедневная награда VIP"></span>
+                    <span class="vip-reward-dot" title="Доступна ежедневная награда ВИП"></span>
                 {/if}
             </div>
             {/if}
@@ -385,7 +385,7 @@
             title="Великий Арканум (Сокровищница, Хрономантия, Перерождение)"
         >
             {#if $isVipDailyRewardAvailable}
-                <div class="portal-badge pulse vip-alert" title="Доступна ежедневная награда VIP">
+                <div class="portal-badge pulse vip-alert" title="Доступна ежедневная награда ВИП">
                     !
                 </div>
             {/if}

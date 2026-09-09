@@ -145,9 +145,9 @@
 
                 <!-- VIP status indicator -->
                 {#if $isVip}
-                    <div class="vip-status-chip" title="VIP-статус активен ({$vipDaysLeft} дн.)">
+                    <div class="vip-status-chip" title="ВИП-статус активен ({$vipDaysLeft} дн.)">
                         <ResourceIcon type="vip" size={14} />
-                        <span>VIP {$vipDaysLeft}д</span>
+                        <span>ВИП {$vipDaysLeft}д</span>
                     </div>
                 {/if}
             </div>
@@ -174,7 +174,7 @@
                 </div>
                 <span class="tab-label">Сокровищница</span>
                 {#if $isVipDailyRewardAvailable}
-                    <span class="tab-badge badge-ready">+10 VIP</span>
+                    <span class="tab-badge badge-ready">+10 ВИП</span>
                 {:else if isDragonGiftReady}
                     <span class="tab-badge badge-free">ДАР</span>
                 {/if}

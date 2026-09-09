@@ -183,7 +183,7 @@
                         <h4>Сохраняется Навсегда</h4>
                     </div>
                     <ul class="comp-list">
-                        <li><strong>VIP-статус</strong> и все Кристаллы</li>
+                        <li><strong>ВИП-статус</strong> и все Кристаллы</li>
                         <li><strong>Звёздная Пыль</strong> и Тайные Знания</li>
                         <li>Все открытые <strong>Питомцы и Артефакты</strong></li>
                     </ul>

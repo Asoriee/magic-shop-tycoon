@@ -504,7 +504,7 @@
                         class="action-btn btn-vip-claim" 
                         on:click={claimBlessing} 
                         disabled={isClaiming}
-                        title="Получить дар мгновенно по привилегии VIP"
+                        title="Получить дар мгновенно по привилегии ВИП"
                     >
                         <div class="btn-sheen-glow"></div>
                         <span class="btn-content-wrap">
@@ -516,7 +516,7 @@
                             </span>
                             <div class="btn-text-block">
                                 <span class="btn-primary-label">ВЫСВОБОДИТЬ ДАР</span>
-                                <span class="btn-sub-label">VIP ПРИВИЛЕГИЯ • БЕЗ РЕКЛАМЫ</span>
+                                <span class="btn-sub-label">ВИП ПРИВИЛЕГИЯ • БЕЗ РЕКЛАМЫ</span>
                             </div>
                         </span>
                     </button>

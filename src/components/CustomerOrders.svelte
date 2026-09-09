@@ -301,7 +301,7 @@
                         <div class="name-line">
                             <span class="customer-name">{order.name}</span>
                             {#if order.isVip}
-                                <span class="order-badge vip-badge">КОРОЛЕВСКИЙ VIP</span>
+                                <span class="order-badge vip-badge">КОРОЛЕВСКИЙ ВИП</span>
                             {:else if order.orderType === 'potion' || order.requirements.some(r => r.type === 'potion')}
                                 <span class="order-badge potion-badge">АЛХИМИЯ</span>
                             {:else}
@@ -374,7 +374,7 @@
                         <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
                             <polygon points="4,2 14,8 4,14"/>
                         </svg>
-                        <span>Выполнить VIP (Реклама)</span>
+                        <span>Выполнить ВИП (Реклама)</span>
                     {:else if canFulfill}
                         <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
                             <polyline points="3,8 7,12 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>

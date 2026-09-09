@@ -1537,6 +1537,46 @@ function generateQuests(): Quest[] {
     ];
 }
 
+export const ORDER_SPAWN_INTERVAL_MS = 3 * 60 * 1000; // 3 минуты
+
+export function createStarterOrders(): CustomerOrder[] {
+    const now = Date.now();
+    return [
+        {
+            id: 'ord_starter_1_' + now,
+            name: 'Ученик Мага',
+            icon: 'mage',
+            orderType: 'common',
+            requirements: [
+                { type: 'ingredient', id: 'fire_flower', count: 2 }
+            ],
+            goldSeconds: 120,
+            minGold: 1500,
+            rewardGold: 1500,
+            rewardCrystals: 1,
+            rewardChest: null,
+            rewardStardust: 0,
+            isVip: false
+        },
+        {
+            id: 'ord_starter_2_' + now,
+            name: 'Травница Элина',
+            icon: 'mage',
+            orderType: 'common',
+            requirements: [
+                { type: 'ingredient', id: 'water_lily', count: 2 }
+            ],
+            goldSeconds: 120,
+            minGold: 2000,
+            rewardGold: 2000,
+            rewardCrystals: 2,
+            rewardChest: 'wooden',
+            rewardStardust: 0,
+            isVip: false
+        }
+    ];
+}
+
 const defaultState: GameState = {
     gold: 10,
     lastSaveTime: Date.now(),
@@ -1549,7 +1589,7 @@ const defaultState: GameState = {
     dailyBonusClaimed: false,
     unlockedPets: ['pet_rat'],
     activeExpeditions: [],
-    activeOrders: [],
+    activeOrders: createStarterOrders(),
     lastOrderSpawnTime: Date.now(),
     activeBuffs: [],
     unlockedCollections: [],
@@ -1639,8 +1679,6 @@ export function calculateQuestGoldReward(secondsFactor: number = 150): number {
         return 3000;
     }
 }
-
-export const ORDER_SPAWN_INTERVAL_MS = 3 * 60 * 1000; // 3 минуты
 
 export function generateSingleOrder(): CustomerOrder {
     const roll = Math.random();
@@ -1962,16 +2000,6 @@ function createGameStore() {
             const now = Date.now();
             const orders = state.activeOrders || [];
 
-            // If player has 0 orders, immediately give them 1 initial starter order
-            if (orders.length === 0) {
-                const initialOrder = generateSingleOrder();
-                return {
-                    ...state,
-                    activeOrders: [initialOrder],
-                    lastOrderSpawnTime: now
-                };
-            }
-
             if (orders.length >= 4) {
                 return state;
             }
@@ -2027,8 +2055,12 @@ function createGameStore() {
             });
 
             const remainingOrders = state.activeOrders.filter(o => o.id !== orderId);
-            // If the shop was full (4 orders) and now has a free spot, start the 3-minute timer from now
-            const lastSpawn = state.activeOrders.length >= 4 ? Date.now() : (state.lastOrderSpawnTime || Date.now());
+            const now = Date.now();
+            let lastSpawn = state.lastOrderSpawnTime;
+            // Если лавка была полна (4/4) или таймер не был установлен, или все заказы сданы и интервал уже прошел — запускаем новый 3-минутный отсчет от текущего момента
+            if (!lastSpawn || state.activeOrders.length >= 4 || (remainingOrders.length === 0 && (now - lastSpawn >= ORDER_SPAWN_INTERVAL_MS))) {
+                lastSpawn = now;
+            }
 
             if (order.rewardCrystals && order.rewardCrystals > 0) {
                 crystals.update(c => c + order.rewardCrystals!);
@@ -2049,7 +2081,11 @@ function createGameStore() {
         }),
         dismissOrder: (orderId: string) => update(state => {
             const remainingOrders = state.activeOrders.filter(o => o.id !== orderId);
-            const lastSpawn = state.activeOrders.length >= 4 ? Date.now() : (state.lastOrderSpawnTime || Date.now());
+            const now = Date.now();
+            let lastSpawn = state.lastOrderSpawnTime;
+            if (!lastSpawn || state.activeOrders.length >= 4 || (remainingOrders.length === 0 && (now - lastSpawn >= ORDER_SPAWN_INTERVAL_MS))) {
+                lastSpawn = now;
+            }
             return {
                 ...state,
                 activeOrders: remainingOrders,

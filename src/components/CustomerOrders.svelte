@@ -179,6 +179,18 @@
             saveGame();
         }
     }
+
+    function summonCaravanAd() {
+        if ($gameStore.activeOrders.length >= 4) return;
+        showRewardedAd(() => {
+            gameStore.spawnOrder();
+            gameStore.updateQuestProgress('watch_ads', 1);
+            showToast('Новый торговый караван прибыл в лавку!');
+            saveGame();
+        }, () => {
+            showToast('Не удалось загрузить видео, попробуйте позже.');
+        });
+    }
 </script>
 
 <div class="orders-wrapper" class:standalone={!isEmbedded}>
@@ -232,8 +244,18 @@
                 </span>
             </div>
         </div>
-        <div class="orders-count-badge">
-            {$gameStore.activeOrders.length} / 4
+        <div class="caravan-actions">
+            {#if $gameStore.activeOrders.length < 4}
+                <button type="button" class="summon-mini-btn" on:click={summonCaravanAd} title="Призвать путника за просмотр рекламы">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                        <polygon points="5,3 19,12 5,21"/>
+                    </svg>
+                    <span>+1 Путник</span>
+                </button>
+            {/if}
+            <div class="orders-count-badge">
+                {$gameStore.activeOrders.length} / 4
+            </div>
         </div>
     </div>
 
@@ -367,6 +389,8 @@
     </div>
 
     {#if $gameStore.activeOrders.length === 0}
+        {@const mins = Math.floor(secondsToNext / 60)}
+        {@const secs = secondsToNext % 60}
         <div class="empty-orders-card">
             <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
                 <path d="M8 28 L40 28 L36 14 L12 14 Z" fill="#6c5ce7" opacity="0.3" stroke="#a29bfe" stroke-width="2"/>
@@ -376,6 +400,25 @@
             </svg>
             <h4>Все заказы выполнены!</h4>
             <p>Ожидайте прибытия следующего каравана или подготовьте зелья в алхимии.</p>
+
+            <div class="empty-countdown-badge">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f1c40f" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>
+                    Следующий путник через: <strong>{mins > 0 ? `${mins} мин ${secs.toString().padStart(2, '0')} сек` : `${secs} сек`}</strong>
+                </span>
+            </div>
+
+            <button type="button" class="summon-ad-btn" on:click={summonCaravanAd}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                    <path d="M4 6 L16 6 L16 18 L4 18 Z" fill="#1e1035" opacity="0.85"/>
+                    <polygon points="16,10 21,7 21,17 16,14" fill="#1e1035"/>
+                    <polygon points="8,9 13,12 8,15" fill="#ffeaa7"/>
+                </svg>
+                <span>Призвать путника сейчас (Реклама)</span>
+            </button>
         </div>
     {/if}
 </div>
@@ -807,5 +850,76 @@
         color: rgba(255, 255, 255, 0.6);
         font-size: 0.85rem;
         max-width: 360px;
+    }
+
+    .caravan-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .summon-mini-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(241, 196, 15, 0.45);
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.22) 0%, rgba(243, 156, 18, 0.12) 100%);
+        color: #ffeaa7;
+        font-size: 0.76rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .summon-mini-btn:hover {
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.38) 0%, rgba(243, 156, 18, 0.22) 100%);
+        transform: translateY(-1px);
+        border-color: #f1c40f;
+    }
+
+    .empty-countdown-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        padding: 6px 14px;
+        background: rgba(241, 196, 15, 0.1);
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        border-radius: 12px;
+        color: #ffeaa7;
+        font-size: 0.85rem;
+    }
+
+    .empty-countdown-badge strong {
+        color: #fff;
+    }
+
+    .summon-ad-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+        color: #1e1035;
+        font-size: 0.88rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(241, 196, 15, 0.35);
+        transition: all 0.2s;
+    }
+
+    .summon-ad-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(241, 196, 15, 0.5);
+        filter: brightness(1.06);
+    }
+
+    .summon-ad-btn:active {
+        transform: translateY(1px);
     }
 </style>

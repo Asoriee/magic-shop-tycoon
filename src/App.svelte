@@ -129,6 +129,7 @@
         
         // Calculate offline income on startup
         checkOfflineEarnings();
+        gameStore.checkOrderSpawns();
         isReady = true;
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -139,6 +140,7 @@
             nowTime = Date.now();
             if (!isAdActive() && !document.hidden) {
                 gameStore.addGold($currentIdleIncome);
+                gameStore.checkOrderSpawns();
                 autoSaveCounter++;
                 if (autoSaveCounter >= 15) { // Auto-save every 15 seconds
                     autoSaveCounter = 0;

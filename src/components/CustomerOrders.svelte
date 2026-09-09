@@ -8,49 +8,40 @@
         AVAILABLE_INGREDIENTS, 
         AVAILABLE_POTIONS, 
         type CustomerOrder, 
-        formatNumber 
+        formatNumber,
+        ORDER_SPAWN_INTERVAL_MS
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
 
     export let isEmbedded = false;
 
     // ----------------------------------------------------------------
-    // Spawn logic: путник появляется раз в 3–5 минут (случайно).
-    // nextSpawnAt — точная метка времени следующего появления.
-    // Нельзя заспавнить раньше этой метки.
+    // Spawn logic: глобальный цикл появления заказа — 3 минуты
     // ----------------------------------------------------------------
-    const MIN_SPAWN_MS = 3 * 60 * 1000; // 3 минуты
-    const MAX_SPAWN_MS = 5 * 60 * 1000; // 5 минут
-
-    let nextSpawnAt = Date.now() + randomSpawnDelay();
-    let secondsToNext = Math.ceil((nextSpawnAt - Date.now()) / 1000);
+    let secondsToNext = 0;
     let tickInterval: any;
 
-    function randomSpawnDelay(): number {
-        return MIN_SPAWN_MS + Math.floor(Math.random() * (MAX_SPAWN_MS - MIN_SPAWN_MS + 1));
+    function updateCountdown() {
+        const now = Date.now();
+        if ($gameStore.activeOrders.length >= 4) {
+            secondsToNext = 0;
+            return;
+        }
+
+        const lastSpawn = $gameStore.lastOrderSpawnTime || now;
+        const elapsed = now - lastSpawn;
+        const remainingMs = Math.max(0, ORDER_SPAWN_INTERVAL_MS - elapsed);
+        secondsToNext = Math.ceil(remainingMs / 1000);
+
+        if (remainingMs <= 0 && $gameStore.activeOrders.length < 4) {
+            gameStore.checkOrderSpawns();
+        }
     }
 
     onMount(() => {
-        // Единый тик раз в секунду: считает обратный отсчёт и при необходимости спавнит
-        tickInterval = setInterval(() => {
-            const now = Date.now();
-            const remaining = Math.ceil((nextSpawnAt - now) / 1000);
-
-            if ($gameStore.activeOrders.length >= 4) {
-                // Лавка заполнена — замораживаем таймер, но не сбрасываем целевую метку
-                secondsToNext = remaining > 0 ? remaining : 0;
-                return;
-            }
-
-            if (now >= nextSpawnAt) {
-                // Пора — спавним путника и назначаем новую метку
-                gameStore.spawnOrder();
-                nextSpawnAt = now + randomSpawnDelay();
-                secondsToNext = Math.ceil((nextSpawnAt - now) / 1000);
-            } else {
-                secondsToNext = remaining > 0 ? remaining : 0;
-            }
-        }, 1000);
+        gameStore.checkOrderSpawns();
+        updateCountdown();
+        tickInterval = setInterval(updateCountdown, 1000);
     });
 
     onDestroy(() => {

@@ -1280,6 +1280,50 @@ export function calculateQuestGoldReward(secondsFactor: number = 150): number {
     }
 }
 
+export const ORDER_SPAWN_INTERVAL_MS = 3 * 60 * 1000; // 3 минуты
+
+export function generateSingleOrder(): CustomerOrder {
+    const isVip = Math.random() < 0.2; // 20% chance for VIP
+    const isPotionReq = Math.random() < 0.5;
+    const reqs: OrderRequirement[] = [];
+    
+    let rewardGold = Math.floor(Math.random() * 100) + 50;
+    let rewardStardust = 0;
+
+    if (isPotionReq) {
+        // Pick a random potion
+        const potionId = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)].id;
+        reqs.push({ type: 'potion', id: potionId, count: 1 });
+        rewardGold += 300;
+        if (isVip) rewardStardust += 2;
+    } else {
+        // Pick random ingredients
+        for (let i = 0; i < 2; i++) {
+            const ing = AVAILABLE_INGREDIENTS[Math.floor(Math.random() * AVAILABLE_INGREDIENTS.length)];
+            reqs.push({ type: 'ingredient', id: ing.id, count: Math.floor(Math.random() * 3) + 1 });
+            rewardGold += 50;
+        }
+    }
+
+    if (isVip) {
+        rewardGold *= 3; // VIP pays 3x
+        rewardStardust += 5;
+    }
+
+    const names = ['Странствующий Маг', 'Алхимик-ученик', 'Рыцарь', 'Местный Житель'];
+    const vipNames = ['Королевский Посланник', 'Архимаг', 'Герой', 'Богатый Торговец'];
+
+    return {
+        id: 'ord_' + Date.now() + Math.floor(Math.random() * 1000),
+        name: isVip ? vipNames[Math.floor(Math.random() * vipNames.length)] : names[Math.floor(Math.random() * names.length)],
+        icon: isVip ? 'vip' : 'mage',
+        requirements: reqs,
+        rewardGold,
+        rewardStardust,
+        isVip
+    };
+}
+
 function createGameStore() {
     const { subscribe, set, update } = writable<GameState>(defaultState);
 
@@ -1491,52 +1535,51 @@ function createGameStore() {
         }),
         spawnOrder: () => update(state => {
             if (state.activeOrders.length >= 4) return state; // Max 4 orders
-            
-            const isVip = Math.random() < 0.2; // 20% chance for VIP
-            const isPotionReq = Math.random() < 0.5;
-            const reqs: OrderRequirement[] = [];
-            
-            let rewardGold = Math.floor(Math.random() * 100) + 50;
-            let rewardStardust = 0;
-
-            if (isPotionReq) {
-                // Pick a random potion
-                const potionId = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)].id;
-                reqs.push({ type: 'potion', id: potionId, count: 1 });
-                rewardGold += 300;
-                if (isVip) rewardStardust += 2;
-            } else {
-                // Pick random ingredients
-                for (let i = 0; i < 2; i++) {
-                    const ing = AVAILABLE_INGREDIENTS[Math.floor(Math.random() * AVAILABLE_INGREDIENTS.length)];
-                    reqs.push({ type: 'ingredient', id: ing.id, count: Math.floor(Math.random() * 3) + 1 });
-                    rewardGold += 50;
-                }
-            }
-
-            if (isVip) {
-                rewardGold *= 3; // VIP pays 3x
-                rewardStardust += 5;
-            }
-
-            const names = ['Странствующий Маг', 'Алхимик-ученик', 'Рыцарь', 'Местный Житель'];
-            const vipNames = ['Королевский Посланник', 'Архимаг', 'Герой', 'Богатый Торговец'];
-
-            const newOrder: CustomerOrder = {
-                id: 'ord_' + Date.now() + Math.floor(Math.random() * 1000),
-                name: isVip ? vipNames[Math.floor(Math.random() * vipNames.length)] : names[Math.floor(Math.random() * names.length)],
-                icon: isVip ? 'vip' : 'mage',
-                requirements: reqs,
-                rewardGold,
-                rewardStardust,
-                isVip
-            };
-
+            const newOrder = generateSingleOrder();
             return {
                 ...state,
                 activeOrders: [...state.activeOrders, newOrder],
                 lastOrderSpawnTime: Date.now()
             };
+        }),
+        checkOrderSpawns: () => update(state => {
+            const now = Date.now();
+            const orders = state.activeOrders || [];
+
+            // If player has 0 orders, immediately give them 1 initial starter order
+            if (orders.length === 0) {
+                const initialOrder = generateSingleOrder();
+                return {
+                    ...state,
+                    activeOrders: [initialOrder],
+                    lastOrderSpawnTime: now
+                };
+            }
+
+            if (orders.length >= 4) {
+                return state;
+            }
+
+            const lastSpawn = state.lastOrderSpawnTime || now;
+            const elapsed = now - lastSpawn;
+
+            if (elapsed >= ORDER_SPAWN_INTERVAL_MS) {
+                const countToSpawn = Math.min(4 - orders.length, Math.floor(elapsed / ORDER_SPAWN_INTERVAL_MS));
+                if (countToSpawn > 0) {
+                    const newOrders: CustomerOrder[] = [];
+                    for (let i = 0; i < countToSpawn; i++) {
+                        newOrders.push(generateSingleOrder());
+                    }
+                    const newLastSpawn = lastSpawn + (countToSpawn * ORDER_SPAWN_INTERVAL_MS);
+                    return {
+                        ...state,
+                        activeOrders: [...orders, ...newOrders],
+                        lastOrderSpawnTime: newLastSpawn
+                    };
+                }
+            }
+
+            return state;
         }),
         completeOrder: (orderId: string) => update(state => {
             const order = state.activeOrders.find(o => o.id === orderId);
@@ -1561,19 +1604,27 @@ function createGameStore() {
                 return q;
             });
 
+            const remainingOrders = state.activeOrders.filter(o => o.id !== orderId);
+            // If the shop was full (4 orders) and now has a free spot, start the 3-minute timer from now
+            const lastSpawn = state.activeOrders.length >= 4 ? Date.now() : (state.lastOrderSpawnTime || Date.now());
+
             // Give rewards
             return {
                 ...state,
                 gold: state.gold + finalGold,
                 stardust: state.stardust + order.rewardStardust,
                 quests: newQuests,
-                activeOrders: state.activeOrders.filter(o => o.id !== orderId)
+                activeOrders: remainingOrders,
+                lastOrderSpawnTime: lastSpawn
             };
         }),
         dismissOrder: (orderId: string) => update(state => {
+            const remainingOrders = state.activeOrders.filter(o => o.id !== orderId);
+            const lastSpawn = state.activeOrders.length >= 4 ? Date.now() : (state.lastOrderSpawnTime || Date.now());
             return {
                 ...state,
-                activeOrders: state.activeOrders.filter(o => o.id !== orderId)
+                activeOrders: remainingOrders,
+                lastOrderSpawnTime: lastSpawn
             };
         }),
         usePotion: (potionId: string) => update(state => {

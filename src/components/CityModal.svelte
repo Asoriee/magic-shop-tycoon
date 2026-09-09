@@ -196,9 +196,9 @@
                 </div>
                 <span class="tab-label">Сундуки</span>
                 {#if $isFreeChestReady}
-                    <span class="tab-badge badge-free">FREE</span>
+                    <span class="tab-badge badge-free">БЕСП</span>
                 {:else}
-                    <span class="tab-badge badge-ad">AD</span>
+                    <span class="tab-badge badge-ad">РЕК</span>
                 {/if}
             </button>
 

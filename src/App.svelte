@@ -319,7 +319,7 @@
             </div>
             <div class="portal-texts">
                 <span class="portal-name">Лавка</span>
-                <span class="portal-sub">Апгрейды</span>
+                <span class="portal-sub">Улучшения</span>
             </div>
         </button>
 

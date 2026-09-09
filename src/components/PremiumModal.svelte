@@ -200,7 +200,7 @@
                 </div>
                 <span class="tab-label">Хрономантия</span>
                 {#if isFreeSkipReady}
-                    <span class="tab-badge badge-ready">1Ч FREE</span>
+                    <span class="tab-badge badge-ready">1Ч БЕСП</span>
                 {/if}
             </button>
 

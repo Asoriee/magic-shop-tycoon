@@ -242,7 +242,7 @@
                     class:active={buyMode === 'max'} 
                     on:click={() => buyMode = 'max'}
                 >
-                    MAX
+                    МАКС
                 </button>
             </div>
         </div>

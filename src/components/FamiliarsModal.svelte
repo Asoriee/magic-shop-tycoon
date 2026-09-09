@@ -343,7 +343,7 @@
                                                     <polygon points="5,3 19,12 5,21"/>
                                                 </svg>
                                                 <span>-2ч</span>
-                                                <span class="exp-ad-tag">AD</span>
+                                                <span class="exp-ad-tag">РЕК</span>
                                             </button>
 
                                             <button 

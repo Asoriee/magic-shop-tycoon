@@ -320,7 +320,7 @@
                                 <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
                             </svg>
                             <span>Остудить</span>
-                            <span class="ad-pill">AD</span>
+                            <span class="ad-pill">РЕК</span>
                         </button>
                         <button class="cooldown-crystal-btn" on:click={handleCoolDownCrystals} title="Остудить за 8 кристаллов">
                             <ResourceIcon type="crystals" size={12} />
@@ -356,7 +356,7 @@
                             <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
                         </svg>
                         <span>Остудить</span>
-                        <span class="ad-pill">AD</span>
+                        <span class="ad-pill">РЕК</span>
                     </button>
                 </div>
             {/if}
@@ -564,7 +564,7 @@
                                         <polygon points="5,3 19,12 5,21"/>
                                     </svg>
                                     <span>1-й бесплатно</span>
-                                    <span class="hint-ad-pill">AD</span>
+                                    <span class="hint-ad-pill">РЕК</span>
                                 </button>
                             {/if}
                         </div>

@@ -99,7 +99,7 @@
                     <div class="title-row">
                         <h4 class="card-name">{upgrade.name}</h4>
                         <span class="level-tag" class:max-tag={isMax}>
-                            {isMax ? 'MAX' : `${upgrade.level} / ${upgrade.maxLevel}`}
+                            {isMax ? 'МАКС' : `${upgrade.level} / ${upgrade.maxLevel}`}
                         </span>
                     </div>
                     <p class="desc">{upgrade.description}</p>

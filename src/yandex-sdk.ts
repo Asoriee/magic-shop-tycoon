@@ -225,6 +225,9 @@ export async function loadGame(): Promise<void> {
             if (merged.unlockedCollections === undefined) merged.unlockedCollections = [];
             if (merged.lastDragonGiftTime === undefined) merged.lastDragonGiftTime = 0;
             if (merged.lastFreeTimeSkipTime === undefined) merged.lastFreeTimeSkipTime = 0;
+            if (merged.cauldronOverheatUntil === undefined) merged.cauldronOverheatUntil = 0;
+            if (merged.recipeAdHintsUsed === undefined) merged.recipeAdHintsUsed = {};
+            if (merged.alchemyBrewsCount === undefined) merged.alchemyBrewsCount = 0;
             
             // Restore missing upgrades from default state
             if (!merged.upgrades) {

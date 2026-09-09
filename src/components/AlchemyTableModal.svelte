@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { tick } from 'svelte';
+    import { onMount, onDestroy, tick } from 'svelte';
     import gsap from 'gsap';
     import {
         gameStore,
         ingredientsCount, crystals, failedBrewAttempts, unlockedRecipes,
         AVAILABLE_INGREDIENTS, AVAILABLE_POTIONS, RECIPES, HINT_COSTS,
-        brewPotion as doBrewPotion, quickBrewRecipe, coolDownCauldron, buyRecipeHint, unlockRecipeHintFree,
+        brewPotion as doBrewPotion, quickBrewRecipe, coolDownCauldron, coolDownCauldronAd, coolDownCauldronCrystals,
+        buyRecipeHint, unlockRecipeHintFree,
         type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
@@ -26,11 +27,38 @@
     type ToastType = 'success' | 'warning' | 'burn';
     let toast: { text: string; type: ToastType } | null = null;
     let toastTimer = 0;
-    function showToast(text: string, type: ToastType, ms = 3500) {
+    function showToast(text: string, type: ToastType = 'warning', ms = 3500) {
         clearTimeout(toastTimer);
         toast = { text, type };
         toastTimer = window.setTimeout(() => (toast = null), ms);
     }
+
+    let nowTime = Date.now();
+    let timerInterval: any;
+
+    onMount(() => {
+        timerInterval = setInterval(() => {
+            nowTime = Date.now();
+        }, 1000);
+    });
+
+    onDestroy(() => {
+        if (timerInterval) clearInterval(timerInterval);
+        if (toastTimer) clearTimeout(toastTimer);
+    });
+
+    $: overheatUntil = $gameStore.cauldronOverheatUntil || 0;
+    $: isOverheated = overheatUntil > nowTime;
+    $: remainingOverheatSeconds = Math.max(0, Math.ceil((overheatUntil - nowTime) / 1000));
+
+    // Mastery stats
+    $: brewsCount = $gameStore.alchemyBrewsCount || 0;
+    $: masteryLevel = Math.min(4, Math.floor(brewsCount / 5));
+    $: doubleChancePercent = masteryLevel * 5;
+    $: brewsToNextLevel = masteryLevel < 4 ? 5 - (brewsCount % 5) : 0;
+
+    // Rarity filter
+    let selectedRarity: 'all' | Rarity = 'all';
 
     $: if (isOpen) {
         tick().then(() => {
@@ -63,12 +91,19 @@
         }))
         .filter(ing => ing.total > 0);
 
+    $: filteredIngredients = selectedRarity === 'all'
+        ? ownedIngredients
+        : ownedIngredients.filter(i => i.rarity === selectedRarity);
+
     $: canBrew  = slots.every(s => s !== null);
     $: slotsAll = slots.every(s => s !== null);
 
     function clearSlot(i: number) {
         slots[i] = null;
         slots = [...slots] as typeof slots;
+    }
+    function clearAllSlots() {
+        slots = [null, null, null];
     }
     function addToSlot(id: string) {
         const avail = ($ingredientsCount[id] ?? 0) - (usedCounts[id] ?? 0);
@@ -81,7 +116,7 @@
 
     let isBrewing = false;
     async function handleBrew() {
-        if (!canBrew || isBrewing) return;
+        if (!canBrew || isBrewing || isOverheated) return;
         isBrewing = true;
         const result = doBrewPotion(slots as [string, string, string]);
 
@@ -92,7 +127,9 @@
                 .to(cauldronEl, { y: -22, scale: 1.14, duration: 0.18, ease: 'power2.out' })
                 .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.55, ease: 'elastic.out(1, 0.5)' });
             gsap.fromTo(flashEl, { opacity: 0.65, backgroundColor: 'rgba(241,196,15,0.55)' }, { opacity: 0, duration: 0.7 });
-            showToast(`Успех! Сварено «${result.recipeName}»!`, 'success');
+            
+            const doubleText = result.isDouble ? ' ✨ КРИТИЧЕСКИЙ УСПЕХ: х2 зелья!' : '';
+            showToast(`Успех! Сварено «${result.recipeName}»!${doubleText}`, 'success', 3500);
             await saveGame();
         } else if (result.status === 'warning') {
             const left = result.attemptsLeft ?? 1;
@@ -106,18 +143,25 @@
             
             lastResonanceMsg = resText;
             showToast(`${resText} До перегрева: ${left} ${left === 1 ? 'попытка' : 'попытки'}!`, 'warning', 4200);
-        } else {
+        } else if (result.status === 'overheat') {
             slots = [null, null, null];
             lastResonanceMsg = null;
+            nowTime = Date.now();
             gsap.to(cauldronEl, { keyframes: [{ x:-14, duration:.07 },{ x:14, duration:.07 },{ x:-12, duration:.07 },{ x:12, duration:.07 },{ x:-10, duration:.07 },{ x:10, duration:.07 },{ x:0, duration:.07 }] });
             gsap.fromTo(flashEl, { opacity: 0.7, backgroundColor: 'rgba(231,76,60,0.6)' }, { opacity: 0, duration: 0.8 });
-            showToast(`Ингредиенты сгорели! Собрана золотая зола (+${result.goldAwarded ?? 500} золота).`, 'burn', 4500);
+            showToast(`Котёл перегрелся! Ингредиенты сохранены. Время остывания: 2 минуты.`, 'burn', 5000);
             await saveGame();
+        } else if (result.status === 'blocked') {
+            showToast(`Котёл остывает! Подождите или используйте ледяную магию.`, 'warning');
         }
         isBrewing = false;
     }
 
     async function handleQuickBrew(recipeId: string) {
+        if (isOverheated) {
+            showToast('Котёл перегрет! Дождитесь остывания или остудите его.', 'warning');
+            return;
+        }
         const res = quickBrewRecipe(recipeId);
         if (res.success) {
             if (cauldronEl) {
@@ -125,25 +169,43 @@
                     .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
                     .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.4, ease: 'elastic.out(1, 0.5)' });
             }
-            showToast('Зелье мгновенно сварено по рецепту!', 'success');
+            const doubleText = res.isDouble ? ' ✨ Сварено х2 зелья!' : '';
+            showToast(`Зелье мгновенно сварено по рецепту!${doubleText}`, 'success');
             await saveGame();
         } else {
             showToast(res.reason ?? 'Недостаточно ингредиентов для варки!', 'warning');
         }
     }
 
-    function handleCoolDown() {
+    function handleCoolDownAd() {
         showRewardedAd(() => {
-            coolDownCauldron();
+            coolDownCauldronAd();
             lastResonanceMsg = null;
+            nowTime = Date.now();
             showToast('Котёл благополучно остужен ледяной магией!', 'success');
             saveGame();
-        }, () => {});
+        }, () => {
+            showToast('Не удалось загрузить рекламу, попробуйте позже.');
+        });
+    }
+
+    async function handleCoolDownCrystals() {
+        const cost = 8;
+        if ($crystals < cost) {
+            showToast('Недостаточно кристаллов для мгновенного охлаждения!', 'warning');
+            return;
+        }
+        if (coolDownCauldronCrystals(cost)) {
+            lastResonanceMsg = null;
+            nowTime = Date.now();
+            showToast(`Котёл мгновенно остужен за ${cost} 💎!`, 'success');
+            await saveGame();
+        }
     }
 
     async function handleHint(recipeId: string) {
         if (buyRecipeHint(recipeId)) {
-            showToast('Подсказка рецепта раскрыта!', 'success', 2000);
+            showToast('Ингредиент рецепта раскрыт за кристаллы!', 'success', 2000);
             await saveGame();
         } else {
             showToast('Недостаточно кристаллов для подсказки!', 'warning');
@@ -154,10 +216,14 @@
         showRewardedAd(() => {
             if (unlockRecipeHintFree(recipeId)) {
                 gameStore.updateQuestProgress('watch_ads', 1);
-                showToast('Ингредиент рецепта раскрыт за просмотр рекламы!', 'success', 2500);
+                showToast('Первый ингредиент рецепта раскрыт за рекламу!', 'success', 2500);
                 saveGame();
+            } else {
+                showToast('За рекламу можно открыть только первый ингредиент!', 'warning');
             }
-        }, () => {});
+        }, () => {
+            showToast('Не удалось загрузить видео, попробуйте позже.');
+        });
     }
 
     function canQuickBrew(recipe: AlchemyRecipe): { can: boolean; missingName?: string } {
@@ -223,34 +289,74 @@
     <div class="content-grid">
         <!-- LEFT: CAULDRON + BREW -->
         <div class="brew-panel">
-            {#if $failedBrewAttempts > 0}
-            <div class="danger-bar">
-                <div class="danger-left">
-                    <svg viewBox="0 0 16 16" width="16" height="16" fill="#ff4757" class="danger-svg">
-                        <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
-                    </svg>
-                    <div class="danger-info-col">
-                        <div class="danger-title-row">
-                            <span class="danger-label">До перегрева: {3 - $failedBrewAttempts} {3 - $failedBrewAttempts === 1 ? 'попытка' : 'попытки'}</span>
-                            <div class="pips">
-                                {#each [1,2,3] as p}<div class="pip" class:active={p <= $failedBrewAttempts}></div>{/each}
-                            </div>
+            {#if isOverheated}
+                {@const mins = Math.floor(remainingOverheatSeconds / 60)}
+                {@const secs = remainingOverheatSeconds % 60}
+                <div class="overheat-banner">
+                    <div class="overheat-info">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="flame-pulse">
+                            <path d="M12 2C8 6 6 9 6 13C6 16.3 8.7 19 12 19C15.3 19 18 16.3 18 13C18 9 16 6 12 2Z" fill="#ff4757"/>
+                            <path d="M12 7C10 9.5 9 11.5 9 13.5C9 15.2 10.3 16.5 12 16.5C13.7 16.5 15 15.2 15 13.5C15 11.5 14 9.5 12 7Z" fill="#ffa502"/>
+                        </svg>
+                        <div class="overheat-text-col">
+                            <span class="overheat-title">Котёл перегрет и остывает!</span>
+                            <span class="overheat-timer">Осталось: <strong>{mins > 0 ? `${mins} мин ${secs.toString().padStart(2, '0')} сек` : `${secs} сек`}</strong></span>
                         </div>
-                        {#if lastResonanceMsg}
-                            <span class="resonance-subtext">{lastResonanceMsg}</span>
-                        {/if}
+                    </div>
+                    <div class="overheat-actions">
+                        <button class="cooldown-ad-btn" on:click={handleCoolDownAd} title="Мгновенно остудить котёл за просмотр рекламы">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#74b9ff" stroke-width="2.2">
+                                <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+                            </svg>
+                            <span>Остудить</span>
+                            <span class="ad-pill">AD</span>
+                        </button>
+                        <button class="cooldown-crystal-btn" on:click={handleCoolDownCrystals} title="Остудить за 8 кристаллов">
+                            <ResourceIcon type="crystals" size={12} />
+                            <span>8</span>
+                        </button>
                     </div>
                 </div>
+            {:else if $failedBrewAttempts > 0}
+                <div class="danger-bar">
+                    <div class="danger-left">
+                        <svg viewBox="0 0 16 16" width="16" height="16" fill="#ffa502" class="danger-svg">
+                            <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
+                        </svg>
+                        <div class="danger-info-col">
+                            <div class="danger-title-row">
+                                <span class="danger-label">До перегрева: {3 - $failedBrewAttempts} {3 - $failedBrewAttempts === 1 ? 'попытка' : 'попытки'}</span>
+                                <div class="pips">
+                                    {#each [1,2,3] as p}<div class="pip" class:active={p <= $failedBrewAttempts}></div>{/each}
+                                </div>
+                            </div>
+                            {#if lastResonanceMsg}
+                                <span class="resonance-subtext">{lastResonanceMsg}</span>
+                            {/if}
+                        </div>
+                    </div>
 
-                <button class="cooldown-btn" on:click={handleCoolDown} title="Остудить котёл ледяной магией">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#74b9ff" stroke-width="2.2">
-                        <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
-                    </svg>
-                    <span>Остудить</span>
-                    <span class="ad-pill">AD</span>
-                </button>
-            </div>
+                    <button class="cooldown-btn" on:click={handleCoolDownAd} title="Остудить котёл ледяной магией">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#74b9ff" stroke-width="2.2">
+                            <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+                        </svg>
+                        <span>Остудить</span>
+                        <span class="ad-pill">AD</span>
+                    </button>
+                </div>
             {/if}
+
+            <div class="mastery-chip" title="Варите зелья, чтобы повышать шанс удвоения!">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="#f1c40f">
+                    <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
+                </svg>
+                <span>Мастерство: Ур. {masteryLevel} (+{doubleChancePercent}% шанс х2)</span>
+                {#if brewsToNextLevel > 0}
+                    <span class="mastery-sub">({brewsToNextLevel} до след. ур.)</span>
+                {:else}
+                    <span class="mastery-sub">(МАКС)</span>
+                {/if}
+            </div>
 
             <div class="cauldron-wrap" bind:this={cauldronEl}>
                 <svg viewBox="0 0 120 100" width="148" height="123">
@@ -275,7 +381,11 @@
                     <circle class="bubble b3" cx="58" cy="52" r="2.5" fill="#74b9ff" opacity="0.55"/>
                     <path d="M18 52 Q4 52 4 42 Q4 30 18 34" fill="none" stroke="#636e72" stroke-width="5" stroke-linecap="round"/>
                     <path d="M102 52 Q116 52 116 42 Q116 30 102 34" fill="none" stroke="#636e72" stroke-width="5" stroke-linecap="round"/>
-                    {#if $failedBrewAttempts > 0}
+                    {#if isOverheated}
+                        <ellipse class="steam intense"    cx="44" cy="26" rx="10" ry="7" fill="#ff4757" opacity="0.6"/>
+                        <ellipse class="steam intense s2" cx="60" cy="18" rx="12" ry="8" fill="#e17055" opacity="0.55"/>
+                        <ellipse class="steam intense s3" cx="76" cy="24" rx="9"  ry="6" fill="#ff4757" opacity="0.5"/>
+                    {:else if $failedBrewAttempts > 0}
                         <ellipse class="steam"    cx="44" cy="30" rx="8"  ry="6" fill={$failedBrewAttempts >= 2 ? '#e17055' : '#f1c40f'} opacity="0.45"/>
                         <ellipse class="steam s2" cx="60" cy="22" rx="10" ry="7" fill={$failedBrewAttempts >= 2 ? '#e17055' : '#f1c40f'} opacity="0.35"/>
                         <ellipse class="steam s3" cx="76" cy="28" rx="7"  ry="5" fill={$failedBrewAttempts >= 2 ? '#e17055' : '#f1c40f'} opacity="0.3"/>
@@ -304,9 +414,16 @@
             </div>
 
             <!-- Pure SVG Brew Button -->
-            <button class="brew-btn" class:danger={$failedBrewAttempts >= 2}
-                disabled={!canBrew || isBrewing} on:click={handleBrew}>
-                {#if isBrewing}
+            <button class="brew-btn" class:danger={$failedBrewAttempts >= 2 && !isOverheated} class:overheated={isOverheated}
+                disabled={!canBrew || isBrewing || isOverheated} on:click={handleBrew}>
+                {#if isOverheated}
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff7675" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Остывание котла…
+                {:else if isBrewing}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon">
                         <circle cx="12" cy="12" r="10" stroke-dasharray="16 16"/>
                     </svg>
@@ -315,7 +432,7 @@
                     <svg viewBox="0 0 16 16" width="18" height="18" fill="#fff">
                         <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
                     </svg>
-                    Сварить (Риск!)
+                    Сварить (Риск перегрева!)
                 {:else}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
@@ -325,12 +442,26 @@
             </button>
 
             <div class="picker-wrap">
-                <p class="picker-label">Ваш инвентарь ингредиентов:</p>
-                {#if ownedIngredients.length === 0}
-                    <p class="no-ings">В инвентаре нет ингредиентов. Откройте сундуки или отправьте фамильяров в экспедицию!</p>
+                <div class="picker-header-row">
+                    <p class="picker-label">Ваш инвентарь ингредиентов:</p>
+                    {#if slots.some(s => s !== null)}
+                        <button type="button" class="clear-all-btn" on:click={clearAllSlots}>Очистить</button>
+                    {/if}
+                </div>
+
+                <div class="rarity-filter-tabs">
+                    <button type="button" class="rf-tab" class:active={selectedRarity === 'all'} on:click={() => selectedRarity = 'all'}>Все</button>
+                    <button type="button" class="rf-tab common" class:active={selectedRarity === 'common'} on:click={() => selectedRarity = 'common'}>Обыч.</button>
+                    <button type="button" class="rf-tab rare" class:active={selectedRarity === 'rare'} on:click={() => selectedRarity = 'rare'}>Редкие</button>
+                    <button type="button" class="rf-tab epic" class:active={selectedRarity === 'epic'} on:click={() => selectedRarity = 'epic'}>Эпик</button>
+                    <button type="button" class="rf-tab legendary" class:active={selectedRarity === 'legendary'} on:click={() => selectedRarity = 'legendary'}>Легенд.</button>
+                </div>
+
+                {#if filteredIngredients.length === 0}
+                    <p class="no-ings">Нет ингредиентов в этой категории.</p>
                 {:else}
                     <div class="picker-grid">
-                        {#each ownedIngredients as ing}
+                        {#each filteredIngredients as ing}
                             {@const avail = ing.available}
                             {@const used  = usedCounts[ing.id] ?? 0}
                             <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -410,15 +541,17 @@
                                 <span>{HINT_COSTS[hints]}</span>
                                 <span class="hint-step-tag">({hints+1}/3)</span>
                             </button>
-                            <button class="hint-btn ad-hint-btn"
-                                on:click={() => handleHintAd(recipe.id)}
-                                title="Раскрыть ингредиент за просмотр рекламы">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
-                                    <polygon points="5,3 19,12 5,21"/>
-                                </svg>
-                                <span>Раскрыть</span>
-                                <span class="hint-ad-pill">AD</span>
-                            </button>
+                            {#if hints === 0 && !$gameStore.recipeAdHintsUsed?.[recipe.id]}
+                                <button class="hint-btn ad-hint-btn"
+                                    on:click={() => handleHintAd(recipe.id)}
+                                    title="Раскрыть 1-й ингредиент за просмотр рекламы">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                                        <polygon points="5,3 19,12 5,21"/>
+                                    </svg>
+                                    <span>1-й бесплатно</span>
+                                    <span class="hint-ad-pill">AD</span>
+                                </button>
+                            {/if}
                         </div>
                     {:else}
                         <div class="r-desc">{potion.description}</div>
@@ -426,14 +559,14 @@
                         {@const craftCheck = canQuickBrew(recipe)}
                         <button 
                             class="quick-brew-btn" 
-                            disabled={!craftCheck.can} 
+                            disabled={!craftCheck.can || isOverheated} 
                             on:click={() => handleQuickBrew(recipe.id)}
-                            title={craftCheck.can ? 'Сварить зелье в 1 клик' : `Недостаточно ингредиентов`}
+                            title={isOverheated ? 'Котёл перегрет и остывает' : (craftCheck.can ? 'Сварить зелье в 1 клик' : `Недостаточно ингредиентов`)}
                         >
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
                             </svg>
-                            <span>{craftCheck.can ? 'Сварить в 1 клик' : `Не хватает: ${craftCheck.missingName}`}</span>
+                            <span>{isOverheated ? 'Котёл остывает…' : (craftCheck.can ? 'Сварить в 1 клик' : `Не хватает: ${craftCheck.missingName}`)}</span>
                         </button>
                     {/if}
                 </div>
@@ -824,4 +957,184 @@
 .toast-success{background:linear-gradient(135deg,rgba(0,184,148,0.95),rgba(0,206,201,0.92));color:white}
 .toast-warning{background:linear-gradient(135deg,rgba(253,203,0,0.95),rgba(225,112,85,0.92));color:#2d0a00}
 .toast-burn{background:linear-gradient(135deg,rgba(231,76,60,0.95),rgba(192,57,43,0.92));color:white}
+
+.overheat-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.2) 0%, rgba(214, 48, 49, 0.12) 100%);
+    border: 1px solid rgba(231, 76, 60, 0.55);
+    border-radius: 14px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    animation: overheatGlow 1.8s ease-in-out infinite alternate;
+}
+@keyframes overheatGlow {
+    0% { box-shadow: 0 0 8px rgba(231, 76, 60, 0.2); }
+    100% { box-shadow: 0 0 18px rgba(231, 76, 60, 0.45); }
+}
+
+.overheat-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.flame-pulse {
+    animation: flamePulse 1s ease-in-out infinite alternate;
+}
+@keyframes flamePulse {
+    0% { transform: scale(0.92); }
+    100% { transform: scale(1.08); }
+}
+.overheat-text-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.overheat-title {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #ff7675;
+}
+.overheat-timer {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+.overheat-timer strong {
+    color: #ffeaa7;
+}
+
+.overheat-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.cooldown-ad-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(116, 185, 255, 0.25) 0%, rgba(9, 132, 227, 0.15) 100%);
+    border: 1px solid rgba(116, 185, 255, 0.5);
+    color: #74b9ff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.cooldown-ad-btn:hover {
+    background: rgba(116, 185, 255, 0.35);
+    transform: scale(1.04);
+}
+.cooldown-crystal-btn {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.2) 0%, rgba(243, 156, 18, 0.12) 100%);
+    border: 1px solid rgba(241, 196, 15, 0.45);
+    color: #ffeaa7;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.cooldown-crystal-btn:hover {
+    background: rgba(241, 196, 15, 0.32);
+    transform: scale(1.04);
+}
+
+.mastery-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(241, 196, 15, 0.08);
+    border: 1px solid rgba(241, 196, 15, 0.22);
+    border-radius: 12px;
+    color: #ffeaa7;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.mastery-sub {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.66rem;
+    font-weight: 600;
+}
+
+.brew-btn.overheated {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #ff7675;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.picker-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.clear-all-btn {
+    background: transparent;
+    border: none;
+    color: #ff7675;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+.clear-all-btn:hover {
+    color: #ff4757;
+}
+
+.rarity-filter-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+}
+.rf-tab {
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.rf-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.rf-tab.active {
+    background: rgba(162, 155, 254, 0.25);
+    border-color: #a29bfe;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(162, 155, 254, 0.3);
+}
+.rf-tab.common.active { border-color: #b2bec3; color: #dfe6e9; }
+.rf-tab.rare.active { border-color: #74b9ff; color: #74b9ff; }
+.rf-tab.epic.active { border-color: #a29bfe; color: #a29bfe; }
+.rf-tab.legendary.active { border-color: #f1c40f; color: #f1c40f; }
+
+.steam.intense {
+    filter: drop-shadow(0 0 6px rgba(255, 71, 87, 0.6));
+    animation: intenseSteam 1.2s ease-out infinite;
+}
+@keyframes intenseSteam {
+    0% { transform: translateY(0) scale(1); opacity: 0.65; }
+    100% { transform: translateY(-18px) scale(1.6); opacity: 0; }
+}
 </style>

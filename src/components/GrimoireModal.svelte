@@ -203,11 +203,12 @@
                     </svg>
                 </div>
                 <span class="tab-label">Алхимия</span>
-                {#if $failedBrewAttempts > 0}
-                    <span class="tab-badge danger-badge" title="Котёл перегрет!">
-                        <svg viewBox="0 0 16 16" width="10" height="10" fill="#ff4757">
-                            <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
-                        </svg>
+                {#if ($gameStore.cauldronOverheatUntil || 0) > Date.now()}
+                    <span class="tab-badge danger-badge pulse" title="Котёл остывает!">
+                        ❄️
+                    </span>
+                {:else if $failedBrewAttempts > 0}
+                    <span class="tab-badge warning-badge" title="До перегрева">
                         {3 - $failedBrewAttempts}
                     </span>
                 {/if}

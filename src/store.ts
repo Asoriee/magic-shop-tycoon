@@ -206,6 +206,9 @@ export interface GameState {
     vipExpiresAt?: number;
     vipLastDailyClaimDate?: string;
     chestResonanceProgress?: number;
+    cauldronOverheatUntil?: number;
+    recipeAdHintsUsed?: Record<string, boolean>;
+    alchemyBrewsCount?: number;
 }
 
 // ============================================================
@@ -1598,7 +1601,10 @@ const defaultState: GameState = {
     lastFreeTimeSkipTime: 0,
     vipExpiresAt: 0,
     vipLastDailyClaimDate: '',
-    chestResonanceProgress: 0
+    chestResonanceProgress: 0,
+    cauldronOverheatUntil: 0,
+    recipeAdHintsUsed: {},
+    alchemyBrewsCount: 0
 };
 
 // --- Premium stores ---
@@ -2587,23 +2593,37 @@ export const unlockedRecipes = writable<Record<string, number>>({});
 /** How many consecutive wrong brews have been made (resets on success or burn) */
 export const failedBrewAttempts = writable<number>(0);
 
+export const CAULDRON_COOLDOWN_MS = 2 * 60 * 1000; // 2 минуты остывания (120 сек)
+
 export interface BrewResult {
-    status: 'success' | 'warning' | 'burn';
+    status: 'success' | 'warning' | 'overheat' | 'blocked';
     matches?: number; // 0, 1, or 2 matching ingredients in any unknown recipe
     attemptsLeft?: number;
-    goldAwarded?: number;
     potionId?: string;
     recipeName?: string;
+    isDouble?: boolean;
+    cooldownSeconds?: number;
 }
 
 /**
  * Attempt to brew a potion from exactly 3 ingredient slots.
  * Returns: BrewResult
- *   - success: correct recipe → ingredients consumed, potion added, recipe unlocked to level 3
- *   - warning: wrong recipe → ingredients NOT consumed, calculates alchemical resonance (0, 1, 2)
- *   - burn:    wrong recipe (reached max attempts) → ingredients consumed, awarded consolation gold
+ *   - success:  correct recipe → ingredients consumed, potion added, recipe unlocked to level 3 (chance for double)
+ *   - warning:  wrong recipe → ingredients NOT consumed, calculates alchemical resonance (0, 1, 2)
+ *   - overheat: wrong recipe (reached max attempts) → ingredients SAVED, cauldron enters 2-minute cooldown
+ *   - blocked:  cauldron currently overheated → brewing forbidden until cooldown finishes
  */
 export function brewPotion(slots: [string, string, string]): BrewResult {
+    const state = get(gameStore);
+    const now = Date.now();
+    const overheatUntil = state.cauldronOverheatUntil || 0;
+    if (overheatUntil > now) {
+        return {
+            status: 'blocked',
+            cooldownSeconds: Math.ceil((overheatUntil - now) / 1000)
+        };
+    }
+
     const sorted = [...slots].sort();
     const recipe = RECIPES.find(r => {
         const rs = [...r.ingredients].sort();
@@ -2612,6 +2632,11 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
 
     if (recipe) {
         // Correct recipe - consume and reward
+        const masteryLevel = Math.floor((state.alchemyBrewsCount || 0) / 5);
+        const doubleChance = Math.min(0.20, masteryLevel * 0.05); // up to +20% chance
+        const isDouble = Math.random() < doubleChance;
+        const yieldCount = isDouble ? 2 : 1;
+
         ingredientsCount.update(c => {
             const next = { ...c };
             for (const ing of slots) {
@@ -2620,19 +2645,26 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
             }
             return next;
         });
+
         potionsCount.update(c => ({
             ...c,
-            [recipe.resultPotionId]: (c[recipe.resultPotionId] ?? 0) + 1,
+            [recipe.resultPotionId]: (c[recipe.resultPotionId] ?? 0) + yieldCount,
         }));
+
         failedBrewAttempts.set(0);
         unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
+        gameStore.update(s => ({
+            ...s,
+            alchemyBrewsCount: (s.alchemyBrewsCount || 0) + 1
+        }));
         gameStore.updateQuestProgress('brew_potions', 1);
         
         const pot = AVAILABLE_POTIONS.find(p => p.id === recipe.resultPotionId);
         return { 
             status: 'success', 
             potionId: recipe.resultPotionId,
-            recipeName: pot?.name ?? 'Магическое зелье' 
+            recipeName: pot?.name ?? 'Магическое зелье',
+            isDouble
         };
     }
 
@@ -2676,18 +2708,16 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     const maxFailures = 3 + alchemyLevel + vipBonus;
 
     if (next >= maxFailures) {
-        // Burn ingredients - award consolation gold!
-        ingredientsCount.update(c => {
-            const nextC = { ...c };
-            for (const ing of slots) {
-                nextC[ing] = (nextC[ing] ?? 0) - 1;
-                if (nextC[ing] <= 0) delete nextC[ing];
-            }
-            return nextC;
-        });
+        // Overheat! Ingredients are SAVED (NOT destroyed). Cauldron cools down for 2 minutes.
         failedBrewAttempts.set(0);
-        gameStore.addGold(500);
-        return { status: 'burn', goldAwarded: 500 };
+        gameStore.update(s => ({
+            ...s,
+            cauldronOverheatUntil: Date.now() + CAULDRON_COOLDOWN_MS
+        }));
+        return { 
+            status: 'overheat', 
+            cooldownSeconds: Math.round(CAULDRON_COOLDOWN_MS / 1000) 
+        };
     }
 
     failedBrewAttempts.set(next);
@@ -2701,7 +2731,15 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
 /**
  * Instantly brew a known recipe in 1 click directly from the Recipe Book.
  */
-export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: string } {
+export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: string; isDouble?: boolean } {
+    const state = get(gameStore);
+    const now = Date.now();
+    const overheatUntil = state.cauldronOverheatUntil || 0;
+    if (overheatUntil > now) {
+        const sec = Math.ceil((overheatUntil - now) / 1000);
+        return { success: false, reason: `Котёл перегрет! Остывание: ${sec} сек` };
+    }
+
     const recipe = RECIPES.find(r => r.id === recipeId);
     if (!recipe) return { success: false, reason: 'Рецепт не найден' };
 
@@ -2720,6 +2758,11 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
         }
     }
 
+    const masteryLevel = Math.floor((state.alchemyBrewsCount || 0) / 5);
+    const doubleChance = Math.min(0.20, masteryLevel * 0.05);
+    const isDouble = Math.random() < doubleChance;
+    const yieldCount = isDouble ? 2 : 1;
+
     // Deduct ingredients
     ingredientsCount.update(c => {
         const next = { ...c };
@@ -2733,15 +2776,19 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
     // Add potion
     potionsCount.update(c => ({
         ...c,
-        [recipe.resultPotionId]: (c[recipe.resultPotionId] ?? 0) + 1
+        [recipe.resultPotionId]: (c[recipe.resultPotionId] ?? 0) + yieldCount
     }));
 
     // Ensure fully unlocked in book
     unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
     failedBrewAttempts.set(0);
+    gameStore.update(s => ({
+        ...s,
+        alchemyBrewsCount: (s.alchemyBrewsCount || 0) + 1
+    }));
     gameStore.updateQuestProgress('brew_potions', 1);
 
-    return { success: true };
+    return { success: true, isDouble };
 }
 
 /**
@@ -2749,6 +2796,18 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
  */
 export function coolDownCauldron(): void {
     failedBrewAttempts.set(0);
+    gameStore.update(s => ({ ...s, cauldronOverheatUntil: 0 }));
+}
+
+export function coolDownCauldronAd(): void {
+    coolDownCauldron();
+}
+
+export function coolDownCauldronCrystals(cost = 8): boolean {
+    if (get(crystals) < cost) return false;
+    crystals.update(c => c - cost);
+    coolDownCauldron();
+    return true;
 }
 
 /**
@@ -2769,14 +2828,23 @@ export function buyRecipeHint(recipeId: string): boolean {
 }
 
 /**
- * Unlock one recipe hint for free (e.g. after watching a rewarded ad).
+ * Unlock one recipe hint for free (via rewarded ad).
+ * RESTRICTION: Only 1 ingredient per recipe can be unlocked by ad!
+ * Further hints must be unlocked via crystals.
  */
 export function unlockRecipeHintFree(recipeId: string): boolean {
     const hints = get(unlockedRecipes);
     const level = hints[recipeId] ?? 0;
-    if (level >= 3) return false;
+    if (level >= 1) return false; // За рекламу можно открыть ТОЛЬКО первый ингредиент
 
-    unlockedRecipes.update(r => ({ ...r, [recipeId]: level + 1 }));
+    const state = get(gameStore);
+    if (state.recipeAdHintsUsed?.[recipeId]) return false; // Реклама уже была использована для этого рецепта
+
+    gameStore.update(s => ({
+        ...s,
+        recipeAdHintsUsed: { ...(s.recipeAdHintsUsed || {}), [recipeId]: true }
+    }));
+    unlockedRecipes.update(r => ({ ...r, [recipeId]: 1 }));
     return true;
 }
 

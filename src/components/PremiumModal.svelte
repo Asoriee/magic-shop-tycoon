@@ -25,7 +25,7 @@
     let contentEl: HTMLElement;
 
     // Badges calculation
-    $: earnedStardust = Math.floor(($gameStore?.gold || 0) / 1_000_000);
+    $: earnedStardust = Math.floor(Math.sqrt(($gameStore?.gold || 0) / 1_000_000));
     $: isDragonGiftReady = (Date.now() - ($gameStore?.lastDragonGiftTime || 0)) >= 5 * 60 * 1000;
     $: isFreeSkipReady = (Date.now() - ($gameStore?.lastFreeTimeSkipTime || 0)) >= 45 * 60 * 1000;
 

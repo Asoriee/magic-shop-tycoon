@@ -14,11 +14,12 @@
     let showConfirm = false;
 
     $: hasTitanBonus = $gameStore?.unlockedCollections?.includes('titan_set') || false;
-    $: rawStardust = Math.floor(($gameStore?.gold || 0) / 1_000_000);
+    $: rawStardust = Math.floor(Math.sqrt(($gameStore?.gold || 0) / 1_000_000));
     $: earnedStardust = Math.floor(rawStardust * (hasTitanBonus ? 1.15 : 1));
-    $: goldRemainder = ($gameStore?.gold || 0) % 1_000_000;
-    $: goldNeededForNext = 1_000_000 - goldRemainder;
-    $: progressToNext = Math.min(100, Math.max(0, (goldRemainder / 1_000_000) * 100));
+    $: currentThreshold = Math.pow(rawStardust, 2) * 1_000_000;
+    $: nextThreshold = Math.pow(rawStardust + 1, 2) * 1_000_000;
+    $: goldNeededForNext = Math.max(0, nextThreshold - ($gameStore?.gold || 0));
+    $: progressToNext = Math.min(100, Math.max(0, ((($gameStore?.gold || 0) - currentThreshold) / Math.max(1, nextThreshold - currentThreshold)) * 100));
 
     $: if (isOpen) {
         tick().then(() => {
@@ -148,7 +149,7 @@
                         <div class="progress-track">
                             <div class="progress-fill" style="width: {progressToNext}%"></div>
                         </div>
-                        <span class="exchange-rate-hint">Курс: 1 Пыль = 1,000,000 Золота (бонус +2% ко всему доходу за каждую пыль)</span>
+                        <span class="exchange-rate-hint">Священная Пыль рождается исключительно в пламени Ритуала (+1% ко всему доходу за каждую пылинку)</span>
                     </div>
                 </div>
             </div>

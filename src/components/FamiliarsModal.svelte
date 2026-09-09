@@ -180,12 +180,13 @@
         if (pet?.rarity === 'legendary') chestType = 'astral';
         
         openChest(chestType);
-        let stardustGain = 10;
-        if (petId === 'pet_phoenix') stardustGain = 25;
-        if (petId === 'pet_void_titan') stardustGain = 50;
+        let crystalGain = 1;
+        if (pet?.rarity === 'epic') crystalGain = 3;
+        if (pet?.rarity === 'legendary') crystalGain = 5;
+        if (petId === 'pet_void_titan') crystalGain = 8;
 
-        gameStore.update(s => ({ ...s, stardust: s.stardust + stardustGain }));
-        showToast(`Добыча и +${stardustGain} звёздной пыли получены!`);
+        crystals.update(c => c + crystalGain);
+        showToast(`Добыча и +${crystalGain} самоцветов получены!`);
         saveGame();
     }
 

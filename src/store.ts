@@ -8,6 +8,9 @@ export function formatNumber(num: number | undefined | null): string {
     if (num === undefined || num === null) return '0';
     const n = Number(num);
     if (isNaN(n) || !isFinite(n)) return '0';
+    if (n >= 1_000_000_000_000_000_000) return (n / 1_000_000_000_000_000_000).toFixed(2) + 'Qi';
+    if (n >= 1_000_000_000_000_000) return (n / 1_000_000_000_000_000).toFixed(2) + 'Qa';
+    if (n >= 1_000_000_000_000) return (n / 1_000_000_000_000).toFixed(2) + 'T';
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
     if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
@@ -27,7 +30,7 @@ export type QuestType =
     | 'complete_orders' 
     | 'send_expeditions';
 
-export type QuestRewardType = 'gold' | 'stardust' | 'crystals';
+export type QuestRewardType = 'gold' | 'crystals' | 'stardust';
 export type QuestDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Quest {
@@ -119,7 +122,8 @@ export interface CustomerOrder {
     icon: string;
     requirements: OrderRequirement[];
     rewardGold: number;
-    rewardStardust: number;
+    rewardCrystals?: number;
+    rewardStardust?: number;
     isVip: boolean;
 }
 
@@ -606,7 +610,7 @@ export const AVAILABLE_POTIONS: Potion[] = [
     {
         id: 'potion_astral',
         name: 'Астральный Нектар',
-        description: '+200% ко всему доходу на 5 мин и +5 звёздной пыли сразу!',
+        description: '+200% ко всему доходу мастерской на 5 минут!',
         effect: 'gold_multiplier',
         value: 2.0,
         durationMin: 5,
@@ -708,7 +712,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 15,
-        costMultiplier: 1.30,
+        costMultiplier: 1.15,
         baseValue: 1,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="14" cy="28" rx="8" ry="6" fill="#74b9ff" stroke="#0984e3" stroke-width="2"/><path d="M18 24 L32 8" stroke="#dfe6e9" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="8" r="3" fill="#f1c40f"/><path d="M12 26 Q14 20 18 22" stroke="white" stroke-width="1.5" fill="none"/></svg>`
@@ -720,7 +724,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'click',
         category: 'click',
         baseCost: 20,
-        costMultiplier: 1.30,
+        costMultiplier: 1.15,
         baseValue: 1,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="14" cy="28" rx="7" ry="5" fill="#f1c40f" stroke="#d4ac0d" stroke-width="2"/><path d="M18 24 L34 8" stroke="#f39c12" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="8" r="3" fill="#e74c3c"/></svg>`
@@ -732,7 +736,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 100,
-        costMultiplier: 1.30,
+        costMultiplier: 1.15,
         baseValue: 6,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><circle cx="20" cy="16" r="6" fill="#ffeaa7"/><polygon points="12,12 28,12 20,2" fill="#6c5ce7"/><ellipse cx="20" cy="12" rx="10" ry="2" fill="#a29bfe"/><path d="M14 22 L26 22 L28 36 L12 36 Z" fill="#6c5ce7"/><circle cx="18" cy="16" r="1" fill="#2d3436"/><circle cx="22" cy="16" r="1" fill="#2d3436"/></svg>`
@@ -744,7 +748,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'click',
         category: 'click',
         baseCost: 200,
-        costMultiplier: 1.30,
+        costMultiplier: 1.15,
         baseValue: 5,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M12 18 C12 14 16 12 20 12 C24 12 28 14 28 18 L28 32 C28 34 26 36 24 36 L16 36 C14 36 12 34 12 32 Z" fill="#e17055" stroke="#d63031" stroke-width="2"/><path d="M12 22 L8 26 C7 27 7 29 8 30 C9 31 11 31 12 30 L15 27" fill="#e17055" stroke="#d63031" stroke-width="2"/><line x1="16" y1="28" x2="24" y2="28" stroke="#f1c40f" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#f1c40f"/></svg>`
@@ -756,7 +760,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 750,
-        costMultiplier: 1.30,
+        costMultiplier: 1.16,
         baseValue: 35,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M10 28 Q15 8 28 8 Q22 18 30 30 Q20 24 10 28Z" fill="#ff7675" stroke="#d63031" stroke-width="2"/><circle cx="26" cy="10" r="2.5" fill="#f1c40f"/><path d="M16 22 Q20 14 24 22" stroke="#ffeaa7" stroke-width="2" fill="none"/></svg>`
@@ -768,7 +772,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'click',
         category: 'click',
         baseCost: 1500,
-        costMultiplier: 1.30,
+        costMultiplier: 1.16,
         baseValue: 25,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="8" y="10" width="24" height="22" rx="3" fill="#2d3436" stroke="#f1c40f" stroke-width="2"/><path d="M20 10 L20 32" stroke="#f1c40f" stroke-width="2"/><line x1="12" y1="16" x2="16" y2="16" stroke="#e74c3c" stroke-width="1.5"/><line x1="12" y1="22" x2="17" y2="22" stroke="#e74c3c" stroke-width="1.5"/><line x1="24" y1="16" x2="28" y2="16" stroke="#74b9ff" stroke-width="1.5"/><line x1="23" y1="22" x2="28" y2="22" stroke="#74b9ff" stroke-width="1.5"/></svg>`
@@ -780,7 +784,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 5000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.16,
         baseValue: 220,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><circle cx="16" cy="26" r="10" fill="#d35400" stroke="#e67e22" stroke-width="2"/><rect x="14" y="10" width="4" height="8" fill="#e67e22"/><path d="M16 10 C16 4 28 4 28 14 L28 28 L32 30" stroke="#f39c12" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="16" cy="26" r="4" fill="#f1c40f" opacity="0.8"/></svg>`
@@ -792,7 +796,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'crit',
         category: 'click',
         baseCost: 8000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.20,
         baseValue: 3,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,2 24,14 36,14 26,22 30,34 20,26 10,34 14,22 4,14 16,14" fill="#f1c40f" stroke="#e67e22" stroke-width="2"/><polygon points="20,8 22,15 30,15 24,20 26,28 20,23 14,28 16,20 10,15 18,15" fill="#e74c3c"/></svg>`
@@ -804,7 +808,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 35000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.17,
         baseValue: 1400,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,6 34,16 34,34 6,34 6,16" fill="#81ecec" stroke="#00cec9" stroke-width="2" fill-opacity="0.4"/><line x1="20" y1="6" x2="20" y2="34" stroke="#00cec9" stroke-width="1.5"/><line x1="6" y1="16" x2="34" y2="16" stroke="#00cec9" stroke-width="1.5"/><path d="M16 34 Q16 22 20 22 Q24 22 24 34" fill="#2ecc71"/><circle cx="20" cy="20" r="3" fill="#f1c40f"/></svg>`
@@ -812,11 +816,11 @@ const defaultUpgrades: Upgrade[] = [
     {
         id: 'click_resonance',
         name: 'Катализатор Резонанса',
-        description: 'Прибавляет +1% от текущего дохода в сек. к каждому клику!',
+        description: 'Прибавляет +0.2% от текущего дохода в сек. к каждому клику (макс. 10%)!',
         type: 'resonance',
         category: 'click',
         baseCost: 50000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.20,
         baseValue: 1,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,4 28,18 20,36 12,18" fill="#a29bfe" stroke="#6c5ce7" stroke-width="2"/><line x1="20" y1="4" x2="20" y2="36" stroke="white" stroke-width="1.5" opacity="0.6"/><circle cx="6" cy="20" r="3" fill="none" stroke="#fd79a8" stroke-width="1.5"/><circle cx="34" cy="20" r="3" fill="none" stroke="#fd79a8" stroke-width="1.5"/><path d="M8 16 Q10 20 8 24" stroke="#fd79a8" stroke-width="1.5" fill="none"/><path d="M32 16 Q30 20 32 24" stroke="#fd79a8" stroke-width="1.5" fill="none"/></svg>`
@@ -828,7 +832,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 250000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.17,
         baseValue: 9000,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="12" y="10" width="16" height="24" rx="8" fill="#a29bfe" stroke="#6c5ce7" stroke-width="2" fill-opacity="0.4"/><circle cx="20" cy="20" r="4" fill="#fd79a8"/><circle cx="18" cy="19" r="1" fill="#2d3436"/><circle cx="22" cy="19" r="1" fill="#2d3436"/><ellipse cx="20" cy="28" rx="5" ry="3" fill="#6c5ce7"/><rect x="16" y="6" width="8" height="4" rx="1" fill="#d63031"/></svg>`
@@ -840,10 +844,106 @@ const defaultUpgrades: Upgrade[] = [
         type: 'idle',
         category: 'production',
         baseCost: 2000000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.18,
         baseValue: 60000,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="20" cy="20" rx="18" ry="8" stroke="#fd79a8" stroke-width="2" transform="rotate(-30 20 20)"/><ellipse cx="20" cy="20" rx="14" ry="6" stroke="#a29bfe" stroke-width="2" transform="rotate(30 20 20)"/><circle cx="20" cy="20" r="5" fill="#2d1b4e" stroke="#ffeaa7" stroke-width="1.5"/><circle cx="20" cy="20" r="2" fill="#ffeaa7"/></svg>`
+    },
+    {
+        id: 'idle_observatory',
+        name: 'Звёздная Обсерватория',
+        description: 'Призматические телескопы фокусируют космическую энергию звёзд прямо в котлы.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 15000000,
+        costMultiplier: 1.18,
+        baseValue: 400000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><linearGradient id="obsDome" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#74b9ff"/><stop offset="100%" stop-color="#0984e3"/></linearGradient></defs><path d="M8 36 L32 36 L30 22 L10 22 Z" fill="#2d3436" stroke="#636e72" stroke-width="1.5"/><path d="M12 22 A8 8 0 0 1 28 22" fill="url(#obsDome)" stroke="#0984e3" stroke-width="1.5"/><rect x="18" y="6" width="6" height="18" rx="2" fill="#ffeaa7" stroke="#f39c12" stroke-width="1.5" transform="rotate(30 20 15)"/><circle cx="28" cy="10" r="2.5" fill="#fff" stroke="#f1c40f" stroke-width="1"/><polygon points="34,6 35,8 37,8 35,10 36,12 34,10 32,12 33,10 31,8 33,8" fill="#ffeaa7"/></svg>`
+    },
+    {
+        id: 'idle_reactor',
+        name: 'Эфирный Реактор',
+        description: 'Расщепляет первозданный эфир на концентрированные потоки магического золота.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 120000000,
+        costMultiplier: 1.18,
+        baseValue: 3000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="reactGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#a29bfe"/><stop offset="100%" stop-color="#6c5ce7"/></radialGradient></defs><circle cx="20" cy="20" r="14" fill="#2d1b4e" stroke="#a29bfe" stroke-width="2"/><ellipse cx="20" cy="20" rx="16" ry="6" stroke="#00cec9" stroke-width="1.5" transform="rotate(-30 20 20)"/><ellipse cx="20" cy="20" rx="16" ry="6" stroke="#fd79a8" stroke-width="1.5" transform="rotate(30 20 20)"/><circle cx="20" cy="20" r="6" fill="url(#reactGlow)"/><line x1="20" y1="2" x2="20" y2="6" stroke="#a29bfe" stroke-width="2"/><line x1="20" y1="34" x2="20" y2="38" stroke="#a29bfe" stroke-width="2"/></svg>`
+    },
+    {
+        id: 'click_hammer',
+        name: 'Рунический Молот',
+        description: 'Удар титанического молота наполняет каждый клик сокрушительной мощью.',
+        type: 'click',
+        category: 'click',
+        baseCost: 500000000,
+        costMultiplier: 1.19,
+        baseValue: 350000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="18" y="16" width="4" height="20" rx="1" fill="#7f8c8d" stroke="#2c3e50" stroke-width="1.5"/><rect x="10" y="6" width="20" height="12" rx="2.5" fill="#f39c12" stroke="#d35400" stroke-width="2"/><path d="M14 10 L26 14 M14 14 L26 10" stroke="#fff" stroke-width="1.5"/><circle cx="20" cy="12" r="2" fill="#ffeaa7"/></svg>`
+    },
+    {
+        id: 'idle_temple',
+        name: 'Храм Вечности',
+        description: 'Молитвы верховных жрецов преобразуют ход времени в чистое богатство лавки.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 1000000000,
+        costMultiplier: 1.19,
+        baseValue: 25000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M4 36 L36 36 M6 32 L34 32" stroke="#d35400" stroke-width="2" stroke-linecap="round"/><polygon points="20,4 36,16 4,16" fill="#f39c12" stroke="#d35400" stroke-width="1.5"/><rect x="8" y="16" width="4" height="16" fill="#ffeaa7" stroke="#d35400" stroke-width="1.2"/><rect x="18" y="16" width="4" height="16" fill="#ffeaa7" stroke="#d35400" stroke-width="1.2"/><rect x="28" y="16" width="4" height="16" fill="#ffeaa7" stroke="#d35400" stroke-width="1.2"/><circle cx="20" cy="11" r="2.5" fill="#ffffff"/></svg>`
+    },
+    {
+        id: 'idle_chaos_lab',
+        name: 'Лаборатория Хаоса',
+        description: 'Синтезирует трансмутационные эликсиры и философский порошок в промышленных масштабах.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 10000000000,
+        costMultiplier: 1.19,
+        baseValue: 220000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><linearGradient id="chaosFlask" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fd79a8"/><stop offset="100%" stop-color="#e84393"/></linearGradient></defs><rect x="18" y="4" width="4" height="8" rx="1" fill="#dfe6e9" stroke="#636e72" stroke-width="1.2"/><path d="M16 12 L24 12 L34 32 A4 4 0 0 1 30 36 L10 36 A4 4 0 0 1 6 32 Z" fill="#2d1b4e" stroke="#fd79a8" stroke-width="1.8"/><path d="M9 30 Q20 22 31 30 L30 34 L10 34 Z" fill="url(#chaosFlask)" opacity="0.85"/><circle cx="16" cy="27" r="2" fill="#fff"/><circle cx="24" cy="24" r="1.5" fill="#fff"/><circle cx="20" cy="18" r="1" fill="#ffeaa7"/></svg>`
+    },
+    {
+        id: 'click_infinity_eye',
+        name: 'Око Бесконечности',
+        description: 'Концентрирует взгляд демиурга: колоссально умножает силу каждого клика.',
+        type: 'click',
+        category: 'click',
+        baseCost: 50000000000,
+        costMultiplier: 1.20,
+        baseValue: 25000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M4 20 Q20 6 36 20 Q20 34 4 20 Z" fill="#2d1b4e" stroke="#00cec9" stroke-width="2"/><circle cx="20" cy="20" r="7" fill="#6c5ce7" stroke="#ffeaa7" stroke-width="1.5"/><circle cx="20" cy="20" r="3" fill="#fff"/><polygon points="20,8 21,12 20,11 19,12" fill="#00cec9"/></svg>`
+    },
+    {
+        id: 'idle_chronos_gate',
+        name: 'Врата Хроноса',
+        description: 'Открывает караванные пути сквозь века и цивилизации прошлого и будущего.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 120000000000,
+        costMultiplier: 1.20,
+        baseValue: 2500000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="portalVoid" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00cec9"/><stop offset="70%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#0f0c29"/></radialGradient></defs><ellipse cx="20" cy="20" rx="14" ry="18" fill="url(#portalVoid)" stroke="#81ecec" stroke-width="2"/><path d="M6 36 L10 16 C10 8 30 8 30 16 L34 36" stroke="#ffeaa7" stroke-width="2.5" fill="none"/><line x1="20" y1="6" x2="20" y2="12" stroke="#fff" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="#fff"/></svg>`
+    },
+    {
+        id: 'idle_cosmos_heart',
+        name: 'Сердце Мироздания',
+        description: 'Абсолютный источник первозданной магии. Лавка становится центром всей вселенной.',
+        type: 'idle',
+        category: 'production',
+        baseCost: 1500000000000,
+        costMultiplier: 1.20,
+        baseValue: 30000000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="cosmosSun" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="35%" stop-color="#ffeaa7"/><stop offset="70%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#d35400"/></radialGradient></defs><ellipse cx="20" cy="20" rx="18" ry="6" stroke="#00cec9" stroke-width="1.8" transform="rotate(-25 20 20)"/><ellipse cx="20" cy="20" rx="18" ry="6" stroke="#a29bfe" stroke-width="1.8" transform="rotate(35 20 20)"/><circle cx="20" cy="20" r="8" fill="url(#cosmosSun)" stroke="#fff" stroke-width="1.5"/><polygon points="20,2 22,10 20,8 18,10" fill="#f1c40f"/><polygon points="20,38 22,30 20,32 18,30" fill="#f1c40f"/><polygon points="2,20 10,22 8,20 10,18" fill="#f1c40f"/><polygon points="38,20 30,22 32,20 30,18" fill="#f1c40f"/></svg>`
     },
     {
         id: 'idle_hearth',
@@ -852,7 +952,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'hearth',
         category: 'mastery',
         baseCost: 12000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.22,
         baseValue: 1,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="8" y="24" width="24" height="12" rx="3" fill="#636e72" stroke="#2d3436" stroke-width="2"/><path d="M14 24 Q20 12 26 24" fill="#2d3436"/><path d="M16 26 Q20 16 24 26" fill="#e17055"/><circle cx="20" cy="24" r="3" fill="#f1c40f"/><path d="M12 12 Q20 4 28 12" stroke="#e67e22" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`
@@ -864,7 +964,7 @@ const defaultUpgrades: Upgrade[] = [
         type: 'heat',
         category: 'mastery',
         baseCost: 25000,
-        costMultiplier: 1.30,
+        costMultiplier: 1.25,
         baseValue: 1,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M20 4 C16 12 10 16 10 24 C10 30 14 36 20 36 C26 36 30 30 30 24 C30 18 26 12 20 4 Z" fill="#ff7675" stroke="#d63031" stroke-width="2"/><path d="M20 14 C17 19 14 22 14 27 C14 30 17 33 20 33 C23 33 26 30 26 27 C26 23 23 19 20 14 Z" fill="#f1c40f"/><circle cx="20" cy="28" r="3" fill="#fff"/></svg>`
@@ -874,9 +974,9 @@ const defaultUpgrades: Upgrade[] = [
 const defaultSecretUpgrades: SecretUpgrade[] = [
     { id: 'magnet', name: 'Магический Магнит', description: '+2% шанс кристалла за клик', baseCost: 10, costMultiplier: 1.5, level: 0, maxLevel: 5 },
     { id: 'alchemy', name: 'Повелитель Котлов', description: '+1 право на ошибку при варке', baseCost: 15, costMultiplier: 2.0, level: 0, maxLevel: 2 },
-    { id: 'orders', name: 'Щедрые Клиенты', description: '+20% золота за заказы', baseCost: 20, costMultiplier: 1.8, level: 0, maxLevel: 10 },
+    { id: 'orders', name: 'Щедрые Клиенты', description: '+20% золота за заказы', baseCost: 20, costMultiplier: 1.6, level: 0, maxLevel: 10 },
     { id: 'wallet', name: 'Тяжелый Кошелек', description: '+100 золота после ритуала', baseCost: 5, costMultiplier: 2.0, level: 0, maxLevel: 5 },
-    { id: 'familiar', name: 'Аура Фамильяра', description: '+15% пассивного дохода', baseCost: 30, costMultiplier: 1.7, level: 0, maxLevel: 10 }
+    { id: 'familiar', name: 'Аура Фамильяра', description: '+15% пассивного дохода', baseCost: 30, costMultiplier: 1.6, level: 0, maxLevel: 10 }
 ];
 
 export const AVAILABLE_ARTIFACTS: Artifact[] = [
@@ -884,21 +984,21 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         id: 0,
         name: 'Свиток жадности',
         description: '+20% к пассивному доходу',
-        cost: 50,
+        cost: 15,
         svg: `<svg viewBox="0 0 100 100"><rect x="30" y="10" width="40" height="80" fill="#f1c40f" rx="5"/><line x1="35" y1="20" x2="65" y2="20" stroke="#d35400" stroke-width="4"/><line x1="35" y1="35" x2="65" y2="35" stroke="#d35400" stroke-width="4"/><line x1="35" y1="50" x2="65" y2="50" stroke="#d35400" stroke-width="4"/></svg>`
     },
     {
         id: 1,
         name: 'Кольцо мощи',
         description: '+20% к силе клика',
-        cost: 150,
+        cost: 35,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#f39c12" stroke-width="10"/><circle cx="50" cy="20" r="12" fill="#e74c3c"/></svg>`
     },
     {
         id: 2,
         name: 'Амулет времени',
         description: 'Увеличивает макс. время офлайн-дохода до 12 ч',
-        cost: 500,
+        cost: 80,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#34495e" stroke="#ecf0f1" stroke-width="5"/><circle cx="50" cy="50" r="3" fill="#ecf0f1"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="65" y2="65" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/></svg>`
     },
     // --- Archmage Set ---
@@ -906,35 +1006,35 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         id: 3,
         name: 'Мантия Архимага',
         description: '+35% к пассивному доходу',
-        cost: 1500,
+        cost: 150,
         svg: `<svg viewBox="0 0 100 100"><path d="M50 10 L80 90 L20 90 Z" fill="#9b59b6" stroke="#8e44ad" stroke-width="3"/><path d="M50 10 L65 90 L35 90 Z" fill="#8e44ad"/><circle cx="50" cy="40" r="8" fill="#f1c40f"/></svg>`
     },
     {
         id: 4,
         name: 'Посох Архимага',
         description: '+60% к силе клика',
-        cost: 3000,
+        cost: 300,
         svg: `<svg viewBox="0 0 100 100"><rect x="45" y="20" width="10" height="70" fill="#7f8c8d" rx="4"/><circle cx="50" cy="15" r="12" fill="#3498db" stroke="#2980b9" stroke-width="4"/><circle cx="50" cy="15" r="5" fill="#ecf0f1"/></svg>`
     },
     {
         id: 5,
         name: 'Шляпа Архимага',
         description: '+2 часа к макс. офлайн-времени',
-        cost: 5000,
+        cost: 500,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="80" rx="40" ry="10" fill="#2c3e50"/><polygon points="20,75 80,75 50,10" fill="#34495e"/><polygon points="35,75 65,75 50,10" fill="#2c3e50"/><path d="M30 70 Q50 85 70 70" fill="none" stroke="#f1c40f" stroke-width="4"/></svg>`
     },
     {
         id: 6,
         name: 'Кольцо Архимага',
         description: '+35% к пассивному доходу',
-        cost: 8000,
+        cost: 850,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#9b59b6" stroke-width="8"/><circle cx="50" cy="20" r="14" fill="#3498db" stroke="#2980b9" stroke-width="3"/><polygon points="50,10 55,20 65,25 55,30 50,40 45,30 35,25 45,20" fill="#ecf0f1" opacity="0.8"/></svg>`
     },
     {
         id: 7,
         name: 'Око Архимага',
         description: '+100% к пассивному доходу',
-        cost: 15000,
+        cost: 1500,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="25" fill="#ecf0f1" stroke="#f39c12" stroke-width="5"/><circle cx="50" cy="50" r="18" fill="#e74c3c"/><circle cx="50" cy="50" r="6" fill="#c0392b"/><circle cx="55" cy="45" r="4" fill="white"/></svg>`
     },
     // --- Phoenix Flame Set ---
@@ -942,28 +1042,28 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         id: 8,
         name: 'Жемчужина Феникса',
         description: '+40% золота за заказы и зелья',
-        cost: 20000,
+        cost: 3000,
         svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="phoenixPearlGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="35%" stop-color="#f39c12"/><stop offset="70%" stop-color="#e74c3c"/><stop offset="100%" stop-color="#962d22"/></radialGradient><linearGradient id="goldFiligree" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="50%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#d35400"/></linearGradient></defs><path d="M50 12 Q38 30 42 45 Q30 50 35 68 Q40 85 50 90 Q60 85 65 68 Q70 50 58 45 Q62 30 50 12 Z" fill="#e74c3c" opacity="0.35"/><path d="M28 78 C35 70 42 75 50 82 C58 75 65 70 72 78 C65 88 35 88 28 78 Z" fill="url(#goldFiligree)" stroke="#b7791f" stroke-width="1.5"/><path d="M22 60 Q28 68 34 66" stroke="url(#goldFiligree)" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M78 60 Q72 68 66 66" stroke="url(#goldFiligree)" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M50 84 L50 94 M42 94 L58 94" stroke="url(#goldFiligree)" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="50" r="24" fill="url(#phoenixPearlGlow)"/><ellipse cx="44" cy="42" rx="7" ry="4" fill="#ffffff" opacity="0.75" transform="rotate(-30 44 42)"/><polygon points="50,22 52,28 58,30 52,32 50,38 48,32 42,30 48,28" fill="#ffeaa7"/><circle cx="34" cy="36" r="2" fill="#fdcb6e"/><circle cx="66" cy="38" r="2.5" fill="#fdcb6e"/></svg>`
     },
     {
         id: 9,
         name: 'Печать Вулкана',
         description: '+80% к силе клика',
-        cost: 35000,
+        cost: 5500,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="volcanoStone" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3d3d3d"/><stop offset="50%" stop-color="#1e1e1e"/><stop offset="100%" stop-color="#0a0a0a"/></linearGradient><linearGradient id="magmaFlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff9f43"/><stop offset="50%" stop-color="#ee5253"/><stop offset="100%" stop-color="#ff3838"/></linearGradient></defs><polygon points="30,12 70,12 88,30 88,70 70,88 30,88 12,70 12,30" fill="url(#volcanoStone)" stroke="#c0392b" stroke-width="2.5"/><polygon points="33,18 67,18 82,33 82,67 67,82 33,82 18,67 18,33" fill="#151515" stroke="#4a1c17" stroke-width="1.5"/><path d="M22 35 L38 45 L34 56 L46 64 L50 78" stroke="url(#magmaFlow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M78 35 L62 45 L66 58 L54 65 L50 78" stroke="url(#magmaFlow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M50 20 L50 36 M38 45 L50 48 L62 45" stroke="url(#magmaFlow)" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="50" cy="50" r="14" fill="#2d0c0a" stroke="#ff7675" stroke-width="1.8"/><path d="M50 40 L57 56 L43 56 Z" fill="url(#magmaFlow)"/><circle cx="50" cy="50" r="3.5" fill="#fff"/></svg>`
     },
     {
         id: 10,
         name: 'Чаша Вечного Огня',
         description: '+120% к пассивному доходу',
-        cost: 60000,
+        cost: 9000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="chaliceGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#fdcb6e"/><stop offset="100%" stop-color="#e17055"/></linearGradient><linearGradient id="fireCore" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#e74c3c"/><stop offset="40%" stop-color="#ff7675"/><stop offset="80%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><path d="M50 10 Q32 30 42 50 Q28 42 36 28 Q44 20 50 10 Z" fill="#ff7675" opacity="0.6"/><path d="M50 10 Q68 30 58 50 Q72 42 64 28 Q56 20 50 10 Z" fill="#ff7675" opacity="0.6"/><path d="M50 14 Q38 32 44 48 Q50 54 56 48 Q62 32 50 14 Z" fill="url(#fireCore)"/><path d="M50 24 Q44 36 48 45 Q50 48 52 45 Q56 36 50 24 Z" fill="#ffffff"/><path d="M25 46 C25 65 38 72 46 73 L46 84 L36 88 L36 92 L64 92 L64 88 L54 84 L54 73 C62 72 75 65 75 46 Z" fill="url(#chaliceGold)" stroke="#d35400" stroke-width="1.8"/><ellipse cx="50" cy="46" rx="25" ry="5" fill="#f39c12" stroke="#b7791f" stroke-width="1.5"/><circle cx="50" cy="62" r="4.5" fill="#d63031" stroke="#ffeaa7" stroke-width="1"/><circle cx="38" cy="58" r="3" fill="#e74c3c"/><circle cx="62" cy="58" r="3" fill="#e74c3c"/><path d="M25 50 Q14 54 18 64 Q22 70 28 66" fill="none" stroke="url(#chaliceGold)" stroke-width="2.5" stroke-linecap="round"/><path d="M75 50 Q86 54 82 64 Q78 70 72 66" fill="none" stroke="url(#chaliceGold)" stroke-width="2.5" stroke-linecap="round"/></svg>`
     },
     {
         id: 11,
         name: 'Перо Возрождения',
         description: '+3 ч офлайн-времени и +10% золота после ритуала',
-        cost: 100000,
+        cost: 15000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="featherPlume" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff200"/><stop offset="35%" stop-color="#ff9f43"/><stop offset="70%" stop-color="#ee5253"/><stop offset="100%" stop-color="#5f27cd"/></linearGradient></defs><path d="M78 14 C70 20 62 18 52 24 C40 32 30 46 26 62 C22 75 25 86 24 90 C26 86 32 82 40 80 C56 75 68 62 74 46 C78 35 84 24 78 14 Z" fill="url(#featherPlume)"/><path d="M52 24 C45 32 38 42 34 50 M44 38 C38 48 32 58 29 66 M58 48 C50 60 42 70 36 78" stroke="#ffeaa7" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M78 14 Q52 46 24 90" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="68" cy="20" r="2.5" fill="#f1c40f"/><circle cx="82" cy="35" r="2" fill="#ff7675"/><circle cx="60" cy="12" r="1.5" fill="#feca57"/><polygon points="38,40 40,43 43,44 40,45 38,48 36,45 33,44 36,43" fill="#ffffff" opacity="0.9"/></svg>`
     },
     // --- Titans Chronicle Set ---
@@ -971,28 +1071,28 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         id: 12,
         name: 'Хронометр Вечности',
         description: '+4 ч офлайн-времени и -20% времени экспедиций',
-        cost: 150000,
+        cost: 25000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="astroTitan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dfe6e9"/><stop offset="50%" stop-color="#74b9ff"/><stop offset="100%" stop-color="#0984e3"/></linearGradient><radialGradient id="chronoCore" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#00cec9"/><stop offset="80%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2d3436"/></radialGradient></defs><circle cx="50" cy="50" r="40" fill="none" stroke="url(#astroTitan)" stroke-width="3" stroke-dasharray="8 4"/><ellipse cx="50" cy="50" rx="32" ry="18" fill="none" stroke="#81ecec" stroke-width="2.5" transform="rotate(35 50 50)"/><ellipse cx="50" cy="50" rx="32" ry="18" fill="none" stroke="#a29bfe" stroke-width="2.5" transform="rotate(-35 50 50)"/><circle cx="50" cy="10" r="3" fill="#00cec9"/><circle cx="90" cy="50" r="3" fill="#00cec9"/><circle cx="50" cy="90" r="3" fill="#00cec9"/><circle cx="10" cy="50" r="3" fill="#00cec9"/><circle cx="50" cy="50" r="16" fill="url(#chronoCore)" stroke="#dfe6e9" stroke-width="1.8"/><line x1="50" y1="50" x2="50" y2="38" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="50" x2="60" y2="54" stroke="#81ecec" stroke-width="2" stroke-linecap="round"/><circle cx="50" cy="50" r="3" fill="#ffffff"/></svg>`
     },
     {
         id: 13,
         name: 'Скрижаль Созидания',
         description: '+200% к пассивному доходу',
-        cost: 250000,
+        cost: 45000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="monolithGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2c3e50"/><stop offset="60%" stop-color="#1e272e"/><stop offset="100%" stop-color="#0f141d"/></linearGradient><linearGradient id="glyphGlow" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#00cec9"/><stop offset="100%" stop-color="#6c5ce7"/></linearGradient></defs><rect x="22" y="12" width="56" height="76" rx="6" fill="url(#monolithGrad)" stroke="#6c5ce7" stroke-width="2.5"/><rect x="26" y="16" width="48" height="68" rx="4" fill="#121824" stroke="#00cec9" stroke-width="1" stroke-dasharray="6 3"/><circle cx="50" cy="30" r="7" fill="none" stroke="url(#glyphGlow)" stroke-width="2"/><line x1="50" y1="20" x2="50" y2="40" stroke="url(#glyphGlow)" stroke-width="1.8"/><line x1="40" y1="30" x2="60" y2="30" stroke="url(#glyphGlow)" stroke-width="1.8"/><path d="M36 50 L50 44 L64 50 L50 56 Z" fill="none" stroke="url(#glyphGlow)" stroke-width="2"/><circle cx="50" cy="50" r="2" fill="#fff"/><line x1="34" y1="64" x2="66" y2="64" stroke="url(#glyphGlow)" stroke-width="2.5" stroke-linecap="round"/><line x1="38" y1="72" x2="62" y2="72" stroke="url(#glyphGlow)" stroke-width="2.5" stroke-linecap="round"/><polygon points="50,14 52,18 56,20 52,22 50,26 48,22 44,20 48,18" fill="#81ecec"/></svg>`
     },
     {
         id: 14,
         name: 'Корона Пустоты',
         description: '+250% к силе клика',
-        cost: 400000,
+        cost: 75000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="voidMetal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4834d4"/><stop offset="50%" stop-color="#24135f"/><stop offset="100%" stop-color="#130838"/></linearGradient><linearGradient id="crystalGlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00d2d3"/><stop offset="50%" stop-color="#54a0ff"/><stop offset="100%" stop-color="#5f27cd"/></linearGradient></defs><path d="M15 72 Q50 86 85 72 L82 66 Q50 78 18 66 Z" fill="url(#voidMetal)" stroke="#a29bfe" stroke-width="1.8"/><polygon points="50,16 57,66 43,66" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="28,30 36,68 22,68" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="72,30 78,68 64,68" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="50,22 58,40 50,54 42,40" fill="url(#crystalGlow)" stroke="#ffffff" stroke-width="1.2"/><line x1="50" y1="22" x2="50" y2="54" stroke="#ffffff" stroke-width="1" opacity="0.8"/><polygon points="28,34 34,46 28,56 22,46" fill="url(#crystalGlow)" stroke="#81ecec" stroke-width="1"/><polygon points="72,34 78,46 72,56 66,46" fill="url(#crystalGlow)" stroke="#81ecec" stroke-width="1"/><circle cx="50" cy="74" r="3.5" fill="#00d2d3"/></svg>`
     },
     {
         id: 15,
         name: 'Сердце Титана',
         description: '+300% ко всему доходу золота',
-        cost: 750000,
+        cost: 120000,
         svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="titanHeart" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#81ecec"/><stop offset="60%" stop-color="#0984e3"/><stop offset="90%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2c2c54"/></radialGradient><linearGradient id="orbitRings" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="url(#orbitRings)" stroke-width="2.5" transform="rotate(-30 50 50)"/><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="#a29bfe" stroke-width="2" stroke-dasharray="6 3" transform="rotate(45 50 50)"/><circle cx="18" cy="32" r="4" fill="#00d2d3" stroke="#fff" stroke-width="1"/><circle cx="82" cy="68" r="4" fill="#ffeaa7" stroke="#fff" stroke-width="1"/><circle cx="78" cy="26" r="3" fill="#a29bfe"/><polygon points="50,15 75,50 50,85 25,50" fill="url(#titanHeart)" stroke="#ffffff" stroke-width="2"/><polygon points="50,26 67,50 50,74 33,50" fill="#ffffff" opacity="0.4"/><polygon points="50,35 60,50 50,65 40,50" fill="#ffffff"/><line x1="50" y1="6" x2="50" y2="94" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/><line x1="6" y1="50" x2="94" y2="50" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/></svg>`
     }
 ];
@@ -1022,7 +1122,7 @@ export const AVAILABLE_COLLECTIONS: Collection[] = [
             { iconColor: '#ff7675', text: '<strong>+250%</strong> к пассивному доходу золота' },
             { iconColor: '#f39c12', text: '<strong>+150%</strong> к силе магического клика' },
             { iconColor: '#fdcb6e', text: '<strong>+30%</strong> к золоту за все городские заказы' },
-            { iconColor: '#e17055', text: 'Солнечный Феникс приносит +25 ✦ пыли за экспедицию' }
+            { iconColor: '#e17055', text: 'Солнечный Феникс приносит Астральные сундуки и редкие кристаллы' }
         ]
     },
     {
@@ -1036,7 +1136,7 @@ export const AVAILABLE_COLLECTIONS: Collection[] = [
             { iconColor: '#00cec9', text: '<strong>+400%</strong> к пассивному доходу золота' },
             { iconColor: '#6c5ce7', text: '<strong>+300%</strong> к силе магического клика' },
             { iconColor: '#a29bfe', text: '<strong>+15%</strong> больше Звёздной Пыли при ритуале перерождения' },
-            { iconColor: '#81ecec', text: 'Эфирный Грифон гарантирует Астральный сундук и +50 ✦' }
+            { iconColor: '#81ecec', text: 'Эфирный Грифон гарантирует Астральный сундук и ценные самоцветы' }
         ]
     }
 ];
@@ -1067,7 +1167,7 @@ export const AVAILABLE_PETS: Pet[] = [
         id: 'pet_dragon',
         name: 'Дракончик',
         rarity: 'legendary',
-        description: 'Легендарные сокровища и пыльца (12 часов)!',
+        description: 'Легендарные сокровища и самоцветы (12 часов)!',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="#d63031"/><circle cx="15" cy="20" r="2" fill="#f1c40f"/><circle cx="25" cy="20" r="2" fill="#f1c40f"/><path d="M5 25 L10 10 L15 25 Z" fill="#ff7675"/><path d="M35 25 L30 10 L25 25 Z" fill="#ff7675"/></svg>`
     },
     {
@@ -1083,7 +1183,7 @@ export const AVAILABLE_PETS: Pet[] = [
         name: 'Солнечный Феникс',
         rarity: 'legendary',
         isCollectionExclusive: true,
-        description: 'Легендарный хранитель пламени. Экспедиция приносит редчайшие астральные сундуки и +25 звёздной пыли.',
+        description: 'Легендарный хранитель пламени. Экспедиция приносит редчайшие астральные сундуки и кристаллы.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="phoenixBodyGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#e17055"/><stop offset="100%" stop-color="#d63031"/></radialGradient></defs><path d="M20 28 Q15 38 8 36 Q18 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q25 38 32 36 Q22 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q20 40 20 40 Q20 32 20 28Z" fill="#f1c40f"/><path d="M20 18 C14 8 4 12 6 22 C10 24 16 22 20 24 Z" fill="#ff7675"/><path d="M20 18 C26 8 36 12 34 22 C30 24 24 22 20 24 Z" fill="#ff7675"/><ellipse cx="20" cy="20" rx="6" ry="9" fill="url(#phoenixBodyGrad)"/><circle cx="20" cy="11" r="5" fill="#f1c40f"/><path d="M20 6 L18 10 L22 10 Z" fill="#d63031"/><path d="M16 8 L18 11 L16 12 Z" fill="#e67e22"/><path d="M24 8 L22 11 L24 12 Z" fill="#e67e22"/><circle cx="18" cy="11" r="1.2" fill="#2d3436"/><circle cx="22" cy="11" r="1.2" fill="#2d3436"/><polygon points="19,13 21,13 20,16" fill="#d35400"/></svg>`
     },
     {
@@ -1091,7 +1191,7 @@ export const AVAILABLE_PETS: Pet[] = [
         name: 'Эфирный Грифон',
         rarity: 'legendary',
         isCollectionExclusive: true,
-        description: 'Мифический страж вечности и пустоты. Экспедиция гарантирует высший астральный сундук и +50 звёздной пыли.',
+        description: 'Мифический страж вечности и пустоты. Экспедиция гарантирует высший астральный сундук и самоцветы.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="voidTitanGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#81ecec"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1347"/></radialGradient></defs><path d="M20 18 C12 6 3 10 5 22 C11 22 16 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><path d="M20 18 C28 6 37 10 35 22 C29 22 24 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><ellipse cx="20" cy="22" rx="7" ry="10" fill="url(#voidTitanGrad)"/><path d="M15 28 L14 36 M25 28 L26 36" stroke="#00cec9" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="12" r="6" fill="#4834d4"/><path d="M15 10 L12 4 L17 8 Z" fill="#00d2d3"/><path d="M25 10 L28 4 L23 8 Z" fill="#00d2d3"/><polygon points="18,14 22,14 20,18" fill="#ffeaa7"/><circle cx="17" cy="11" r="1.5" fill="#00ffff"/><circle cx="23" cy="11" r="1.5" fill="#00ffff"/><circle cx="20" cy="22" r="2" fill="#fff"/></svg>`
     }
 ];
@@ -1129,15 +1229,15 @@ function generateQuests(): Quest[] {
             isCompleted: false, 
             isClaimed: false 
         },
-        // Medium Quests (Stardust for Antiquities & Grimoire)
+        // Medium Quests (High Gold and Crystals - NO stardust)
         { 
             id: 'q_brew_' + now, 
             type: 'brew_potions', 
             difficulty: 'medium', 
             target: brewTarget, 
             current: 0, 
-            rewardType: 'stardust', 
-            rewardAmount: Math.floor(Math.random() * 3) + 6, // 6-8 stardust
+            rewardType: 'gold', 
+            rewardAmount: 300, 
             isCompleted: false, 
             isClaimed: false 
         },
@@ -1147,8 +1247,8 @@ function generateQuests(): Quest[] {
             difficulty: 'medium', 
             target: ordersTarget, 
             current: 0, 
-            rewardType: 'stardust', 
-            rewardAmount: Math.floor(Math.random() * 3) + 6, // 6-8 stardust
+            rewardType: 'crystals', 
+            rewardAmount: Math.floor(Math.random() * 2) + 2, // 2-3 crystals
             isCompleted: false, 
             isClaimed: false 
         },
@@ -1158,12 +1258,12 @@ function generateQuests(): Quest[] {
             difficulty: 'medium', 
             target: expTarget, 
             current: 0, 
-            rewardType: 'stardust', 
-            rewardAmount: Math.floor(Math.random() * 3) + 7, // 7-9 stardust
+            rewardType: 'gold', 
+            rewardAmount: 350, 
             isCompleted: false, 
             isClaimed: false 
         },
-        // Hard Quest (Crystals - tuned to 5-7 crystals)
+        // Hard Quest (Crystals - 5-7 crystals)
         { 
             id: 'q_ads_' + now, 
             type: 'watch_ads', 
@@ -1288,14 +1388,14 @@ export function generateSingleOrder(): CustomerOrder {
     const reqs: OrderRequirement[] = [];
     
     let rewardGold = Math.floor(Math.random() * 100) + 50;
-    let rewardStardust = 0;
+    let rewardCrystals = 0;
 
     if (isPotionReq) {
         // Pick a random potion
         const potionId = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)].id;
         reqs.push({ type: 'potion', id: potionId, count: 1 });
         rewardGold += 300;
-        if (isVip) rewardStardust += 2;
+        if (isVip) rewardCrystals += 1;
     } else {
         // Pick random ingredients
         for (let i = 0; i < 2; i++) {
@@ -1307,7 +1407,7 @@ export function generateSingleOrder(): CustomerOrder {
 
     if (isVip) {
         rewardGold *= 3; // VIP pays 3x
-        rewardStardust += 5;
+        rewardCrystals += 1;
     }
 
     const names = ['Странствующий Маг', 'Алхимик-ученик', 'Рыцарь', 'Местный Житель'];
@@ -1319,7 +1419,8 @@ export function generateSingleOrder(): CustomerOrder {
         icon: isVip ? 'vip' : 'mage',
         requirements: reqs,
         rewardGold,
-        rewardStardust,
+        rewardCrystals,
+        rewardStardust: 0,
         isVip
     };
 }
@@ -1359,20 +1460,19 @@ function createGameStore() {
             const quest = state.quests.find(q => q.id === id);
             if (quest && quest.isCompleted && !quest.isClaimed) {
                 let nextGold = state.gold;
-                let nextStardust = state.stardust;
 
                 if (quest.rewardType === 'gold') {
                     nextGold += calculateQuestGoldReward(quest.rewardAmount || 150);
                 } else if (quest.rewardType === 'crystals') {
-                    crystals.update(c => c + (quest.rewardAmount || 10));
+                    crystals.update(c => c + (quest.rewardAmount || 5));
                 } else {
-                    nextStardust += (quest.rewardAmount || quest.reward || 8);
+                    // Fallback for legacy quests
+                    nextGold += calculateQuestGoldReward(200);
                 }
 
                 return {
                     ...state,
                     gold: nextGold,
-                    stardust: nextStardust,
                     quests: state.quests.map(q => q.id === id ? { ...q, isClaimed: true } : q)
                 };
             }
@@ -1381,11 +1481,10 @@ function createGameStore() {
         claimDailyBonus: () => update(state => {
             const allClaimed = state.quests.length >= 5 && state.quests.every(q => q.isClaimed);
             if (allClaimed && !state.dailyBonusClaimed) {
-                crystals.update(c => c + 10);
+                crystals.update(c => c + 15);
                 openChest('magical');
                 return {
                     ...state,
-                    stardust: state.stardust + 10,
                     dailyBonusClaimed: true
                 };
             }
@@ -1394,7 +1493,8 @@ function createGameStore() {
         performRebirth: () => update(state => {
             let stardustMultiplier = 1;
             if (state.unlockedCollections?.includes('titan_set')) stardustMultiplier += 0.15;
-            const earnedStardust = Math.floor((state.gold / 1_000_000) * stardustMultiplier);
+            const rawStardust = Math.floor(Math.sqrt((state.gold || 0) / 1_000_000));
+            const earnedStardust = Math.floor(rawStardust * stardustMultiplier);
             
             // Secret Upgrade: Тяжелый Кошелек (+100 start gold per level)
             const walletLevel = state.secretUpgrades.find(u => u.id === 'wallet')?.level || 0;
@@ -1608,11 +1708,14 @@ function createGameStore() {
             // If the shop was full (4 orders) and now has a free spot, start the 3-minute timer from now
             const lastSpawn = state.activeOrders.length >= 4 ? Date.now() : (state.lastOrderSpawnTime || Date.now());
 
-            // Give rewards
+            if (order.rewardCrystals && order.rewardCrystals > 0) {
+                crystals.update(c => c + order.rewardCrystals!);
+            }
+
+            // Give rewards - NO stardust!
             return {
                 ...state,
                 gold: state.gold + finalGold,
-                stardust: state.stardust + order.rewardStardust,
                 quests: newQuests,
                 activeOrders: remainingOrders,
                 lastOrderSpawnTime: lastSpawn
@@ -1658,8 +1761,6 @@ function createGameStore() {
                 }));
             }
 
-            const extraStardust = potionId === 'potion_astral' ? 5 : 0;
-
             const newBuff: ActiveBuff = {
                 potionId,
                 expiresAt: Date.now() + potion.durationMin * 60 * 1000,
@@ -1669,7 +1770,6 @@ function createGameStore() {
 
             return {
                 ...state,
-                stardust: state.stardust + extraStardust,
                 activeBuffs: [...state.activeBuffs, newBuff],
                 activeExpeditions: updatedExpeditions
             };
@@ -1738,7 +1838,8 @@ export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
     if (colls.includes('phoenix_set')) multiplier += 2.50;
     if (colls.includes('titan_set')) multiplier += 4.00;
     
-    if ($isVip) multiplier *= 2;
+    // VIP Bonus: +50% passive income
+    if ($isVip) multiplier += 0.50;
     
     // Apply active buffs
     for (const buff of buffs) {
@@ -1746,8 +1847,8 @@ export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
         if (buff.effect === 'gold_multiplier') multiplier += buff.value;
     }
     
-    // Apply stardust prestige multiplier (+2% per stardust)
-    multiplier += ($gameStore?.stardust || 0) * 0.02;
+    // Apply stardust prestige multiplier (+1% per stardust)
+    multiplier += ($gameStore?.stardust || 0) * 0.01;
     
     return Math.max(1, multiplier);
 });
@@ -1772,7 +1873,8 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     if (colls.includes('phoenix_set')) multiplier += 1.50;
     if (colls.includes('titan_set')) multiplier += 3.00;
     
-    if ($isVip) multiplier *= 2;
+    // VIP Bonus: +50% click power
+    if ($isVip) multiplier += 0.50;
 
     // Apply active buffs
     for (const buff of buffs) {
@@ -1780,8 +1882,8 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
         if (buff.effect === 'gold_multiplier') multiplier += buff.value;
     }
 
-    // Apply stardust prestige multiplier (+2% per stardust)
-    multiplier += ($gameStore?.stardust || 0) * 0.02;
+    // Apply stardust prestige multiplier (+1% per stardust)
+    multiplier += ($gameStore?.stardust || 0) * 0.01;
 
     return Math.max(1, multiplier);
 });
@@ -1830,8 +1932,9 @@ export const critChance = derived(gameStore, ($gameStore) => {
 export const resonanceBonus = derived([gameStore, currentIdleIncome], ([$gameStore, $idleIncome]) => {
     const resUpgrade = $gameStore.upgrades.find(u => u.id === 'click_resonance');
     if (!resUpgrade || resUpgrade.level <= 0) return 0;
-    // +1% of current idle income per level
-    return Math.floor($idleIncome * (resUpgrade.level * 0.01));
+    // +0.2% of current idle income per level, capped at 10%
+    const pct = Math.min(0.10, resUpgrade.level * 0.002);
+    return Math.floor($idleIncome * pct);
 });
 
 export const currentClickPower = derived([gameStore, globalClickMultiplier, resonanceBonus], ([$gameStore, $clickMult, $resonanceBonus]) => {
@@ -2126,7 +2229,7 @@ export interface BrewResult {
     status: 'success' | 'warning' | 'burn';
     matches?: number; // 0, 1, or 2 matching ingredients in any unknown recipe
     attemptsLeft?: number;
-    stardustAwarded?: number;
+    goldAwarded?: number;
     potionId?: string;
     recipeName?: string;
 }
@@ -2136,7 +2239,7 @@ export interface BrewResult {
  * Returns: BrewResult
  *   - success: correct recipe → ingredients consumed, potion added, recipe unlocked to level 3
  *   - warning: wrong recipe → ingredients NOT consumed, calculates alchemical resonance (0, 1, 2)
- *   - burn:    wrong recipe (reached max attempts) → ingredients consumed, awarded +2 stardust consolation!
+ *   - burn:    wrong recipe (reached max attempts) → ingredients consumed, awarded consolation gold
  */
 export function brewPotion(slots: [string, string, string]): BrewResult {
     const sorted = [...slots].sort();
@@ -2211,7 +2314,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     const maxFailures = 3 + alchemyLevel + vipBonus;
 
     if (next >= maxFailures) {
-        // Burn ingredients - award consolation Stardust!
+        // Burn ingredients - award consolation gold!
         ingredientsCount.update(c => {
             const nextC = { ...c };
             for (const ing of slots) {
@@ -2221,8 +2324,8 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
             return nextC;
         });
         failedBrewAttempts.set(0);
-        gameStore.update(s => ({ ...s, stardust: s.stardust + 3 }));
-        return { status: 'burn', stardustAwarded: 3 };
+        gameStore.addGold(500);
+        return { status: 'burn', goldAwarded: 500 };
     }
 
     failedBrewAttempts.set(next);

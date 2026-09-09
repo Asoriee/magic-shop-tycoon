@@ -111,7 +111,7 @@
             lastResonanceMsg = null;
             gsap.to(cauldronEl, { keyframes: [{ x:-14, duration:.07 },{ x:14, duration:.07 },{ x:-12, duration:.07 },{ x:12, duration:.07 },{ x:-10, duration:.07 },{ x:10, duration:.07 },{ x:0, duration:.07 }] });
             gsap.fromTo(flashEl, { opacity: 0.7, backgroundColor: 'rgba(231,76,60,0.6)' }, { opacity: 0, duration: 0.8 });
-            showToast(`Ингредиенты сгорели! Собрана астральная зола (+${result.stardustAwarded ?? 2} звёздной пыли).`, 'burn', 4500);
+            showToast(`Ингредиенты сгорели! Собрана золотая зола (+${result.goldAwarded ?? 500} золота).`, 'burn', 4500);
             await saveGame();
         }
         isBrewing = false;

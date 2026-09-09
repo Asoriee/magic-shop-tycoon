@@ -273,10 +273,10 @@
                         <span>+{formatNumber(order.rewardGold)}</span>
                     </div>
 
-                    {#if order.rewardStardust > 0}
-                        <div class="reward-chip stardust">
-                            <ResourceIcon type="stardust" size={14} />
-                            <span>+{formatNumber(order.rewardStardust)}</span>
+                    {#if order.rewardCrystals && order.rewardCrystals > 0}
+                        <div class="reward-chip crystals">
+                            <ResourceIcon type="crystals" size={14} />
+                            <span>+{formatNumber(order.rewardCrystals)}</span>
                         </div>
                     {/if}
                 </div>
@@ -601,9 +601,9 @@
         border: 1px solid rgba(241, 196, 15, 0.3);
     }
 
-    .reward-chip.stardust {
-        color: #d2a8ff;
-        border: 1px solid rgba(162, 155, 254, 0.3);
+    .reward-chip.crystals {
+        color: #74b9ff;
+        border: 1px solid rgba(116, 185, 255, 0.4);
     }
 
     /* Action button */

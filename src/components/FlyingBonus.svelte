@@ -22,7 +22,6 @@
         description: string;
         gold: number;
         crystals: number;
-        stardust: number;
         potion?: Potion;
     }
 
@@ -87,12 +86,11 @@
     function rollBlessing(): SparkBlessing {
         const roll = Math.random();
         const baseIncome = $currentIdleIncome || 0;
-        // 7 минут пассивного дохода, минимум 200 золота
-        const baseGold = Math.max(200, Math.floor(baseIncome * 420));
 
         if (roll < 0.20) {
-            // 20% Эпический дар: Астральная Вспышка (Золото + Звездная пыль ИЛИ редкое зелье)
+            // 20% Эпический дар: 180с дохода + редкое зелье ИЛИ горсть кристаллов
             const givesPotion = Math.random() < 0.5 && AVAILABLE_POTIONS.length > 0;
+            const epicGold = Math.max(120, Math.floor(baseIncome * 180));
             if (givesPotion) {
                 const potion = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
                 return {
@@ -100,10 +98,9 @@
                     title: 'Чародейский Эликсир',
                     rarity: 'epic',
                     rarityLabel: 'Эпический дар',
-                    description: 'Искра сконденсировалась в редкое зелье и гору золота!',
-                    gold: Math.floor(baseGold * 0.85),
+                    description: 'Искра сконденсировалась в редкое зелье и поток чистого золота!',
+                    gold: epicGold,
                     crystals: 0,
-                    stardust: 0,
                     potion
                 };
             } else {
@@ -112,14 +109,14 @@
                     title: 'Астральная Вспышка',
                     rarity: 'epic',
                     rarityLabel: 'Эпический дар',
-                    description: 'Искра осыпала мастерскую чистейшей звёздной пылью!',
-                    gold: Math.floor(baseGold * 0.85),
-                    crystals: 0,
-                    stardust: 1
+                    description: 'Искра осыпала мастерскую кристаллами чистой магии и золотом!',
+                    gold: epicGold,
+                    crystals: Math.floor(Math.random() * 3) + 5 // 5..7 кристаллов
                 };
             }
         } else if (roll < 0.50) {
-            // 30% Редкий дар: Кристаллический Разряд (Золото + 2..3 кристалла)
+            // 30% Редкий дар: 120с дохода + 2..3 кристалла
+            const rareGold = Math.max(80, Math.floor(baseIncome * 120));
             const crystalAmount = Math.floor(Math.random() * 2) + 2; // 2 или 3 кристалла
             return {
                 type: 'crystals',
@@ -127,21 +124,20 @@
                 rarity: 'rare',
                 rarityLabel: 'Редкий дар',
                 description: 'Вспышка магии кристаллизовалась в драгоценные самоцветы!',
-                gold: Math.floor(baseGold * 0.85),
-                crystals: crystalAmount,
-                stardust: 0
+                gold: rareGold,
+                crystals: crystalAmount
             };
         } else {
-            // 50% Обычный дар: Золотая Энергия (Поток золота за 7 минут)
+            // 50% Обычный дар: 90с дохода
+            const commonGold = Math.max(50, Math.floor(baseIncome * 90));
             return {
                 type: 'gold',
                 title: 'Золотая Энергия',
                 rarity: 'common',
                 rarityLabel: 'Чародейский дар',
                 description: 'Мощный импульс золотого потока наполняет хранилище лавки.',
-                gold: baseGold,
-                crystals: 0,
-                stardust: 0
+                gold: commonGold,
+                crystals: 0
             };
         }
     }
@@ -210,10 +206,6 @@
                 // Начисление кристаллов
                 if (currentBlessing.crystals > 0) {
                     crystals.update(c => c + currentBlessing!.crystals);
-                }
-                // Начисление звёздной пыли
-                if (currentBlessing.stardust > 0) {
-                    gameStore.update(s => ({ ...s, stardust: s.stardust + currentBlessing!.stardust }));
                 }
                 // Начисление зелья
                 if (currentBlessing.potion) {
@@ -487,18 +479,7 @@
                         </div>
                     {/if}
 
-                    <!-- Stardust Reward Chip -->
-                    {#if currentBlessing.stardust > 0}
-                        <div class="reward-chip stardust-chip">
-                            <span class="reward-svg-icon">
-                                <ResourceIcon type="stardust" size={22} />
-                            </span>
-                            <div class="reward-data">
-                                <span class="reward-label">Звёздная пыль</span>
-                                <span class="reward-amount stardust-text">+{currentBlessing.stardust}</span>
-                            </div>
-                        </div>
-                    {/if}
+
 
                     <!-- Magic Potion Chip -->
                     {#if currentBlessing.potion}

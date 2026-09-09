@@ -213,7 +213,7 @@
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>x2 ко всему доходу:</strong> пассивный доход и сила клика</span>
+                                <span><strong>+50% ко всему доходу:</strong> пассивный доход и сила клика</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">

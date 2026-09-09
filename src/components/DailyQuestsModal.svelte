@@ -158,12 +158,12 @@
                     </div>
                     <h2 class="tab-title">Ежедневные Контракты</h2>
                 </div>
-                <p class="header-sub">Выполняйте поручения Гильдии для получения Золота, Пыли и Алмазов</p>
+                <p class="header-sub">Выполняйте поручения Гильдии для получения Золота и Кристаллов</p>
 
                 <div class="balance-row">
-                    <div class="balance-chip stardust">
-                        <ResourceIcon type="stardust" size={14} />
-                        <span>{formatNumber($gameStore?.stardust ?? 0)}</span>
+                    <div class="balance-chip gold">
+                        <ResourceIcon type="gold" size={14} />
+                        <span>{formatNumber($gameStore?.gold ?? 0)}</span>
                     </div>
                     <div class="balance-chip crystals">
                         <ResourceIcon type="crystals" size={14} />
@@ -225,17 +225,17 @@
                 {:else if isAllClaimed}
                     <button class="mastery-claim-btn" on:click={claimDailyMastery}>
                         <ResourceIcon type="crystals" size={14} />
-                        <span>Забрать (+10 крист.)</span>
+                        <span>Забрать (+15 крист.)</span>
                     </button>
                 {:else}
                     <div class="mastery-reward-tag">
                         <span class="m-loot" title="Кристаллы">
                             <ResourceIcon type="crystals" size={12} />
-                            +10
+                            +15
                         </span>
-                        <span class="m-loot" title="Звёздная Пыль">
-                            <ResourceIcon type="stardust" size={12} />
-                            +10
+                        <span class="m-loot" title="Магический сундук">
+                            <ResourceIcon type="vip" size={12} />
+                            Сундук
                         </span>
                     </div>
                 {/if}
@@ -300,9 +300,9 @@
                                     <span>+{quest.rewardAmount || 10}</span>
                                 </div>
                             {:else}
-                                <div class="reward-pill stardust-pill" title="Звёздная пыль">
-                                    <ResourceIcon type="stardust" size={13} />
-                                    <span>+{quest.rewardAmount || quest.reward || 8}</span>
+                                <div class="reward-pill crystal-pill" title="Самоцветы">
+                                    <ResourceIcon type="crystals" size={13} />
+                                    <span>+{quest.rewardAmount || 5}</span>
                                 </div>
                             {/if}
                         </div>

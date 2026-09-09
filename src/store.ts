@@ -73,7 +73,30 @@ export interface SecretUpgrade {
 }
 
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
-export type ChestType = 'wooden' | 'magical' | 'astral';
+export type ChestType = 'wooden' | 'alchemist' | 'magical' | 'astral' | 'titan';
+
+export interface ChestDropItem {
+    type: 'ingredient' | 'potion' | 'gold' | 'crystals' | 'pet';
+    id: string;
+    name: string;
+    count: number;
+    rarity: Rarity;
+    icon?: string;
+    goldAmount?: number;
+    crystalAmount?: number;
+    potion?: Potion;
+    ingredient?: Ingredient;
+    pet?: Pet;
+}
+
+export interface ChestResult {
+    chestType: ChestType;
+    drops: ChestDropItem[];
+    totalGold: number;
+    totalCrystals: number;
+    isDoubleResonance: boolean;
+    resonanceGain: number;
+}
 
 export interface Ingredient {
     id: string;
@@ -182,6 +205,7 @@ export interface GameState {
     lastFreeTimeSkipTime?: number;
     vipExpiresAt?: number;
     vipLastDailyClaimDate?: string;
+    chestResonanceProgress?: number;
 }
 
 // ============================================================
@@ -652,55 +676,309 @@ export const POTIONS_CATALOGUE = AVAILABLE_POTIONS;
 
 
 /**
- * Opens a chest and returns the array of dropped ingredients.
- * Also updates ingredientsCount store.
+ * Opens a chest and returns the complete ChestResult.
+ * Handles ingredients, dynamic gold, potions, crystals cashback, and pet drop.
+ * Also handles Pity / Double Resonance.
  */
-export function openChest(chestType: ChestType): Ingredient[] {
-    let drops: Ingredient[] = [];
+export function openChest(chestType: ChestType = 'wooden', count: number = 1): ChestResult {
+    const validCount = Math.max(1, Math.min(10, count || 1));
+    const idle = get(currentIdleIncome) || 0;
+    const currentResonance = get(gameStore).chestResonanceProgress || 0;
+    const isDoubleResonance = currentResonance >= 100;
+    const multiplier = isDoubleResonance ? 2 : 1;
 
-    if (chestType === 'wooden') {
-        // 3 items: 90% common / 10% rare each
-        for (let i = 0; i < 3; i++) {
-            drops.push(rollIngredient([
-                { rarity: 'common', weight: 90 },
-                { rarity: 'rare',   weight: 10 },
-            ]));
+    let baseResonancePerChest = 5;
+    if (chestType === 'wooden') baseResonancePerChest = 5;
+    else if (chestType === 'alchemist') baseResonancePerChest = 10;
+    else if (chestType === 'magical') baseResonancePerChest = 15;
+    else if (chestType === 'astral') baseResonancePerChest = 30;
+    else if (chestType === 'titan') baseResonancePerChest = 60;
+
+    const drops: ChestDropItem[] = [];
+    let totalGold = 0;
+    let totalCrystals = 0;
+
+    for (let c = 0; c < validCount; c++) {
+        // --- 1. ИНГРЕДИЕНТЫ ---
+        const ingDrops: Ingredient[] = [];
+        if (chestType === 'wooden') {
+            for (let i = 0; i < 3; i++) {
+                ingDrops.push(rollIngredient([
+                    { rarity: 'common', weight: 85 },
+                    { rarity: 'rare',   weight: 15 },
+                ]));
+            }
+        } else if (chestType === 'alchemist') {
+            ingDrops.push(rollIngredient([{ rarity: 'rare', weight: 100 }]));
+            for (let i = 0; i < 2; i++) {
+                ingDrops.push(rollIngredient([
+                    { rarity: 'common', weight: 60 },
+                    { rarity: 'rare',   weight: 40 },
+                ]));
+            }
+        } else if (chestType === 'magical') {
+            ingDrops.push(rollIngredient([{ rarity: 'epic', weight: 100 }]));
+            for (let i = 0; i < 4; i++) {
+                ingDrops.push(rollIngredient([
+                    { rarity: 'common', weight: 55 },
+                    { rarity: 'rare',   weight: 40 },
+                    { rarity: 'epic',   weight: 5 },
+                ]));
+            }
+        } else if (chestType === 'astral') {
+            ingDrops.push(rollIngredient([{ rarity: 'legendary', weight: 100 }]));
+            for (let i = 0; i < 3; i++) {
+                ingDrops.push(rollIngredient([{ rarity: 'epic', weight: 100 }]));
+            }
+            for (let i = 0; i < 6; i++) {
+                ingDrops.push(rollIngredient([
+                    { rarity: 'common',    weight: 35 },
+                    { rarity: 'rare',      weight: 40 },
+                    { rarity: 'epic',      weight: 20 },
+                    { rarity: 'legendary', weight: 5 },
+                ]));
+            }
+        } else if (chestType === 'titan') {
+            for (let i = 0; i < 2; i++) {
+                ingDrops.push(rollIngredient([{ rarity: 'legendary', weight: 100 }]));
+            }
+            for (let i = 0; i < 5; i++) {
+                ingDrops.push(rollIngredient([{ rarity: 'epic', weight: 100 }]));
+            }
+            for (let i = 0; i < 9; i++) {
+                ingDrops.push(rollIngredient([
+                    { rarity: 'common',    weight: 20 },
+                    { rarity: 'rare',      weight: 45 },
+                    { rarity: 'epic',      weight: 25 },
+                    { rarity: 'legendary', weight: 10 },
+                ]));
+            }
         }
-    } else if (chestType === 'magical') {
-        // 5 items: guaranteed 1 epic + 4 common/rare
-        drops.push(rollIngredient([{ rarity: 'epic', weight: 100 }]));
-        for (let i = 0; i < 4; i++) {
-            drops.push(rollIngredient([
-                { rarity: 'common', weight: 60 },
-                { rarity: 'rare',   weight: 40 },
-            ]));
+
+        for (const ing of ingDrops) {
+            const finalCount = 1 * multiplier;
+            drops.push({
+                type: 'ingredient',
+                id: ing.id,
+                name: ing.name,
+                count: finalCount,
+                rarity: ing.rarity,
+                icon: ing.icon,
+                ingredient: ing
+            });
         }
-    } else if (chestType === 'astral') {
-        // 10 items: guaranteed 1 legendary + 9 mixed
-        drops.push(rollIngredient([{ rarity: 'legendary', weight: 100 }]));
-        for (let i = 0; i < 9; i++) {
-            drops.push(rollIngredient([
-                { rarity: 'common',    weight: 40 },
-                { rarity: 'rare',      weight: 35 },
-                { rarity: 'epic',      weight: 20 },
-                { rarity: 'legendary', weight: 5 },
-            ]));
+
+        // --- 2. ГОТОВЫЕ ЗЕЛЬЯ ---
+        if (chestType === 'alchemist') {
+            for (let i = 0; i < 2; i++) {
+                const pot = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
+                drops.push({
+                    type: 'potion',
+                    id: pot.id,
+                    name: pot.name,
+                    count: 1 * multiplier,
+                    rarity: 'rare',
+                    icon: pot.icon,
+                    potion: pot
+                });
+            }
+        } else if (chestType === 'magical') {
+            const pot = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
+            drops.push({
+                type: 'potion',
+                id: pot.id,
+                name: pot.name,
+                count: 1 * multiplier,
+                rarity: 'rare',
+                icon: pot.icon,
+                potion: pot
+            });
+        } else if (chestType === 'astral') {
+            const rarePots = AVAILABLE_POTIONS.filter(p => ['potion_astral', 'potion_wealth', 'potion_time', 'potion_alchemy_frenzy'].includes(p.id));
+            const pool = rarePots.length > 0 ? rarePots : AVAILABLE_POTIONS;
+            const pot = pool[Math.floor(Math.random() * pool.length)];
+            drops.push({
+                type: 'potion',
+                id: pot.id,
+                name: pot.name,
+                count: 1 * multiplier,
+                rarity: 'epic',
+                icon: pot.icon,
+                potion: pot
+            });
+        } else if (chestType === 'titan') {
+            for (let i = 0; i < 2; i++) {
+                const pot = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
+                drops.push({
+                    type: 'potion',
+                    id: pot.id,
+                    name: pot.name,
+                    count: 1 * multiplier,
+                    rarity: 'epic',
+                    icon: pot.icon,
+                    potion: pot
+                });
+            }
+        }
+
+        // --- 3. ДИНАМИЧЕСКОЕ ЗОЛОТО ---
+        let goldChance = 0;
+        let goldSeconds = 0;
+        let minGoldFloor = 0;
+        let goldTitle = 'Мешок Золота';
+
+        if (chestType === 'wooden') {
+            goldChance = 0.30;
+            goldSeconds = 180; // 3 минуты дохода
+            minGoldFloor = 1000;
+            goldTitle = 'Кошель Бродяги';
+        } else if (chestType === 'alchemist') {
+            goldChance = 0.40;
+            goldSeconds = 480; // 8 минут дохода
+            minGoldFloor = 5000;
+            goldTitle = 'Кошель Алхимика';
+        } else if (chestType === 'magical') {
+            goldChance = 0.50;
+            goldSeconds = 900; // 15 минут дохода
+            minGoldFloor = 15000;
+            goldTitle = 'Сума Чародея';
+        } else if (chestType === 'astral') {
+            goldChance = 0.70;
+            goldSeconds = 1800; // 30 минут дохода
+            minGoldFloor = 50000;
+            goldTitle = 'Казна Эфира';
+        } else if (chestType === 'titan') {
+            goldChance = 1.00; // 100% гарантия!
+            goldSeconds = 3600; // 60 минут (1 час чистого дохода лавки!)
+            minGoldFloor = 150000;
+            goldTitle = 'Сокровищница Титанов';
+        }
+
+        if (Math.random() < goldChance) {
+            const rawGold = Math.max(minGoldFloor, Math.round(idle * goldSeconds));
+            const goldAward = rawGold * multiplier;
+            totalGold += goldAward;
+            drops.push({
+                type: 'gold',
+                id: 'gold_reward',
+                name: goldTitle,
+                count: 1,
+                rarity: chestType === 'titan' ? 'legendary' : (chestType === 'astral' ? 'epic' : 'rare'),
+                goldAmount: goldAward
+            });
+        }
+
+        // --- 4. КЭШБЭК САМОЦВЕТОВ ---
+        let crystalGain = 0;
+        if (chestType === 'magical' && Math.random() < 0.20) {
+            crystalGain = 5 * multiplier;
+        } else if (chestType === 'astral' && Math.random() < 0.35) {
+            crystalGain = 15 * multiplier;
+        } else if (chestType === 'titan') {
+            crystalGain = 25 * multiplier; // 100% гарантия 25 кристаллов!
+        }
+
+        if (crystalGain > 0) {
+            totalCrystals += crystalGain;
+            drops.push({
+                type: 'crystals',
+                id: 'crystal_cashback',
+                name: 'Кэшбэк Самоцветов',
+                count: crystalGain,
+                rarity: chestType === 'titan' ? 'legendary' : 'epic',
+                crystalAmount: crystalGain
+            });
+        }
+
+        // --- 5. ЯЙЦО ФАМИЛЬЯРА (ТОЛЬКО ЛАРЕЦ ТИТАНОВ, 15% ШАНС) ---
+        if (chestType === 'titan' && Math.random() < 0.15) {
+            const regularPets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
+            if (regularPets.length > 0) {
+                const rolledPet = regularPets[Math.floor(Math.random() * regularPets.length)];
+                const state = get(gameStore);
+                const alreadyOwned = state.unlockedPets?.includes(rolledPet.id);
+                if (alreadyOwned) {
+                    const bonusCry = 25 * multiplier;
+                    totalCrystals += bonusCry;
+                    drops.push({
+                        type: 'crystals',
+                        id: 'pet_duplicate_bonus',
+                        name: `Эхо ${rolledPet.name} (+${bonusCry} 💎)`,
+                        count: bonusCry,
+                        rarity: 'legendary',
+                        crystalAmount: bonusCry
+                    });
+                } else {
+                    gameStore.update(s => ({
+                        ...s,
+                        unlockedPets: [...new Set([...(s.unlockedPets || []), rolledPet.id])]
+                    }));
+                    drops.push({
+                        type: 'pet',
+                        id: rolledPet.id,
+                        name: `Фамильяр: ${rolledPet.name}`,
+                        count: 1,
+                        rarity: rolledPet.rarity,
+                        icon: rolledPet.icon,
+                        pet: rolledPet
+                    });
+                }
+            }
         }
     }
 
-    // Shuffle so guaranteed item isn't always first
-    drops = drops.sort(() => Math.random() - 0.5);
-
-    // Update store
+    // --- ПРИМЕНЕНИЕ НАГРАД К ХРАНИЛИЩАМ ---
     ingredientsCount.update(counts => {
         const next = { ...counts };
-        for (const ing of drops) {
-            next[ing.id] = (next[ing.id] ?? 0) + 1;
+        for (const drop of drops) {
+            if (drop.type === 'ingredient' && drop.ingredient) {
+                next[drop.ingredient.id] = (next[drop.ingredient.id] ?? 0) + drop.count;
+            }
         }
         return next;
     });
 
-    return drops;
+    potionsCount.update(counts => {
+        const next = { ...counts };
+        for (const drop of drops) {
+            if (drop.type === 'potion' && drop.potion) {
+                next[drop.potion.id] = (next[drop.potion.id] ?? 0) + drop.count;
+            }
+        }
+        return next;
+    });
+
+    if (totalGold > 0) {
+        gameStore.addGold(totalGold);
+    }
+
+    if (totalCrystals > 0) {
+        crystals.update(c => c + totalCrystals);
+    }
+
+    // --- ОБНОВЛЕНИЕ РЕЗОНАНСА (PITY-МЕТР) ---
+    const resonanceGain = baseResonancePerChest * validCount;
+    gameStore.update(s => {
+        if (isDoubleResonance) {
+            return { ...s, chestResonanceProgress: 0 };
+        } else {
+            return {
+                ...s,
+                chestResonanceProgress: Math.min(100, (s.chestResonanceProgress || 0) + resonanceGain)
+            };
+        }
+    });
+
+    saveGame();
+
+    return {
+        chestType,
+        drops,
+        totalGold,
+        totalCrystals,
+        isDoubleResonance,
+        resonanceGain
+    };
 }
 
 // ============================================================
@@ -1302,7 +1580,8 @@ const defaultState: GameState = {
     lastDragonGiftTime: 0,
     lastFreeTimeSkipTime: 0,
     vipExpiresAt: 0,
-    vipLastDailyClaimDate: ''
+    vipLastDailyClaimDate: '',
+    chestResonanceProgress: 0
 };
 
 // --- Premium stores ---

@@ -12,6 +12,8 @@
         totalInventoryCount, 
         archmageProgress,
         failedBrewAttempts,
+        maxBrewAttempts,
+        brewAttemptsLeft,
         formatNumber 
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
@@ -208,8 +210,8 @@
                         ❄️
                     </span>
                 {:else if $failedBrewAttempts > 0}
-                    <span class="tab-badge warning-badge" title="До перегрева">
-                        {3 - $failedBrewAttempts}
+                    <span class="tab-badge warning-badge" title="Осталось попыток: {$brewAttemptsLeft} из {$maxBrewAttempts}">
+                        {$brewAttemptsLeft}
                     </span>
                 {/if}
             </button>

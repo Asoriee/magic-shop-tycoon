@@ -277,7 +277,8 @@ export async function loadGame(): Promise<void> {
             unlockedRecipes.set((savedData as any).unlockedRecipes);
         }
         if ((savedData as any).failedBrewAttempts !== undefined) {
-            failedBrewAttempts.set((savedData as any).failedBrewAttempts);
+            const rawFails = Math.max(0, Number((savedData as any).failedBrewAttempts) || 0);
+            failedBrewAttempts.set(rawFails);
         }
     }
 }

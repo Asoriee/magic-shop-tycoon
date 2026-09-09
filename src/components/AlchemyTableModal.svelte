@@ -4,6 +4,7 @@
     import {
         gameStore,
         ingredientsCount, crystals, failedBrewAttempts, unlockedRecipes,
+        maxBrewAttempts, brewAttemptsLeft,
         AVAILABLE_INGREDIENTS, AVAILABLE_POTIONS, RECIPES, HINT_COSTS,
         brewPotion as doBrewPotion, quickBrewRecipe, coolDownCauldron, coolDownCauldronAd, coolDownCauldronCrystals,
         buyRecipeHint, unlockRecipeHintFree,
@@ -50,6 +51,16 @@
     $: overheatUntil = $gameStore.cauldronOverheatUntil || 0;
     $: isOverheated = overheatUntil > nowTime;
     $: remainingOverheatSeconds = Math.max(0, Math.ceil((overheatUntil - nowTime) / 1000));
+    $: isDangerouslyClose = $brewAttemptsLeft <= 1 && $failedBrewAttempts > 0;
+
+    function getAttemptsWord(count: number): string {
+        const c = Math.abs(count) % 100;
+        const n = c % 10;
+        if (c > 10 && c < 20) return 'попыток';
+        if (n > 1 && n < 5) return 'попытки';
+        if (n === 1) return 'попытка';
+        return 'попыток';
+    }
 
     // Mastery stats
     $: brewsCount = $gameStore.alchemyBrewsCount || 0;
@@ -132,7 +143,7 @@
             showToast(`Успех! Сварено «${result.recipeName}»!${doubleText}`, 'success', 3500);
             await saveGame();
         } else if (result.status === 'warning') {
-            const left = result.attemptsLeft ?? 1;
+            const left = Math.max(0, result.attemptsLeft ?? 1);
             const matches = result.matches ?? 0;
             gsap.to(cauldronEl, { keyframes: [{ x:-7, duration:.07 },{ x:7, duration:.07 },{ x:-5, duration:.07 },{ x:5, duration:.07 },{ x:0, duration:.06 }] });
             gsap.fromTo(flashEl, { opacity: 0.35, backgroundColor: 'rgba(253,203,0,0.3)' }, { opacity: 0, duration: 0.5 });
@@ -142,7 +153,7 @@
             if (matches === 2) resText = 'Мощный резонанс: 2 из 3 ингредиентов верны! Замените третий!';
             
             lastResonanceMsg = resText;
-            showToast(`${resText} До перегрева: ${left} ${left === 1 ? 'попытка' : 'попытки'}!`, 'warning', 4200);
+            showToast(`${resText} До перегрева: ${left} ${getAttemptsWord(left)}!`, 'warning', 4200);
         } else if (result.status === 'overheat') {
             slots = [null, null, null];
             lastResonanceMsg = null;
@@ -320,14 +331,18 @@
             {:else if $failedBrewAttempts > 0}
                 <div class="danger-bar">
                     <div class="danger-left">
-                        <svg viewBox="0 0 16 16" width="16" height="16" fill="#ffa502" class="danger-svg">
+                        <svg viewBox="0 0 16 16" width="16" height="16" fill={isDangerouslyClose ? '#ff4757' : '#ffa502'} class="danger-svg">
                             <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
                         </svg>
                         <div class="danger-info-col">
                             <div class="danger-title-row">
-                                <span class="danger-label">До перегрева: {3 - $failedBrewAttempts} {3 - $failedBrewAttempts === 1 ? 'попытка' : 'попытки'}</span>
+                                <span class="danger-label" class:danger-critical={isDangerouslyClose}>
+                                    До перегрева: {$brewAttemptsLeft} {getAttemptsWord($brewAttemptsLeft)} (из {$maxBrewAttempts})
+                                </span>
                                 <div class="pips">
-                                    {#each [1,2,3] as p}<div class="pip" class:active={p <= $failedBrewAttempts}></div>{/each}
+                                    {#each Array.from({ length: $maxBrewAttempts }, (_, i) => i + 1) as p}
+                                        <div class="pip" class:active={p <= $failedBrewAttempts} class:critical={isDangerouslyClose && p <= $failedBrewAttempts}></div>
+                                    {/each}
                                 </div>
                             </div>
                             {#if lastResonanceMsg}
@@ -386,9 +401,9 @@
                         <ellipse class="steam intense s2" cx="60" cy="18" rx="12" ry="8" fill="#e17055" opacity="0.55"/>
                         <ellipse class="steam intense s3" cx="76" cy="24" rx="9"  ry="6" fill="#ff4757" opacity="0.5"/>
                     {:else if $failedBrewAttempts > 0}
-                        <ellipse class="steam"    cx="44" cy="30" rx="8"  ry="6" fill={$failedBrewAttempts >= 2 ? '#e17055' : '#f1c40f'} opacity="0.45"/>
-                        <ellipse class="steam s2" cx="60" cy="22" rx="10" ry="7" fill={$failedBrewAttempts >= 2 ? '#e17055' : '#f1c40f'} opacity="0.35"/>
-                        <ellipse class="steam s3" cx="76" cy="28" rx="7"  ry="5" fill={$failedBrewAttempts >= 2 ? '#e17055' : '#f1c40f'} opacity="0.3"/>
+                        <ellipse class="steam"    cx="44" cy="30" rx="8"  ry="6" fill={isDangerouslyClose ? '#e17055' : '#f1c40f'} opacity="0.45"/>
+                        <ellipse class="steam s2" cx="60" cy="22" rx="10" ry="7" fill={isDangerouslyClose ? '#e17055' : '#f1c40f'} opacity="0.35"/>
+                        <ellipse class="steam s3" cx="76" cy="28" rx="7"  ry="5" fill={isDangerouslyClose ? '#e17055' : '#f1c40f'} opacity="0.3"/>
                     {/if}
                 </svg>
             </div>
@@ -414,7 +429,7 @@
             </div>
 
             <!-- Pure SVG Brew Button -->
-            <button class="brew-btn" class:danger={$failedBrewAttempts >= 2 && !isOverheated} class:overheated={isOverheated}
+            <button class="brew-btn" class:danger={isDangerouslyClose && !isOverheated} class:overheated={isOverheated}
                 disabled={!canBrew || isBrewing || isOverheated} on:click={handleBrew}>
                 {#if isOverheated}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff7675" stroke-width="2">
@@ -428,11 +443,11 @@
                         <circle cx="12" cy="12" r="10" stroke-dasharray="16 16"/>
                     </svg>
                     Варится…
-                {:else if $failedBrewAttempts >= 2}
+                {:else if isDangerouslyClose}
                     <svg viewBox="0 0 16 16" width="18" height="18" fill="#fff">
                         <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
                     </svg>
-                    Сварить (Риск перегрева!)
+                    Сварить (Осталась 1 попытка!)
                 {:else}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
@@ -711,6 +726,7 @@
 }
 
 .danger-label{font-size:0.75rem;font-weight:700}
+.danger-label.danger-critical{color:#ff4757;text-shadow:0 0 8px rgba(255,71,87,0.4)}
 
 .resonance-subtext {
     font-size: 0.68rem;
@@ -721,7 +737,8 @@
 
 .pips{display:flex;gap:4px}
 .pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);transition:background 0.3s}
-.pip.active{background:#e17055;box-shadow:0 0 6px #e17055}
+.pip.active{background:#ffa502;box-shadow:0 0 6px rgba(255,165,2,0.6)}
+.pip.active.critical{background:#ff4757;box-shadow:0 0 8px #ff4757}
 
 .cooldown-btn {
     display: flex;

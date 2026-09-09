@@ -2590,8 +2590,30 @@ export const HINT_COSTS = [10, 20, 35] as const;
  */
 export const unlockedRecipes = writable<Record<string, number>>({});
 
-/** How many consecutive wrong brews have been made (resets on success or burn) */
+/** How many consecutive wrong brews have been made (resets on success or overheat) */
 export const failedBrewAttempts = writable<number>(0);
+
+/**
+ * Dynamic calculation of max failed brew attempts allowed before cauldron overheats:
+ * Base: 3 attempts
+ * +1 per level of Secret Upgrade 'Повелитель Котлов' (up to +2)
+ * +1 if VIP status is active
+ */
+export function getMaxBrewAttempts(state: GameState, vipActive: boolean): number {
+    const alchemyLevel = state.secretUpgrades?.find(u => u.id === 'alchemy')?.level || 0;
+    const vipBonus = vipActive ? 1 : 0;
+    return Math.max(3, 3 + alchemyLevel + vipBonus);
+}
+
+export const maxBrewAttempts = derived(
+    [gameStore, isVip],
+    ([$game, $vip]) => getMaxBrewAttempts($game, $vip)
+);
+
+export const brewAttemptsLeft = derived(
+    [failedBrewAttempts, maxBrewAttempts],
+    ([$failed, $max]) => Math.max(0, $max - Math.max(0, $failed))
+);
 
 export const CAULDRON_COOLDOWN_MS = 2 * 60 * 1000; // 2 минуты остывания (120 сек)
 
@@ -2699,15 +2721,13 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
         });
     }
 
-    const current = get(failedBrewAttempts);
+    const current = Math.max(0, get(failedBrewAttempts));
     const next = current + 1;
     
     // Secret Upgrade: Повелитель Котлов (+1 max attempt per level, max 2) + VIP (+1 attempt)
-    const alchemyLevel = get(gameStore).secretUpgrades.find(u => u.id === 'alchemy')?.level || 0;
-    const vipBonus = get(isVip) ? 1 : 0;
-    const maxFailures = 3 + alchemyLevel + vipBonus;
+    const maxFailures = getMaxBrewAttempts(state, get(isVip));
 
-    if (next >= maxFailures) {
+    if (next >= maxFailures || current >= maxFailures) {
         // Overheat! Ingredients are SAVED (NOT destroyed). Cauldron cools down for 2 minutes.
         failedBrewAttempts.set(0);
         gameStore.update(s => ({
@@ -2721,10 +2741,11 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     }
 
     failedBrewAttempts.set(next);
+    const left = Math.max(0, maxFailures - next);
     return { 
         status: 'warning', 
         matches: maxMatches, 
-        attemptsLeft: maxFailures - next 
+        attemptsLeft: left 
     };
 }
 

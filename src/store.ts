@@ -355,27 +355,6 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
 ];
 
-const RARITY_POOLS: Record<ChestType, Ingredient[][]> = {
-    wooden: [
-        AVAILABLE_INGREDIENTS.filter(i => i.rarity === 'common'),
-        AVAILABLE_INGREDIENTS.filter(i => i.rarity === 'common'),
-        AVAILABLE_INGREDIENTS.filter(i => ['common', 'rare'].includes(i.rarity)),
-    ],
-    magical: [
-        AVAILABLE_INGREDIENTS.filter(i => i.rarity === 'epic'),
-        AVAILABLE_INGREDIENTS.filter(i => ['common', 'rare'].includes(i.rarity)),
-        AVAILABLE_INGREDIENTS.filter(i => ['common', 'rare'].includes(i.rarity)),
-        AVAILABLE_INGREDIENTS.filter(i => ['rare', 'epic'].includes(i.rarity)),
-        AVAILABLE_INGREDIENTS.filter(i => ['common', 'rare'].includes(i.rarity)),
-    ],
-    astral: [
-        AVAILABLE_INGREDIENTS.filter(i => i.rarity === 'legendary'),
-        AVAILABLE_INGREDIENTS.filter(i => ['rare', 'epic', 'legendary'].includes(i.rarity)),
-        AVAILABLE_INGREDIENTS.filter(i => ['rare', 'epic'].includes(i.rarity)),
-        AVAILABLE_INGREDIENTS.filter(i => ['common', 'rare'].includes(i.rarity)),
-        AVAILABLE_INGREDIENTS.filter(i => i.rarity === 'epic'),
-    ],
-};
 
 function pickRandom<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -968,8 +947,6 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             };
         }
     });
-
-    saveGame();
 
     return {
         chestType,

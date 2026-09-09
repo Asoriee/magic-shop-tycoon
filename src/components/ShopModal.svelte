@@ -226,7 +226,7 @@
                     class:active={buyMode === '1'} 
                     on:click={() => buyMode = '1'}
                 >
-                    x1
+                    х1
                 </button>
                 <button 
                     type="button"
@@ -234,7 +234,7 @@
                     class:active={buyMode === '10'} 
                     on:click={() => buyMode = '10'}
                 >
-                    x10
+                    х10
                 </button>
                 <button 
                     type="button"

@@ -126,8 +126,8 @@
             }
 
             const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0);
-            const crystalTxt = order.rewardCrystals ? `, +${order.rewardCrystals} 💎` : '';
-            const chestName = order.rewardChest === 'astral' ? ', Астральный ларец 📦' : (order.rewardChest === 'magical' ? ', Волшебный ларец 📦' : (order.rewardChest === 'wooden' ? ', Деревянный ларец 📦' : ''));
+            const crystalTxt = order.rewardCrystals ? `, +${order.rewardCrystals} кристаллов` : '';
+            const chestName = order.rewardChest === 'astral' ? ', Астральный ларец' : (order.rewardChest === 'magical' ? ', Волшебный ларец' : (order.rewardChest === 'wooden' ? ', Деревянный ларец' : ''));
             
             // Complete animation
             const el = document.getElementById(`order-${order.id}`);
@@ -187,7 +187,7 @@
             gameStore.updateQuestProgress('watch_ads', 1);
             showToast('Новый торговый караван прибыл в лавку!');
             saveGame();
-        }, () => {
+        }, undefined, () => {
             showToast('Не удалось загрузить видео, попробуйте позже.');
         });
     }

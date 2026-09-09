@@ -119,8 +119,8 @@
             items: '5 предметов',
             resonance: 10,
             chances: [
-                { label: '2x Зелья', color: '#55efc4' },
-                { label: '1x Гарант Редкий', color: '#74b9ff' },
+                { label: '2х Зелья', color: '#55efc4' },
+                { label: '1х Гарант Редкий', color: '#74b9ff' },
                 { label: '40% Золото (8 мин)', color: '#ffeaa7' }
             ]
         },
@@ -134,10 +134,10 @@
             items: '6 предметов',
             resonance: 15,
             chances: [
-                { label: '1x Гарант Эпик', color: '#a29bfe' },
-                { label: '1x Зелье', color: '#74b9ff' },
+                { label: '1х Гарант Эпик', color: '#a29bfe' },
+                { label: '1х Зелье', color: '#74b9ff' },
                 { label: '50% Золото (15 мин)', color: '#ffeaa7' },
-                { label: '20% Возврат +5 💎', color: '#00cec9' }
+                { label: '20% Возврат +5 крист.', color: '#00cec9' }
             ]
         },
         {
@@ -150,11 +150,11 @@
             items: '11 предметов',
             resonance: 30,
             chances: [
-                { label: '1x Легендарка', color: '#f1c40f' },
-                { label: '3x Эпика', color: '#a29bfe' },
-                { label: '1x Редкое Зелье', color: '#74b9ff' },
+                { label: '1х Легендарка', color: '#f1c40f' },
+                { label: '3х Эпика', color: '#a29bfe' },
+                { label: '1х Редкое Зелье', color: '#74b9ff' },
                 { label: '70% Золото (30 мин)', color: '#ffeaa7' },
-                { label: '35% Возврат +15 💎', color: '#00cec9' }
+                { label: '35% Возврат +15 крист.', color: '#00cec9' }
             ]
         },
         {
@@ -167,12 +167,12 @@
             items: '19+ наград',
             resonance: 60,
             chances: [
-                { label: '2x Легендарки', color: '#f1c40f' },
-                { label: '5x Эпиков', color: '#a29bfe' },
-                { label: '2x Зелья', color: '#ff7675' },
+                { label: '2х Легендарки', color: '#f1c40f' },
+                { label: '5х Эпиков', color: '#a29bfe' },
+                { label: '2х Зелья', color: '#ff7675' },
                 { label: '100% Казна (1 час)', color: '#ffeaa7' },
-                { label: '100% Возврат +25 💎', color: '#00cec9' },
-                { label: '15% Фамильяр 🥚', color: '#e056fd' }
+                { label: '100% Возврат +25 крист.', color: '#00cec9' },
+                { label: '15% Фамильяр', color: '#e056fd' }
             ]
         }
     ];
@@ -356,7 +356,18 @@
         <div class="resonance-container" class:active-resonance={isResonanceReady}>
             <div class="resonance-header">
                 <div class="resonance-title-box">
-                    <span class="resonance-icon">{isResonanceReady ? '⚡' : '🔮'}</span>
+                    <span class="resonance-icon">
+                        {#if isResonanceReady}
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="#f1c40f">
+                                <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
+                            </svg>
+                        {:else}
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#a29bfe" stroke-width="2">
+                                <circle cx="12" cy="12" r="8"/>
+                                <path d="M12 8v4l3 3"/>
+                            </svg>
+                        {/if}
+                    </span>
                     <span class="resonance-title">
                         {isResonanceReady ? 'БЛАГОСЛОВЕНИЕ ТИТАНОВ АКТИВНО!' : 'Шкала Магического Резонанса'}
                     </span>
@@ -391,7 +402,7 @@
                     class:active={openMultiplier === 1}
                     on:click={() => openMultiplier = 1}
                 >
-                    1x
+                    1х
                 </button>
                 <button 
                     type="button" 
@@ -399,7 +410,7 @@
                     class:active={openMultiplier === 5}
                     on:click={() => openMultiplier = 5}
                 >
-                    5x <span class="discount-pill">-5% 💎</span>
+                    5х <span class="discount-pill">-5%</span>
                 </button>
             </div>
         </div>
@@ -448,7 +459,12 @@
                         <div class="chest-title-row">
                             <h3 style="color: {chest.accentColor}">{chest.name}</h3>
                             <span class="chest-items-badge">{chest.items}</span>
-                            <span class="resonance-gain-badge">+{chest.resonance * mult}% ⚡</span>
+                            <span class="resonance-gain-badge">
+                                +{chest.resonance * mult}%
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="#f1c40f">
+                                    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
+                                </svg>
+                            </span>
                         </div>
                         <p>{chest.desc}</p>
                         
@@ -551,9 +567,13 @@
 
         {#if currentResult?.isDoubleResonance}
             <div class="resonance-banner">
-                <span class="sparkle">⚡</span>
-                <span>РЕЗОНАНС СРАБОТАЛ: ВСЯ ДОБЫЧА УДВОЕНА (x2)!</span>
-                <span class="sparkle">⚡</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="#f1c40f">
+                    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
+                </svg>
+                <span>РЕЗОНАНС СРАБОТАЛ: ВСЯ ДОБЫЧА УДВОЕНА (х2)!</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="#f1c40f">
+                    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
+                </svg>
             </div>
         {/if}
 
@@ -608,7 +628,7 @@
                     {#if item.type === 'gold'}
                         <div class="loot-detail gold-text">+{formatNumber(item.goldAmount || 0)}</div>
                     {:else if item.type === 'crystals'}
-                        <div class="loot-detail crystal-text">+{item.crystalAmount || 0} 💎</div>
+                        <div class="loot-detail crystal-text">+{item.crystalAmount || 0} кристаллов</div>
                     {:else if item.type === 'potion'}
                         <div class="loot-detail potion-text">Готовое зелье</div>
                     {:else if item.type === 'pet'}

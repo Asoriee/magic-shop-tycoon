@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { tick } from 'svelte';
+    import { tick, onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
     import InventoryModal from './InventoryModal.svelte';
     import AlchemyTableModal from './AlchemyTableModal.svelte';
@@ -26,6 +26,19 @@
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
     let contentEl: HTMLElement;
+
+    let nowTime = Date.now();
+    let timerInterval: any;
+
+    onMount(() => {
+        timerInterval = setInterval(() => {
+            nowTime = Date.now();
+        }, 1000);
+    });
+
+    onDestroy(() => {
+        if (timerInterval) clearInterval(timerInterval);
+    });
 
     $: if (isOpen) {
         tick().then(() => {
@@ -205,9 +218,11 @@
                     </svg>
                 </div>
                 <span class="tab-label">Алхимия</span>
-                {#if ($gameStore.cauldronOverheatUntil || 0) > Date.now()}
+                {#if ($gameStore.cauldronOverheatUntil || 0) > nowTime}
                     <span class="tab-badge danger-badge pulse" title="Котёл остывает!">
-                        ❄️
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+                        </svg>
                     </span>
                 {:else if $failedBrewAttempts > 0}
                     <span class="tab-badge warning-badge" title="Осталось попыток: {$brewAttemptsLeft} из {$maxBrewAttempts}">

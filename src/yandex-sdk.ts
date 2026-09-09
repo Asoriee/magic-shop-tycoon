@@ -285,25 +285,28 @@ export async function loadGame(): Promise<void> {
 
 // --- Ads ---
 
-export function showRewardedAd(onReward: () => void, onClose: () => void) {
+export function showRewardedAd(onReward: () => void, onClose?: () => void, onError?: (err: any) => void) {
     // If user is VIP — skip ad and reward immediately
     if (get(isVip)) {
         onReward();
-        onClose();
+        if (onClose) onClose();
         return;
     }
 
     if (!ysdk) {
         // Fallback for testing
         isAdPlaying = true;
+        try { (ysdk as any)?.features?.GameplayAPI?.stop(); } catch(e) {}
         setTimeout(() => {
             onReward();
             isAdPlaying = false;
-            onClose();
+            try { (ysdk as any)?.features?.GameplayAPI?.start(); } catch(e) {}
+            if (onClose) onClose();
         }, 1000);
         return;
     }
 
+    try { ysdk.features?.GameplayAPI?.stop(); } catch(e) {}
     ysdk.adv.showRewardedVideo({
         callbacks: {
             onOpen: () => {
@@ -314,12 +317,15 @@ export function showRewardedAd(onReward: () => void, onClose: () => void) {
             },
             onClose: () => {
                 isAdPlaying = false;
-                onClose();
+                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
+                if (onClose) onClose();
             }, 
             onError: (e: any) => {
                 console.error('Error while showing rewarded ad:', e);
                 isAdPlaying = false;
-                onClose();
+                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
+                if (onError) onError(e);
+                else if (onClose) onClose();
             }
         }
     });
@@ -342,14 +348,17 @@ export function showInterstitialAd(onClose?: () => void) {
     if (!ysdk) {
         // Fallback for testing
         isAdPlaying = true;
+        try { (ysdk as any)?.features?.GameplayAPI?.stop(); } catch(e) {}
         setTimeout(() => {
             lastInterstitialTime = Date.now();
             isAdPlaying = false;
+            try { (ysdk as any)?.features?.GameplayAPI?.start(); } catch(e) {}
             if (onClose) onClose();
         }, 1000);
         return;
     }
 
+    try { ysdk.features?.GameplayAPI?.stop(); } catch(e) {}
     ysdk.adv.showFullscreenAdv({
         callbacks: {
             onOpen: () => {
@@ -360,11 +369,13 @@ export function showInterstitialAd(onClose?: () => void) {
                     lastInterstitialTime = Date.now();
                 }
                 isAdPlaying = false;
+                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
                 if (onClose) onClose();
             },
             onError: (e: any) => {
                 console.error('Error while showing interstitial ad:', e);
                 isAdPlaying = false;
+                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
                 if (onClose) onClose();
             }
         }

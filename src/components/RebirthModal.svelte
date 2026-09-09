@@ -144,7 +144,7 @@
                     <div class="stardust-progress-box">
                         <div class="progress-info-row">
                             <span class="prog-label">До следующей +1 пыли:</span>
-                            <span class="prog-val">{formatNumber(goldNeededForNext)} G</span>
+                            <span class="prog-val">{formatNumber(goldNeededForNext)} золота</span>
                         </div>
                         <div class="progress-track">
                             <div class="progress-fill" style="width: {progressToNext}%"></div>

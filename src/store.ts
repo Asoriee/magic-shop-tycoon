@@ -8,12 +8,12 @@ export function formatNumber(num: number | undefined | null): string {
     if (num === undefined || num === null) return '0';
     const n = Number(num);
     if (isNaN(n) || !isFinite(n)) return '0';
-    if (n >= 1_000_000_000_000_000_000) return (n / 1_000_000_000_000_000_000).toFixed(2) + 'Qi';
-    if (n >= 1_000_000_000_000_000) return (n / 1_000_000_000_000_000).toFixed(2) + 'Qa';
-    if (n >= 1_000_000_000_000) return (n / 1_000_000_000_000).toFixed(2) + 'T';
-    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B';
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
-    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+    if (n >= 1_000_000_000_000_000_000) return (n / 1_000_000_000_000_000_000).toFixed(2) + 'Кви';
+    if (n >= 1_000_000_000_000_000) return (n / 1_000_000_000_000_000).toFixed(2) + 'Кв';
+    if (n >= 1_000_000_000_000) return (n / 1_000_000_000_000).toFixed(2) + 'Т';
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'Б';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'М';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'К';
     if (n % 1 !== 0) return n.toFixed(1);
     return Math.floor(n).toString();
 }
@@ -850,7 +850,7 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             });
         }
 
-        // --- 4. КЭШБЭК САМОЦВЕТОВ ---
+        // --- 4. ВОЗВРАТ САМОЦВЕТОВ ---
         let crystalGain = 0;
         if (chestType === 'magical' && Math.random() < 0.20) {
             crystalGain = 5 * multiplier;
@@ -865,7 +865,7 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             drops.push({
                 type: 'crystals',
                 id: 'crystal_cashback',
-                name: 'Кэшбэк Самоцветов',
+                name: 'Возврат Самоцветов',
                 count: crystalGain,
                 rarity: chestType === 'titan' ? 'legendary' : 'epic',
                 crystalAmount: crystalGain

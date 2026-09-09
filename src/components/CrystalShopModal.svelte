@@ -101,7 +101,7 @@
     }
 
     function triggerResultAnimation(id: string, earned: number) {
-        const formatted = `+${formatNumber(earned)} G`;
+        const formatted = `+${formatNumber(earned)} золота`;
         resultMessages[id] = { text: formatted, visible: true };
 
         setTimeout(() => {

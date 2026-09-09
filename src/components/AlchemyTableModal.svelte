@@ -139,7 +139,7 @@
                 .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.55, ease: 'elastic.out(1, 0.5)' });
             gsap.fromTo(flashEl, { opacity: 0.65, backgroundColor: 'rgba(241,196,15,0.55)' }, { opacity: 0, duration: 0.7 });
             
-            const doubleText = result.isDouble ? ' ✨ КРИТИЧЕСКИЙ УСПЕХ: х2 зелья!' : '';
+            const doubleText = result.isDouble ? ' КРИТИЧЕСКИЙ УСПЕХ: х2 зелья!' : '';
             showToast(`Успех! Сварено «${result.recipeName}»!${doubleText}`, 'success', 3500);
             await saveGame();
         } else if (result.status === 'warning') {
@@ -155,7 +155,7 @@
             lastResonanceMsg = resText;
             showToast(`${resText} До перегрева: ${left} ${getAttemptsWord(left)}!`, 'warning', 4200);
         } else if (result.status === 'overheat') {
-            slots = [null, null, null];
+            // Ингредиенты остаются в слотах, чтобы игрок помнил состав!
             lastResonanceMsg = null;
             nowTime = Date.now();
             gsap.to(cauldronEl, { keyframes: [{ x:-14, duration:.07 },{ x:14, duration:.07 },{ x:-12, duration:.07 },{ x:12, duration:.07 },{ x:-10, duration:.07 },{ x:10, duration:.07 },{ x:0, duration:.07 }] });
@@ -180,7 +180,7 @@
                     .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
                     .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.4, ease: 'elastic.out(1, 0.5)' });
             }
-            const doubleText = res.isDouble ? ' ✨ Сварено х2 зелья!' : '';
+            const doubleText = res.isDouble ? ' Сварено х2 зелья!' : '';
             showToast(`Зелье мгновенно сварено по рецепту!${doubleText}`, 'success');
             await saveGame();
         } else {
@@ -195,13 +195,12 @@
             nowTime = Date.now();
             showToast('Котёл благополучно остужен ледяной магией!', 'success');
             saveGame();
-        }, () => {
+        }, undefined, () => {
             showToast('Не удалось загрузить рекламу, попробуйте позже.');
         });
     }
 
-    async function handleCoolDownCrystals() {
-        const cost = 8;
+    async function handleCoolDownCrystals(cost = 8) {
         if ($crystals < cost) {
             showToast('Недостаточно кристаллов для мгновенного охлаждения!', 'warning');
             return;
@@ -209,7 +208,7 @@
         if (coolDownCauldronCrystals(cost)) {
             lastResonanceMsg = null;
             nowTime = Date.now();
-            showToast(`Котёл мгновенно остужен за ${cost} 💎!`, 'success');
+            showToast(`Котёл мгновенно остужен за ${cost} кристаллов!`, 'success');
             await saveGame();
         }
     }
@@ -232,7 +231,7 @@
             } else {
                 showToast('За рекламу можно открыть только первый ингредиент!', 'warning');
             }
-        }, () => {
+        }, undefined, () => {
             showToast('Не удалось загрузить видео, попробуйте позже.');
         });
     }
@@ -351,13 +350,19 @@
                         </div>
                     </div>
 
-                    <button class="cooldown-btn" on:click={handleCoolDownAd} title="Остудить котёл ледяной магией">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#74b9ff" stroke-width="2.2">
-                            <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
-                        </svg>
-                        <span>Остудить</span>
-                        <span class="ad-pill">РЕК</span>
-                    </button>
+                    <div class="danger-actions">
+                        <button class="cooldown-btn" on:click={handleCoolDownAd} title="Остудить котёл ледяной магией за рекламу">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#74b9ff" stroke-width="2.2">
+                                <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
+                            </svg>
+                            <span>Остудить</span>
+                            <span class="ad-pill">РЕК</span>
+                        </button>
+                        <button class="cooldown-crystal-btn" on:click={() => handleCoolDownCrystals(4)} title="Остудить за 4 кристалла">
+                            <ResourceIcon type="crystals" size={12} />
+                            <span>4</span>
+                        </button>
+                    </div>
                 </div>
             {/if}
 
@@ -739,6 +744,13 @@
 .pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);transition:background 0.3s}
 .pip.active{background:#ffa502;box-shadow:0 0 6px rgba(255,165,2,0.6)}
 .pip.active.critical{background:#ff4757;box-shadow:0 0 8px #ff4757}
+
+.danger-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
 
 .cooldown-btn {
     display: flex;

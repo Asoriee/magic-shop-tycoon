@@ -321,7 +321,7 @@
                             <span>Остудить</span>
                             <span class="ad-pill">РЕК</span>
                         </button>
-                        <button class="cooldown-crystal-btn" on:click={handleCoolDownCrystals} title="Остудить за 8 кристаллов">
+                        <button class="cooldown-crystal-btn" on:click={() => handleCoolDownCrystals(8)} title="Остудить за 8 кристаллов">
                             <ResourceIcon type="crystals" size={12} />
                             <span>8</span>
                         </button>

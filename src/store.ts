@@ -62,10 +62,24 @@ export interface Upgrade {
     iconSvg: string;
 }
 
+export type SecretUpgradeId = 
+    | 'stardust_extractor'
+    | 'essence_mastery'
+    | 'scout_whisper'
+    | 'orders'
+    | 'cooldown_mastery'
+    | 'crystal_transmute'
+    | 'archmage_heritage'
+    | 'familiar'
+    | 'magnet'
+    | 'alchemy'
+    | 'wallet';
+
 export interface SecretUpgrade {
-    id: 'magnet' | 'alchemy' | 'orders' | 'wallet' | 'familiar';
+    id: SecretUpgradeId;
     name: string;
     description: string;
+    category?: 'ritual' | 'alchemy' | 'expeditions' | 'orders' | 'economy';
     baseCost: number;
     costMultiplier: number;
     level: number;
@@ -209,6 +223,7 @@ export interface GameState {
     cauldronOverheatUntil?: number;
     recipeAdHintsUsed?: Record<string, boolean>;
     alchemyBrewsCount?: number;
+    secretKnowledgeBoostUntil?: number;
 }
 
 // ============================================================
@@ -1233,12 +1248,87 @@ const defaultUpgrades: Upgrade[] = [
     }
 ];
 
-const defaultSecretUpgrades: SecretUpgrade[] = [
-    { id: 'magnet', name: 'Магический Магнит', description: '+2% шанс кристалла за клик', baseCost: 10, costMultiplier: 1.5, level: 0, maxLevel: 5 },
-    { id: 'alchemy', name: 'Повелитель Котлов', description: '+1 право на ошибку при варке', baseCost: 15, costMultiplier: 2.0, level: 0, maxLevel: 2 },
-    { id: 'orders', name: 'Щедрые Клиенты', description: '+20% золота за заказы', baseCost: 20, costMultiplier: 1.6, level: 0, maxLevel: 10 },
-    { id: 'wallet', name: 'Тяжелый Кошелек', description: '+100 золота после ритуала', baseCost: 5, costMultiplier: 2.0, level: 0, maxLevel: 5 },
-    { id: 'familiar', name: 'Аура Фамильяра', description: '+15% пассивного дохода', baseCost: 30, costMultiplier: 1.6, level: 0, maxLevel: 10 }
+export const defaultSecretUpgrades: SecretUpgrade[] = [
+    { 
+        id: 'stardust_extractor', 
+        name: 'Астральный Экстрактор', 
+        description: '+5% Звездной Пыли за Ритуал', 
+        category: 'ritual',
+        baseCost: 15, 
+        costMultiplier: 1.6, 
+        level: 0, 
+        maxLevel: 5 
+    },
+    { 
+        id: 'essence_mastery', 
+        name: 'Эссенция Мастерства', 
+        description: '+6% шанс удвоенного зелья при варке', 
+        category: 'alchemy',
+        baseCost: 20, 
+        costMultiplier: 1.6, 
+        level: 0, 
+        maxLevel: 5 
+    },
+    { 
+        id: 'scout_whisper', 
+        name: 'Тропы Экспедиций', 
+        description: '-6% времени походов питомцев', 
+        category: 'expeditions',
+        baseCost: 20, 
+        costMultiplier: 1.5, 
+        level: 0, 
+        maxLevel: 5 
+    },
+    { 
+        id: 'orders', 
+        name: 'Королевские Контракты', 
+        description: '+15% золота за заказы гильдии', 
+        category: 'orders',
+        baseCost: 20, 
+        costMultiplier: 1.6, 
+        level: 0, 
+        maxLevel: 10 
+    },
+    { 
+        id: 'cooldown_mastery', 
+        name: 'Остывание Эфира', 
+        description: '-15 сек время остывания котла', 
+        category: 'alchemy',
+        baseCost: 15, 
+        costMultiplier: 1.8, 
+        level: 0, 
+        maxLevel: 5 
+    },
+    { 
+        id: 'crystal_transmute', 
+        name: 'Трансмутация Кристаллов', 
+        description: '8% шанс 1–2 кристаллов за сданный заказ', 
+        category: 'economy',
+        baseCost: 25, 
+        costMultiplier: 1.6, 
+        level: 0, 
+        maxLevel: 5 
+    },
+    { 
+        id: 'archmage_heritage', 
+        name: 'Наследие Архимага', 
+        description: 'Сохраняет до 0.5% золота при Ритуале', 
+        category: 'ritual',
+        baseCost: 20, 
+        costMultiplier: 1.8, 
+        level: 0, 
+        maxLevel: 5 
+    },
+    { 
+        id: 'familiar', 
+        name: 'Аура Фамильяра', 
+        description: '+15% к пассивному доходу лавки', 
+        category: 'economy',
+        baseCost: 30, 
+        costMultiplier: 1.6, 
+        level: 0, 
+        maxLevel: 10 
+    }
 ];
 
 export const AVAILABLE_ARTIFACTS: Artifact[] = [
@@ -1785,6 +1875,20 @@ export function generateSingleOrder(): CustomerOrder {
     }
 }
 
+export function calculateEarnedStardust(state: GameState): number {
+    if (!state || !state.gold || state.gold < 1_000_000) return 0;
+    let stardustMultiplier = 1;
+    if (state.unlockedCollections?.includes('titan_set')) stardustMultiplier += 0.15;
+    
+    // Secret Upgrade: Астральный Экстрактор (+5% stardust per level)
+    const extractorLevel = state.secretUpgrades?.find(u => u.id === 'stardust_extractor')?.level || 0;
+    const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+    stardustMultiplier += extractorLevel * 0.05 * (isBoosted ? 1.5 : 1);
+
+    const rawStardust = Math.floor(Math.sqrt((state.gold || 0) / 1_000_000));
+    return Math.floor(rawStardust * stardustMultiplier);
+}
+
 function createGameStore() {
     const { subscribe, set, update } = writable<GameState>(defaultState);
 
@@ -1851,17 +1955,22 @@ function createGameStore() {
             return state;
         }),
         performRebirth: () => update(state => {
-            let stardustMultiplier = 1;
-            if (state.unlockedCollections?.includes('titan_set')) stardustMultiplier += 0.15;
-            const rawStardust = Math.floor(Math.sqrt((state.gold || 0) / 1_000_000));
-            const earnedStardust = Math.floor(rawStardust * stardustMultiplier);
+            const earnedStardust = calculateEarnedStardust(state);
             
-            // Secret Upgrade: Тяжелый Кошелек (+100 start gold per level)
-            const walletLevel = state.secretUpgrades.find(u => u.id === 'wallet')?.level || 0;
-            let startingGold = walletLevel * 100;
+            // Secret Upgrade: Наследие Архимага (сохраняет до 0.5% золота за уровень, кап 50 000 * ур.)
+            const heritageLevel = state.secretUpgrades?.find(u => u.id === 'archmage_heritage' || (u.id as string) === 'wallet')?.level || 0;
+            const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+            const boostMult = isBoosted ? 1.5 : 1;
+
+            let startingGold = 10;
+            if (heritageLevel > 0) {
+                const maxCap = Math.floor(heritageLevel * 50_000 * boostMult);
+                const preservedGold = Math.floor((state.gold || 0) * 0.005 * heritageLevel * boostMult);
+                startingGold = Math.max(10, Math.min(maxCap, preservedGold));
+            }
             // Artifact 11 (Перо Возрождения): сохраняет 10% золота после ритуала
             if (state.artifacts?.includes(11)) {
-                startingGold += Math.floor(state.gold * 0.10);
+                startingGold += Math.floor((state.gold || 0) * 0.10);
             }
 
             return {
@@ -1923,21 +2032,25 @@ function createGameStore() {
             return state;
         }),
         buySecretUpgrade: (id: string) => {
-        update(state => {
-            const upgradeIndex = state.secretUpgrades.findIndex(u => u.id === id);
-            if (upgradeIndex !== -1) {
-                const upgrade = state.secretUpgrades[upgradeIndex];
-                if (upgrade.level >= upgrade.maxLevel) return state; // Максимальный уровень
-                const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
-                if (state.stardust >= cost) {
-                    const newUpgrades = [...state.secretUpgrades];
-                    newUpgrades[upgradeIndex] = { ...upgrade, level: upgrade.level + 1 };
-                    return { ...state, stardust: state.stardust - cost, secretUpgrades: newUpgrades };
+            update(state => {
+                const upgradeIndex = state.secretUpgrades.findIndex(u => u.id === id);
+                if (upgradeIndex !== -1) {
+                    const upgrade = state.secretUpgrades[upgradeIndex];
+                    if (upgrade.level >= upgrade.maxLevel) return state; // Максимальный уровень
+                    const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
+                    if (state.stardust >= cost) {
+                        const newUpgrades = [...state.secretUpgrades];
+                        newUpgrades[upgradeIndex] = { ...upgrade, level: upgrade.level + 1 };
+                        return { ...state, stardust: state.stardust - cost, secretUpgrades: newUpgrades };
+                    }
                 }
-            }
-            return state;
-        });
-    },
+                return state;
+            });
+        },
+        activateSecretKnowledgeBoost: (durationMs: number = 30 * 60 * 1000) => update(state => ({
+            ...state,
+            secretKnowledgeBoostUntil: Date.now() + durationMs
+        })),
         unlockPet: (petId: string) => update(state => {
             if (!state.unlockedPets.includes(petId)) {
                 return { ...state, unlockedPets: [...state.unlockedPets, petId] };
@@ -1960,6 +2073,12 @@ function createGameStore() {
             // Artifact 12 (Хронометр Вечности): -20% к времени экспедиций
             if (state.artifacts?.includes(12)) {
                 effectiveHours *= 0.8;
+            }
+            // Secret Upgrade: Тропы Экспедиций (-6% времени за уровень)
+            const scoutLevel = state.secretUpgrades.find(u => u.id === 'scout_whisper')?.level || 0;
+            const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+            if (scoutLevel > 0) {
+                effectiveHours *= Math.max(0.4, 1 - (scoutLevel * 0.06 * (isBoosted ? 1.5 : 1)));
             }
 
             return {
@@ -2041,9 +2160,11 @@ function createGameStore() {
             const minFloor = order.minGold || (order.isVip ? 50000 : (order.requirements.some(r => r.type === 'potion') ? 10000 : 1500));
             const baseGold = Math.max(minFloor, Math.round(idle * goldSecs), order.rewardGold || 0);
 
-            // Secret Upgrade: Щедрые Клиенты (+20% gold per level)
+            // Secret Upgrade: Королевские Контракты (+15% gold per level)
             const ordersLevel = state.secretUpgrades.find(u => u.id === 'orders')?.level || 0;
-            let goldMultiplier = 1 + (ordersLevel * 0.20);
+            const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+            const boostMult = isBoosted ? 1.5 : 1;
+            let goldMultiplier = 1 + (ordersLevel * 0.15 * boostMult);
             // Artifact 8 (Жемчужина Феникса): +40% золота за заказы
             if (state.artifacts?.includes(8)) goldMultiplier += 0.40;
             // Phoenix Set Grand Bonus: +30% золота за заказы
@@ -2068,8 +2189,19 @@ function createGameStore() {
                 lastSpawn = now;
             }
 
-            if (order.rewardCrystals && order.rewardCrystals > 0) {
-                crystals.update(c => c + order.rewardCrystals!);
+            let totalOrderCrystals = order.rewardCrystals || 0;
+
+            // Secret Upgrade: Трансмутация Кристаллов (8% шанс за уровень получить 1–2 кристалла за заказ)
+            const transmuteLevel = state.secretUpgrades.find(u => u.id === 'crystal_transmute' || (u.id as string) === 'magnet')?.level || 0;
+            if (transmuteLevel > 0) {
+                const transmuteChance = Math.min(0.75, transmuteLevel * 0.08 * boostMult);
+                if (Math.random() < transmuteChance) {
+                    totalOrderCrystals += (Math.random() < 0.25 ? 2 : 1);
+                }
+            }
+
+            if (totalOrderCrystals > 0) {
+                crystals.update(c => c + totalOrderCrystals);
             }
 
             // Награда за ларец, если он выпал в заказе
@@ -2655,7 +2787,15 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     if (recipe) {
         // Correct recipe - consume and reward
         const masteryLevel = Math.floor((state.alchemyBrewsCount || 0) / 5);
-        const doubleChance = Math.min(0.20, masteryLevel * 0.05); // up to +20% chance
+        let doubleChance = Math.min(0.20, masteryLevel * 0.05); // up to +20% chance
+        
+        // Secret Upgrade: Эссенция Мастерства (+6% шанс удвоенного зелья за уровень)
+        const essenceLvl = state.secretUpgrades?.find(u => u.id === 'essence_mastery')?.level || 0;
+        const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+        if (essenceLvl > 0) {
+            doubleChance = Math.min(0.70, doubleChance + (essenceLvl * 0.06 * (isBoosted ? 1.5 : 1)));
+        }
+
         const isDouble = Math.random() < doubleChance;
         const yieldCount = isDouble ? 2 : 1;
 
@@ -2724,19 +2864,23 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
     const current = Math.max(0, get(failedBrewAttempts));
     const next = current + 1;
     
-    // Secret Upgrade: Повелитель Котлов (+1 max attempt per level, max 2) + VIP (+1 attempt)
+    // Secret Upgrade: Повелитель Котлов / VIP
     const maxFailures = getMaxBrewAttempts(state, get(isVip));
 
     if (next >= maxFailures || current >= maxFailures) {
-        // Overheat! Ingredients are SAVED (NOT destroyed). Cauldron cools down for 2 minutes.
+        // Secret Upgrade: Остывание Эфира (-15 сек перегрева за уровень)
+        const cooldownLvl = state.secretUpgrades?.find(u => u.id === 'cooldown_mastery')?.level || 0;
+        const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+        const effectiveCooldownMs = Math.max(30 * 1000, CAULDRON_COOLDOWN_MS - Math.floor(cooldownLvl * 15 * 1000 * (isBoosted ? 1.5 : 1)));
+
         failedBrewAttempts.set(0);
         gameStore.update(s => ({
             ...s,
-            cauldronOverheatUntil: Date.now() + CAULDRON_COOLDOWN_MS
+            cauldronOverheatUntil: Date.now() + effectiveCooldownMs
         }));
         return { 
             status: 'overheat', 
-            cooldownSeconds: Math.round(CAULDRON_COOLDOWN_MS / 1000) 
+            cooldownSeconds: Math.round(effectiveCooldownMs / 1000) 
         };
     }
 
@@ -2780,7 +2924,12 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
     }
 
     const masteryLevel = Math.floor((state.alchemyBrewsCount || 0) / 5);
-    const doubleChance = Math.min(0.20, masteryLevel * 0.05);
+    let doubleChance = Math.min(0.20, masteryLevel * 0.05);
+    const essenceLvl = state.secretUpgrades?.find(u => u.id === 'essence_mastery')?.level || 0;
+    const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+    if (essenceLvl > 0) {
+        doubleChance = Math.min(0.70, doubleChance + (essenceLvl * 0.06 * (isBoosted ? 1.5 : 1)));
+    }
     const isDouble = Math.random() < doubleChance;
     const yieldCount = isDouble ? 2 : 1;
 

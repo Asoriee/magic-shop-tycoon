@@ -1,10 +1,28 @@
 <script lang="ts">
+    import { onMount, onDestroy } from 'svelte';
     import { gameStore, formatNumber } from '../store';
-    import { saveGame } from '../yandex-sdk';
+    import { saveGame, showRewardedAd } from '../yandex-sdk';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
 
     let buttons: Record<string, HTMLElement> = {};
+    let nowTime = Date.now();
+    let timer: any;
+
+    onMount(() => {
+        timer = setInterval(() => {
+            nowTime = Date.now();
+        }, 1000);
+    });
+
+    onDestroy(() => {
+        if (timer) clearInterval(timer);
+    });
+
+    $: boostUntil = $gameStore?.secretKnowledgeBoostUntil || 0;
+    $: isBoosted = boostUntil > nowTime;
+    $: boostSecondsLeft = isBoosted ? Math.max(0, Math.ceil((boostUntil - nowTime) / 1000)) : 0;
+    $: boostFormattedTime = `${Math.floor(boostSecondsLeft / 60)}:${(boostSecondsLeft % 60).toString().padStart(2, '0')}`;
 
     function getCost(baseCost: number, costMultiplier: number, level: number) {
         return Math.floor(baseCost * Math.pow(costMultiplier, level));
@@ -17,7 +35,7 @@
             const btn = buttons[id];
             if (btn) {
                 gsap.fromTo(btn, 
-                    { scale: 0.9 }, 
+                    { scale: 0.88 }, 
                     { scale: 1, duration: 0.25, ease: 'back.out(2)' }
                 );
             }
@@ -26,8 +44,8 @@
             if (btn) {
                 gsap.to(btn, {
                     keyframes: [
-                        { x: -5, duration: 0.04 },
-                        { x:  5, duration: 0.04 },
+                        { x: -6, duration: 0.04 },
+                        { x:  6, duration: 0.04 },
                         { x: -4, duration: 0.04 },
                         { x:  4, duration: 0.04 },
                         { x:  0, duration: 0.04 }
@@ -38,77 +56,195 @@
         }
     }
 
+    function triggerInsightReward() {
+        showRewardedAd({
+            onRewarded: () => {
+                gameStore.activateSecretKnowledgeBoost(30 * 60 * 1000);
+                saveGame();
+            }
+        });
+    }
+
+    const categoryLabels: Record<string, { name: string; color: string; bg: string }> = {
+        'ritual':      { name: '✦ Ритуал',      color: '#e056fd', bg: 'rgba(224, 86, 253, 0.15)' },
+        'alchemy':     { name: '⚗️ Алхимия',     color: '#2ecc71', bg: 'rgba(46, 204, 113, 0.15)' },
+        'expeditions': { name: '🐾 Экспедиции',  color: '#f39c12', bg: 'rgba(243, 156, 18, 0.15)' },
+        'orders':      { name: '📜 Заказы',      color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
+        'economy':     { name: '💎 Экономика',   color: '#f1c40f', bg: 'rgba(241, 196, 15, 0.15)' },
+    };
+
     const icons: Record<string, string> = {
-        'magnet': `<svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-            <path d="M5 4 V13 C5 16.9 8.1 20 12 20 C15.9 20 19 16.9 19 13 V4 H15 V13 C15 14.7 13.7 16 12 16 C10.3 16 9 14.7 9 13 V4 H5 Z" fill="#e74c3c" stroke="#c0392b" stroke-width="1.2"/>
-            <rect x="5" y="4" width="4" height="4" fill="#bdc3c7"/>
-            <rect x="15" y="4" width="4" height="4" fill="#3498db"/>
-            <circle cx="12" cy="11" r="1.5" fill="#f1c40f"/>
+        'stardust_extractor': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <ellipse cx="14" cy="14" rx="11" ry="6" stroke="#e056fd" stroke-width="1.4" stroke-dasharray="3 2" transform="rotate(-25 14 14)"/>
+            <circle cx="14" cy="14" r="3.5" fill="#f1c40f"/>
+            <polygon points="14,3 16,9 22,11 17,15 18,21 14,17 10,21 11,15 6,11 12,9" fill="#e056fd" opacity="0.4"/>
+            <circle cx="7" cy="8" r="1" fill="#ffeaa7"/>
+            <circle cx="21" cy="20" r="1.2" fill="#ffeaa7"/>
         </svg>`,
-        'alchemy': `<svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-            <path d="M9 3 H15 M10 3 V8 L4 18 C3.3 19.3 4.2 21 5.7 21 H18.3 C19.8 21 20.7 19.3 20 18 L14 8 V3" stroke="#a29bfe" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M6 16 L18 16 L19.2 18 C19.5 18.5 19.1 19 18.5 19 H5.5 C4.9 19 4.5 18.5 4.8 18 Z" fill="#6c5ce7"/>
-            <circle cx="10" cy="17" r="1.2" fill="#ffeaa7"/>
-            <circle cx="14" cy="18" r="1.5" fill="#ffeaa7"/>
+        'essence_mastery': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <path d="M10 4 H18 M11 4 V10 L5 21 C4.2 22.5 5.3 24 7 24 H21 C22.7 24 23.8 22.5 23 21 L17 10 V4" stroke="#2ecc71" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M7 19 L21 19 L22 21 C22.4 22 21.6 23 20.5 23 H7.5 C6.4 23 5.6 22 6 21 Z" fill="#2ecc71" opacity="0.6"/>
+            <circle cx="11" cy="20" r="1.5" fill="#fff"/>
+            <circle cx="16" cy="17" r="1.8" fill="#a8e6cf"/>
+            <path d="M14 8 Q15 6 17 7" stroke="#f1c40f" stroke-width="1.2" stroke-linecap="round"/>
         </svg>`,
-        'orders': `<svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-            <path d="M6 4 C6 2.5 8 2.5 8 4 L8 18 C8 19.5 6 19.5 6 18 Z" fill="#e67e22" stroke="#d35400" stroke-width="1.2"/>
-            <path d="M8 3 L18 3 C19.5 3 20 4 20 5.5 L20 17 C20 18.5 19 19 17.5 19 L8 19 Z" fill="#f5cd79" stroke="#d35400" stroke-width="1.2"/>
-            <circle cx="14" cy="11" r="3" fill="#f1c40f" stroke="#b7791f" stroke-width="1"/>
+        'scout_whisper': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <circle cx="14" cy="14" r="11" stroke="#f39c12" stroke-width="1.3" stroke-dasharray="2 2"/>
+            <ellipse cx="14" cy="17" rx="5" ry="4" fill="#f39c12"/>
+            <circle cx="9" cy="12" r="2" fill="#f39c12"/>
+            <circle cx="13" cy="9.5" r="2" fill="#f39c12"/>
+            <circle cx="17" cy="10" r="2" fill="#f39c12"/>
+            <circle cx="20" cy="13.5" r="1.8" fill="#f39c12"/>
+            <path d="M4 14 L7 14 M21 14 L24 14" stroke="#ffeaa7" stroke-width="1.5" stroke-linecap="round"/>
         </svg>`,
-        'wallet': `<svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-            <path d="M4 8 C4 6.3 5.3 5 7 5 H19 C19.6 5 20 5.4 20 6 V18 C20 19.1 19.1 20 18 20 H6 C4.9 20 4 19.1 4 18 Z" fill="#d35400" stroke="#b7791f" stroke-width="1.2"/>
-            <path d="M14 10 H20 V15 H14 C12.6 15 12.6 10 14 10 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.2"/>
-            <circle cx="16.5" cy="12.5" r="1.5" fill="#2d3436"/>
+        'orders': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <rect x="7" y="5" width="14" height="18" rx="2.5" fill="#2c3e50" stroke="#3498db" stroke-width="1.5"/>
+            <line x1="10" y1="10" x2="18" y2="10" stroke="#74b9ff" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="10" y1="14" x2="16" y2="14" stroke="#74b9ff" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="10" y1="18" x2="14" y2="18" stroke="#74b9ff" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="3.5" fill="#f1c40f" stroke="#e67e22" stroke-width="1"/>
+            <polygon points="18,16 19,17.5 20.5,17.5 19.3,18.5 19.8,20 18,19 16.2,20 16.7,18.5 15.5,17.5 17,17.5" fill="#d35400"/>
         </svg>`,
-        'familiar': `<svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-            <ellipse cx="12" cy="15" rx="5" ry="4" fill="#a29bfe"/>
-            <circle cx="7" cy="10" r="2" fill="#a29bfe"/>
-            <circle cx="11" cy="7.5" r="2" fill="#a29bfe"/>
-            <circle cx="15" cy="8" r="2" fill="#a29bfe"/>
-            <circle cx="18" cy="11.5" r="1.8" fill="#a29bfe"/>
-            <circle cx="12" cy="12" r="8" stroke="#fd79a8" stroke-width="1" stroke-dasharray="2 2" opacity="0.6"/>
+        'cooldown_mastery': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <path d="M14 4 L14 24 M4 14 L24 14 M7 7 L21 21 M7 21 L21 7" stroke="#74b9ff" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="14" cy="14" r="5" fill="#0984e3" stroke="#dfe6e9" stroke-width="1"/>
+            <circle cx="14" cy="14" r="2" fill="#ffffff"/>
+            <circle cx="14" cy="6" r="1" fill="#74b9ff"/>
+            <circle cx="14" cy="22" r="1" fill="#74b9ff"/>
+        </svg>`,
+        'crystal_transmute': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <polygon points="14,3 22,10 14,25 6,10" fill="#0984e3" opacity="0.4"/>
+            <polygon points="14,3 22,10 14,15 6,10" fill="#74b9ff" stroke="#00cec9" stroke-width="1.2"/>
+            <polygon points="6,10 14,15 14,25" fill="#0984e3" stroke="#00cec9" stroke-width="1.2"/>
+            <polygon points="22,10 14,15 14,25" fill="#6c5ce7" stroke="#00cec9" stroke-width="1.2"/>
+            <circle cx="14" cy="11" r="1.5" fill="#ffffff"/>
+        </svg>`,
+        'archmage_heritage': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <path d="M5 20 L7 10 L11 15 L14 7 L17 15 L21 10 L23 20 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.2"/>
+            <rect x="5" y="20" width="18" height="3" rx="1" fill="#d35400"/>
+            <circle cx="14" cy="7" r="1.5" fill="#e74c3c"/>
+            <circle cx="7" cy="10" r="1.2" fill="#3498db"/>
+            <circle cx="21" cy="10" r="1.2" fill="#3498db"/>
+            <circle cx="14" cy="16" r="1.5" fill="#ffffff"/>
+        </svg>`,
+        'familiar': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+            <circle cx="14" cy="14" r="10" stroke="#a29bfe" stroke-width="1.2" stroke-dasharray="3 2"/>
+            <ellipse cx="14" cy="16" rx="6" ry="5" fill="#6c5ce7"/>
+            <circle cx="10" cy="11" r="2.5" fill="#a29bfe"/>
+            <circle cx="18" cy="11" r="2.5" fill="#a29bfe"/>
+            <circle cx="14" cy="14" r="2" fill="#ffeaa7"/>
+            <polygon points="8,9 9,5 12,8" fill="#6c5ce7"/>
+            <polygon points="20,9 19,5 16,8" fill="#6c5ce7"/>
         </svg>`
     };
 
-    const defaultIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-        <circle cx="12" cy="12" r="8" fill="#9b59b6" stroke="#fd79a8" stroke-width="1.5"/>
-        <circle cx="10" cy="9" r="2" fill="#ffffff" opacity="0.6"/>
+    const defaultIcon = `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
+        <circle cx="14" cy="14" r="10" fill="#9b59b6" stroke="#fd79a8" stroke-width="1.5"/>
+        <polygon points="14,6 16,11 21,12 17,16 18,21 14,18 10,21 11,16 7,12 12,11" fill="#f1c40f"/>
     </svg>`;
 </script>
 
 <div class="secret-tab">
+    <!-- Top Arcane Info Bar -->
     <div class="secret-info-bar">
-        <div class="info-text">
-            <span class="info-title">Постоянные Рунические Знания</span>
-            <span class="info-sub">Эти улучшения не сбрасываются даже после проведения Тёмного Ритуала!</span>
+        <div class="info-content">
+            <div class="info-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="#a29bfe" stroke-width="1.5"/>
+                    <polygon points="12,4 14,9 19,10 15,14 16,19 12,16 8,19 9,14 5,10 10,9" fill="#a29bfe"/>
+                </svg>
+            </div>
+            <div class="info-text">
+                <span class="info-title">Постоянные Рунические Знания</span>
+                <span class="info-sub">Каждое знание навсегда меняет правила мира и усиливает лавку даже после Тёмного Ритуала.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archmage Insight (Rewarded Ad Banner) -->
+    <div class="insight-banner" class:is-active={isBoosted}>
+        <div class="insight-left">
+            <div class="insight-badge-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+                    <circle cx="12" cy="12" r="9" fill="rgba(241, 196, 15, 0.2)" stroke="#f1c40f" stroke-width="1.5"/>
+                    <path d="M12 7 L12 13 L16 15" stroke="#ffeaa7" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="12" cy="12" r="2" fill="#f1c40f"/>
+                </svg>
+            </div>
+            <div class="insight-texts">
+                <div class="insight-title-row">
+                    <span class="insight-title">Озарение Архимага</span>
+                    {#if isBoosted}
+                        <span class="active-pill">+50% ЭФФЕКТ</span>
+                    {/if}
+                </div>
+                <span class="insight-desc">
+                    {#if isBoosted}
+                        Руны временно усилены на +50%! Осталось: <strong>{boostFormattedTime}</strong>
+                    {:else}
+                        Активируйте озарение на 30 минут: все эффекты рунических знаний усилятся на 50%!
+                    {/if}
+                </span>
+            </div>
+        </div>
+        
+        <div class="insight-action">
+            {#if !isBoosted}
+                <button type="button" class="insight-btn" on:click={triggerInsightReward}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" class="ad-icon">
+                        <rect x="3" y="5" width="18" height="14" rx="3" stroke="#fff" stroke-width="1.5"/>
+                        <polygon points="10,9 16,12 10,15" fill="#f1c40f"/>
+                    </svg>
+                    <span>Активировать</span>
+                </button>
+            {:else}
+                <div class="insight-timer-box">
+                    <span class="timer-digits">{boostFormattedTime}</span>
+                </div>
+            {/if}
         </div>
     </div>
     
+    <!-- List of Arcane Runes -->
     <div class="list">
         {#each $gameStore.secretUpgrades as upgrade}
             {@const cost = getCost(upgrade.baseCost, upgrade.costMultiplier, upgrade.level)}
             {@const isMax = upgrade.level >= upgrade.maxLevel}
             {@const canAfford = $gameStore.stardust >= cost}
+            {@const category = categoryLabels[upgrade.category || 'ritual'] || categoryLabels['ritual']}
             
             <div class="card" class:is-max={isMax}>
                 <div class="icon-wrap">
                     <span class="icon">{@html icons[upgrade.id] || defaultIcon}</span>
                 </div>
+                
                 <div class="info">
                     <div class="title-row">
-                        <h4 class="card-name">{upgrade.name}</h4>
+                        <div class="name-with-tag">
+                            <h4 class="card-name">{upgrade.name}</h4>
+                            <span class="category-chip" style="color: {category.color}; background: {category.bg}">
+                                {category.name}
+                            </span>
+                        </div>
                         <span class="level-tag" class:max-tag={isMax}>
                             {isMax ? 'МАКС' : `${upgrade.level} / ${upgrade.maxLevel}`}
                         </span>
                     </div>
-                    <p class="desc">{upgrade.description}</p>
+
+                    <p class="desc">
+                        {upgrade.description}
+                        {#if isBoosted && upgrade.level > 0}
+                            <span class="boost-bonus-text"> (+50% усилено)</span>
+                        {/if}
+                    </p>
+
                     <div class="progress-wrap">
                         <div class="bar">
                             <div class="fill" style="width: {(upgrade.level / upgrade.maxLevel) * 100}%"></div>
                         </div>
                     </div>
                 </div>
+
                 <div class="action-wrap">
                     <button 
                         type="button"
@@ -141,11 +277,29 @@
         padding-top: 4px;
     }
 
+    /* Info Bar */
     .secret-info-bar {
         background: rgba(155, 89, 182, 0.12);
         border: 1px solid rgba(162, 155, 254, 0.25);
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 10px 14px;
+    }
+
+    .info-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .info-icon {
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 6px rgba(162, 155, 254, 0.4));
+    }
+
+    .info-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
     }
 
     .info-title {
@@ -153,15 +307,124 @@
         font-size: 0.95rem;
         font-weight: 800;
         color: #a29bfe;
-        margin-bottom: 2px;
     }
 
     .info-sub {
         display: block;
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         color: #b2bec3;
+        line-height: 1.35;
     }
 
+    /* Archmage Insight Banner */
+    .insight-banner {
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.1) 0%, rgba(142, 68, 173, 0.15) 100%);
+        border: 1.5px solid rgba(241, 196, 15, 0.35);
+        border-radius: 14px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: border-color 0.3s, background 0.3s;
+    }
+
+    .insight-banner.is-active {
+        border-color: rgba(46, 204, 113, 0.55);
+        background: linear-gradient(135deg, rgba(46, 204, 113, 0.12) 0%, rgba(30, 144, 255, 0.1) 100%);
+    }
+
+    .insight-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .insight-badge-icon {
+        flex-shrink: 0;
+    }
+
+    .insight-texts {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .insight-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .insight-title {
+        font-size: 0.92rem;
+        font-weight: 900;
+        color: #ffeaa7;
+    }
+
+    .active-pill {
+        font-size: 0.68rem;
+        font-weight: 900;
+        background: rgba(46, 204, 113, 0.25);
+        border: 1px solid #2ecc71;
+        color: #2ecc71;
+        padding: 1px 6px;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .insight-desc {
+        font-size: 0.74rem;
+        color: #dfe6e9;
+        line-height: 1.3;
+    }
+
+    .insight-desc strong {
+        color: #ffeaa7;
+    }
+
+    .insight-action {
+        flex-shrink: 0;
+    }
+
+    .insight-btn {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 7px 12px;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 10px rgba(243, 156, 18, 0.35);
+        transition: transform 0.15s, filter 0.15s;
+    }
+
+    .insight-btn:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+    }
+
+    .insight-timer-box {
+        background: rgba(46, 204, 113, 0.15);
+        border: 1px solid rgba(46, 204, 113, 0.35);
+        padding: 6px 12px;
+        border-radius: 8px;
+    }
+
+    .timer-digits {
+        font-size: 0.88rem;
+        font-weight: 900;
+        color: #2ecc71;
+        letter-spacing: 1px;
+    }
+
+    /* List of Runes */
     .list {
         display: flex;
         flex-direction: column;
@@ -172,7 +435,7 @@
         background: rgba(255, 255, 255, 0.03);
         border: 1.5px solid rgba(255, 255, 255, 0.08);
         border-radius: 14px;
-        padding: 12px 14px;
+        padding: 11px 13px;
         display: flex;
         align-items: center;
         gap: 14px;
@@ -211,14 +474,29 @@
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        margin-bottom: 3px;
+        margin-bottom: 2px;
+    }
+
+    .name-with-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
     .card-name {
         margin: 0;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         font-weight: 800;
         color: #fff;
+    }
+
+    .category-chip {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.3px;
     }
 
     .level-tag {
@@ -229,6 +507,7 @@
         color: #a29bfe;
         padding: 1px 6px;
         border-radius: 6px;
+        flex-shrink: 0;
     }
 
     .level-tag.max-tag {
@@ -239,8 +518,13 @@
 
     .desc {
         margin: 0 0 6px;
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         color: #b2bec3;
+    }
+
+    .boost-bonus-text {
+        color: #2ecc71;
+        font-weight: 800;
     }
 
     .progress-wrap {
@@ -269,9 +553,9 @@
         background: linear-gradient(135deg, #8e44ad, #a29bfe);
         border: 1px solid #dcdde1;
         border-radius: 10px;
-        padding: 8px 14px;
+        padding: 8px 13px;
         color: #fff;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 800;
         cursor: pointer;
         min-width: 80px;
@@ -305,15 +589,23 @@
         gap: 5px;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 520px) {
         .card {
             flex-wrap: wrap;
+            gap: 10px;
         }
         .action-wrap {
             width: 100%;
         }
         .buy-btn {
             width: 100%;
+        }
+        .insight-banner {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .insight-btn {
+            justify-content: center;
         }
     }
 </style>

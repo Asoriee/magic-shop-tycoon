@@ -239,13 +239,23 @@ export async function loadGame(): Promise<void> {
                 });
             }
 
-            // Restore secret upgrades
+            // Restore secret upgrades with seamless migration
             if (!merged.secretUpgrades) {
                 merged.secretUpgrades = state.secretUpgrades;
             } else {
                 merged.secretUpgrades = state.secretUpgrades.map(defaultU => {
-                    const savedU = merged.secretUpgrades.find((u: any) => u.id === defaultU.id);
-                    return savedU ? { ...defaultU, level: savedU.level } : defaultU;
+                    let savedU = merged.secretUpgrades.find((u: any) => u.id === defaultU.id);
+                    // Legacy migrations
+                    if (!savedU && defaultU.id === 'crystal_transmute') {
+                        savedU = merged.secretUpgrades.find((u: any) => u.id === 'magnet');
+                    }
+                    if (!savedU && defaultU.id === 'archmage_heritage') {
+                        savedU = merged.secretUpgrades.find((u: any) => u.id === 'wallet');
+                    }
+                    if (!savedU && defaultU.id === 'cooldown_mastery') {
+                        savedU = merged.secretUpgrades.find((u: any) => u.id === 'alchemy');
+                    }
+                    return savedU ? { ...defaultU, level: Math.min(defaultU.maxLevel, savedU.level || 0) } : defaultU;
                 });
             }
             

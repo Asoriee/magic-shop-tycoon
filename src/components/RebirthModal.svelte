@@ -1,6 +1,6 @@
 <script lang="ts">
     import { tick } from 'svelte';
-    import { gameStore, formatNumber } from '../store';
+    import { gameStore, formatNumber, calculateEarnedStardust } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -13,9 +13,8 @@
     let modalEl: HTMLElement;
     let showConfirm = false;
 
-    $: hasTitanBonus = $gameStore?.unlockedCollections?.includes('titan_set') || false;
+    $: earnedStardust = calculateEarnedStardust($gameStore);
     $: rawStardust = Math.floor(Math.sqrt(($gameStore?.gold || 0) / 1_000_000));
-    $: earnedStardust = Math.floor(rawStardust * (hasTitanBonus ? 1.15 : 1));
     $: currentThreshold = Math.pow(rawStardust, 2) * 1_000_000;
     $: nextThreshold = Math.pow(rawStardust + 1, 2) * 1_000_000;
     $: goldNeededForNext = Math.max(0, nextThreshold - ($gameStore?.gold || 0));

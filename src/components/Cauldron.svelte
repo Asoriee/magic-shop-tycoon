@@ -46,15 +46,7 @@
         gameStore.addGold(clickValue);
         gameStore.updateQuestProgress('clicks', 1);
 
-        // Secret upgrade: Magnet (crystal drop chance)
-        const magnetLevel = $gameStore.secretUpgrades.find(u => u.id === 'magnet')?.level || 0;
-        const crystalChance = magnetLevel * 0.02; // 2% per level
-        let isCrystal = false;
-        
-        if (magnetLevel > 0 && Math.random() < crystalChance) {
-            crystals.update(c => c + 1);
-            isCrystal = true;
-        }
+        const isCrystal = false;
         
         // Bounce animation - juicy click micro-scaling (stronger on crit or overheat)
         const bounceScale = isCrit ? 0.82 : isOverheated ? 0.86 : 0.92;

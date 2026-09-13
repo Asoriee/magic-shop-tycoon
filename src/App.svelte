@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, tick } from 'svelte';
     import { 
         gameStore, 
         currentIdleIncome, 
@@ -16,7 +16,15 @@
         AVAILABLE_POTIONS,
         type Potion
     } from './store';
-    import { initYandexSdk, saveGame, isAdActive, showInterstitialAd } from './yandex-sdk';
+    import { 
+        initYandexSdk, 
+        saveGame, 
+        isAdActive, 
+        showInterstitialAd,
+        signalGameReady,
+        notifyGameplayStart,
+        notifyGameplayStop
+    } from './yandex-sdk';
     import Cauldron from './components/Cauldron.svelte';
     import OfflineIncomePopup from './components/OfflineIncomePopup.svelte';
     import ShopModal from './components/ShopModal.svelte';
@@ -96,12 +104,16 @@
         saveGame();
     }
 
+    let handleContextMenu: (e: MouseEvent) => void;
+
     function handleVisibilityChange() {
         if (document.hidden) {
             hiddenTimestamp = Date.now();
             gameStore.setLastSaveTime(hiddenTimestamp);
             saveGame();
+            notifyGameplayStop();
         } else {
+            notifyGameplayStart();
             if (hiddenTimestamp > 0) {
                 const awayMs = Date.now() - hiddenTimestamp;
                 hiddenTimestamp = 0;
@@ -115,6 +127,7 @@
     }
 
     function handleWindowFocus() {
+        notifyGameplayStart();
         if (hiddenTimestamp > 0) {
             const awayMs = Date.now() - hiddenTimestamp;
             hiddenTimestamp = 0;
@@ -133,6 +146,13 @@
         checkOfflineEarnings();
         gameStore.checkOrderSpawns();
         isReady = true;
+
+        await tick();
+        signalGameReady();
+        notifyGameplayStart();
+
+        handleContextMenu = (e: MouseEvent) => e.preventDefault();
+        window.addEventListener('contextmenu', handleContextMenu);
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('focus', handleWindowFocus);
@@ -154,8 +174,12 @@
 
     onDestroy(() => {
         if (gameLoop) clearInterval(gameLoop);
+        if (handleContextMenu) {
+            window.removeEventListener('contextmenu', handleContextMenu);
+        }
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleWindowFocus);
+        notifyGameplayStop();
     });
 
     function handleToggleSound() {

@@ -10,7 +10,7 @@
         gameStore, 
         formatNumber 
     } from '../store';
-    import { purchaseItem, showRewardedAd, saveGame } from '../yandex-sdk';
+    import { purchaseItem, showRewardedAd, saveGame, getProductDisplayPrice } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -268,7 +268,7 @@
                                     {#if isPurchasing}
                                         <span class="btn-spinner-sm"></span>
                                     {:else}
-                                        <span class="btn-yan-small">249 ЯН</span>
+                                        <span class="btn-yan-small">{getProductDisplayPrice('vip_status', '249 ЯН')}</span>
                                         <span class="btn-cta-small">Продлить (+30 д.)</span>
                                     {/if}
                                 </button>
@@ -283,7 +283,7 @@
                                 {#if isPurchasing}
                                     <span class="btn-spinner"></span>
                                 {:else}
-                                    <span class="btn-yan">249 ЯН</span>
+                                    <span class="btn-yan">{getProductDisplayPrice('vip_status', '249 ЯН')}</span>
                                     <span class="btn-cta">На 30 дней</span>
                                 {/if}
                             </button>
@@ -369,7 +369,7 @@
                         on:click={() => handleBuy('pack_crystals_100')} 
                         disabled={isPurchasing}
                     >
-                        100 ЯН
+                        {getProductDisplayPrice('pack_crystals_100', '100 ЯН')}
                     </button>
                 </div>
 
@@ -401,7 +401,7 @@
                         on:click={() => handleBuy('pack_crystals_300')} 
                         disabled={isPurchasing}
                     >
-                        250 ЯН
+                        {getProductDisplayPrice('pack_crystals_300', '250 ЯН')}
                     </button>
                 </div>
 
@@ -440,7 +440,7 @@
                         on:click={() => handleBuy('pack_crystals_1000')} 
                         disabled={isPurchasing}
                     >
-                        650 ЯН
+                        {getProductDisplayPrice('pack_crystals_1000', '650 ЯН')}
                     </button>
                 </div>
 

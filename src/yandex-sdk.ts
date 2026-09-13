@@ -13,6 +13,8 @@ import {
     type GameState 
 } from './store';
 
+import { setAdAudioMute } from './audio';
+
 declare global {
     interface Window {
         ysdk: any;
@@ -24,6 +26,7 @@ let player: any = null;
 let payments: any = null;
 let isAdPlaying = false;
 let lastInterstitialTime = 0;
+let catalogProducts: any[] = [];
 
 const LOCAL_STORAGE_KEY = 'magicShopTycoonSave';
 
@@ -43,7 +46,6 @@ export async function initYandexSdk() {
         }
 
         if (ysdk) {
-            ysdk.features.LoadingAPI?.ready();
             try {
                 player = await ysdk.getPlayer();
             } catch (e) {
@@ -58,16 +60,54 @@ export async function initYandexSdk() {
     await initPayments();
 }
 
+export function signalGameReady() {
+    if (ysdk?.features?.LoadingAPI?.ready) {
+        try {
+            ysdk.features.LoadingAPI.ready();
+            console.log('Yandex SDK: LoadingAPI.ready() signaled.');
+        } catch (e) {
+            console.warn('Failed to signal LoadingAPI.ready()', e);
+        }
+    }
+}
+
+export function notifyGameplayStart() {
+    if (ysdk?.features?.GameplayAPI?.start) {
+        try {
+            ysdk.features.GameplayAPI.start();
+        } catch (e) {}
+    }
+}
+
+export function notifyGameplayStop() {
+    if (ysdk?.features?.GameplayAPI?.stop) {
+        try {
+            ysdk.features.GameplayAPI.stop();
+        } catch (e) {}
+    }
+}
+
 // --- Payments API ---
 
 async function initPayments() {
     if (!ysdk) return;
     try {
         payments = await ysdk.getPayments({ signed: true });
+        try {
+            catalogProducts = await payments.getCatalog();
+        } catch (e) {
+            console.warn('Failed to fetch catalog', e);
+        }
         await checkPurchases();
     } catch (e) {
         console.warn('Payments API not available', e);
     }
+}
+
+export function getProductDisplayPrice(productId: string, fallback: string): string {
+    if (!catalogProducts || catalogProducts.length === 0) return fallback;
+    const found = catalogProducts.find((p: any) => p.id === productId);
+    return found?.price || fallback;
 }
 
 async function checkPurchases() {
@@ -328,10 +368,12 @@ export function showRewardedAd(
     if (!ysdk) {
         // Fallback for testing
         isAdPlaying = true;
+        setAdAudioMute(true);
         try { (ysdk as any)?.features?.GameplayAPI?.stop(); } catch(e) {}
         setTimeout(() => {
             onReward();
             isAdPlaying = false;
+            setAdAudioMute(false);
             try { (ysdk as any)?.features?.GameplayAPI?.start(); } catch(e) {}
             if (onClose) onClose();
         }, 1000);
@@ -343,18 +385,21 @@ export function showRewardedAd(
         callbacks: {
             onOpen: () => {
                 isAdPlaying = true;
+                setAdAudioMute(true);
             },
             onRewarded: () => {
                 onReward();
             },
             onClose: () => {
                 isAdPlaying = false;
+                setAdAudioMute(false);
                 try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
                 if (onClose) onClose();
             }, 
             onError: (e: any) => {
                 console.error('Error while showing rewarded ad:', e);
                 isAdPlaying = false;
+                setAdAudioMute(false);
                 try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
                 if (onError) onError(e);
                 else if (onClose) onClose();
@@ -380,10 +425,12 @@ export function showInterstitialAd(onClose?: () => void) {
     if (!ysdk) {
         // Fallback for testing
         isAdPlaying = true;
+        setAdAudioMute(true);
         try { (ysdk as any)?.features?.GameplayAPI?.stop(); } catch(e) {}
         setTimeout(() => {
             lastInterstitialTime = Date.now();
             isAdPlaying = false;
+            setAdAudioMute(false);
             try { (ysdk as any)?.features?.GameplayAPI?.start(); } catch(e) {}
             if (onClose) onClose();
         }, 1000);
@@ -395,18 +442,21 @@ export function showInterstitialAd(onClose?: () => void) {
         callbacks: {
             onOpen: () => {
                 isAdPlaying = true;
+                setAdAudioMute(true);
             },
             onClose: (wasShown: boolean) => {
                 if (wasShown) {
                     lastInterstitialTime = Date.now();
                 }
                 isAdPlaying = false;
+                setAdAudioMute(false);
                 try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
                 if (onClose) onClose();
             },
             onError: (e: any) => {
                 console.error('Error while showing interstitial ad:', e);
                 isAdPlaying = false;
+                setAdAudioMute(false);
                 try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
                 if (onClose) onClose();
             }

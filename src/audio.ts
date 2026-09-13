@@ -5,9 +5,56 @@ const savedMute = typeof localStorage !== 'undefined' ? localStorage.getItem('ms
 export const isSoundMuted = writable<boolean>(savedMute);
 
 let audioCtx: AudioContext | null = null;
+let isAdAudioSuppressed = false;
+
+export function suspendAudio(): void {
+    if (audioCtx && audioCtx.state === 'running') {
+        try {
+            audioCtx.suspend();
+        } catch (e) {}
+    }
+}
+
+export function resumeAudio(): void {
+    if (isAdAudioSuppressed || (typeof document !== 'undefined' && document.hidden) || get(isSoundMuted)) return;
+    if (audioCtx && audioCtx.state === 'suspended') {
+        try {
+            audioCtx.resume();
+        } catch (e) {}
+    }
+}
+
+export function setAdAudioMute(muted: boolean): void {
+    isAdAudioSuppressed = muted;
+    if (muted) {
+        suspendAudio();
+    } else {
+        resumeAudio();
+    }
+}
+
+if (typeof window !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            suspendAudio();
+        } else {
+            resumeAudio();
+        }
+    });
+
+    window.addEventListener('blur', () => {
+        suspendAudio();
+    });
+
+    window.addEventListener('focus', () => {
+        resumeAudio();
+    });
+}
 
 function getAudioContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
+    if (isAdAudioSuppressed || document.hidden || get(isSoundMuted)) return null;
+
     if (!audioCtx) {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioContextClass) {
@@ -26,7 +73,10 @@ export function toggleSound(): boolean {
     if (typeof localStorage !== 'undefined') {
         localStorage.setItem('mst_sound_muted', next ? 'true' : 'false');
     }
-    if (!next) {
+    if (next) {
+        suspendAudio();
+    } else {
+        resumeAudio();
         playCoinSound();
     }
     return next;

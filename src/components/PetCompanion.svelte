@@ -167,9 +167,6 @@
                 </g>
             </g>
         </svg>
-        <div class="companion-tag">
-            <span>{activePet.name}</span>
-        </div>
     </div>
 </div>
 
@@ -221,23 +218,6 @@
         pointer-events: none;
         will-change: transform, opacity;
         transform: translate(-50%, -50%); /* Center effect on its coords */
-    }
-
-    .companion-tag {
-        position: absolute;
-        bottom: 2px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(26, 17, 43, 0.88);
-        border: 1px solid rgba(255, 215, 0, 0.45);
-        border-radius: 10px;
-        padding: 2px 8px;
-        font-size: 10px;
-        font-weight: 700;
-        color: #ffd700;
-        white-space: nowrap;
-        pointer-events: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.6);
     }
     
     @media (min-width: 1200px) and (min-height: 750px) {

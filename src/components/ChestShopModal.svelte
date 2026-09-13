@@ -13,6 +13,7 @@
         formatNumber 
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import { playSuccessSound, playLevelUpSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -283,6 +284,11 @@
         // Step 3: loot cards
         phase = 'loot';
         cardEls = [];
+        if (openingChestType === 'astral' || openingChestType === 'titan') {
+            playLevelUpSound();
+        } else {
+            playSuccessSound();
+        }
         await tick();
 
         await new Promise<void>(resolve => {

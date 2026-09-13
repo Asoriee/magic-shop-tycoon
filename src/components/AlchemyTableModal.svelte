@@ -11,6 +11,7 @@
         type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
+    import { playSuccessSound, playOverheatSizzle, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -134,6 +135,7 @@
         if (result.status === 'success') {
             slots = [null, null, null];
             lastResonanceMsg = null;
+            playSuccessSound();
             gsap.timeline()
                 .to(cauldronEl, { y: -22, scale: 1.14, duration: 0.18, ease: 'power2.out' })
                 .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.55, ease: 'elastic.out(1, 0.5)' });
@@ -143,6 +145,7 @@
             showToast(`Успех! Сварено «${result.recipeName}»!${doubleText}`, 'success', 3500);
             await saveGame();
         } else if (result.status === 'warning') {
+            playOverheatSizzle();
             const left = Math.max(0, result.attemptsLeft ?? 1);
             const matches = result.matches ?? 0;
             gsap.to(cauldronEl, { keyframes: [{ x:-7, duration:.07 },{ x:7, duration:.07 },{ x:-5, duration:.07 },{ x:5, duration:.07 },{ x:0, duration:.06 }] });
@@ -158,6 +161,7 @@
             // Ингредиенты остаются в слотах, чтобы игрок помнил состав!
             lastResonanceMsg = null;
             nowTime = Date.now();
+            playOverheatSizzle();
             gsap.to(cauldronEl, { keyframes: [{ x:-14, duration:.07 },{ x:14, duration:.07 },{ x:-12, duration:.07 },{ x:12, duration:.07 },{ x:-10, duration:.07 },{ x:10, duration:.07 },{ x:0, duration:.07 }] });
             gsap.fromTo(flashEl, { opacity: 0.7, backgroundColor: 'rgba(231,76,60,0.6)' }, { opacity: 0, duration: 0.8 });
             showToast(`Котёл перегрелся! Ингредиенты сохранены. Время остывания: 2 минуты.`, 'burn', 5000);
@@ -175,6 +179,7 @@
         }
         const res = quickBrewRecipe(recipeId);
         if (res.success) {
+            playSuccessSound();
             if (cauldronEl) {
                 gsap.timeline()
                     .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
@@ -193,6 +198,7 @@
             coolDownCauldronAd();
             lastResonanceMsg = null;
             nowTime = Date.now();
+            playCoinSound();
             showToast('Котёл благополучно остужен ледяной магией!', 'success');
             saveGame();
         }, undefined, () => {
@@ -208,6 +214,7 @@
         if (coolDownCauldronCrystals(cost)) {
             lastResonanceMsg = null;
             nowTime = Date.now();
+            playCoinSound();
             showToast(`Котёл мгновенно остужен за ${cost} кристаллов!`, 'success');
             await saveGame();
         }
@@ -215,6 +222,7 @@
 
     async function handleHint(recipeId: string) {
         if (buyRecipeHint(recipeId)) {
+            playCoinSound();
             showToast('Ингредиент рецепта раскрыт за кристаллы!', 'success', 2000);
             await saveGame();
         } else {

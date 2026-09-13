@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { gameStore, formatNumber } from '../store';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
+    import { playSuccessSound, playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
 
@@ -30,6 +31,7 @@
 
     function buySecret(id: string, cost: number) {
         if ($gameStore.stardust >= cost) {
+            playSuccessSound();
             gameStore.buySecretUpgrade(id);
             saveGame();
             const btn = buttons[id];
@@ -58,6 +60,7 @@
 
     function triggerInsightReward() {
         showRewardedAd(() => {
+            playLevelUpSound();
             gameStore.activateSecretKnowledgeBoost(30 * 60 * 1000);
             saveGame();
         });

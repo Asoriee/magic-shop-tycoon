@@ -12,6 +12,7 @@
         type Upgrade 
     } from '../store';
     import gsap from 'gsap';
+    import { playCoinSound, playLevelUpSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -22,6 +23,7 @@
     let buyMode: '1' | '10' | 'max' = '1';
 
     let buttons: Record<string, HTMLButtonElement> = {};
+    let lastTier = $milestoneInfo?.tier || 0;
 
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === 'Escape' && isOpen) {
@@ -36,6 +38,12 @@
         if (bulk.canAfford && bulk.count > 0) {
             gameStore.buyUpgradeBulk(upgrade.id, bulk.count, bulk.totalCost);
             gameStore.updateQuestProgress('buy_upgrades', bulk.count);
+            playCoinSound();
+
+            if ($milestoneInfo && $milestoneInfo.tier > lastTier) {
+                lastTier = $milestoneInfo.tier;
+                playLevelUpSound();
+            }
             
             if (btn) {
                 gsap.fromTo(btn, 

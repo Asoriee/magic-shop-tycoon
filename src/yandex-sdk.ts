@@ -232,6 +232,9 @@ export async function loadGame(): Promise<void> {
             if (!merged.petLevels || typeof merged.petLevels !== 'object') {
                 merged.petLevels = { 'pet_rat': 1 };
             }
+            if (!merged.activeCompanionId) {
+                merged.activeCompanionId = merged.unlockedPets?.[0] || 'pet_rat';
+            }
             
             // Restore missing upgrades from default state
             if (!merged.upgrades) {

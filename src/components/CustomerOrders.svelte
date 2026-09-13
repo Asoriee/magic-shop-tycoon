@@ -13,6 +13,7 @@
         ORDER_SPAWN_INTERVAL_MS
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import { playCoinSound, playSuccessSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isEmbedded = false;
@@ -140,12 +141,22 @@
                     ease: 'power2.in',
                     onComplete: () => {
                         gameStore.completeOrder(order.id);
+                        if (order.isVip || order.orderType === 'potion' || order.rewardChest) {
+                            playSuccessSound();
+                        } else {
+                            playCoinSound();
+                        }
                         showToast(`Заказ «${order.name}» сдан! +${formatNumber(dynGold)} золота${crystalTxt}${chestName}`);
                         saveGame();
                     }
                 });
             } else {
                 gameStore.completeOrder(order.id);
+                if (order.isVip || order.orderType === 'potion' || order.rewardChest) {
+                    playSuccessSound();
+                } else {
+                    playCoinSound();
+                }
                 showToast(`Заказ «${order.name}» сдан! +${formatNumber(dynGold)} золота${crystalTxt}${chestName}`);
                 saveGame();
             }

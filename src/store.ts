@@ -139,6 +139,7 @@ export interface Pet {
     icon: string;
     description: string;
     isCollectionExclusive?: boolean;
+    expeditionHours?: number;
 }
 
 export interface ActiveExpedition {
@@ -226,6 +227,7 @@ export interface GameState {
     secretKnowledgeBoostUntil?: number;
     petLevels?: Record<string, number>;
     totalStardustEarned?: number;
+    activeCompanionId?: string;
 }
 
 // ============================================================
@@ -1555,6 +1557,7 @@ export const AVAILABLE_PETS: Pet[] = [
         id: 'pet_rat',
         name: 'Лавочная Крыса',
         rarity: 'common',
+        expeditionHours: 1,
         description: 'Шустрый помощник, вынюхивает базовые травы и монетки (1 час).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><ellipse cx="20" cy="22" rx="12" ry="9" fill="#7f8c8d"/><circle cx="28" cy="17" r="3.5" fill="#bdc3c7"/><ellipse cx="14" cy="14" rx="4" ry="5" fill="#ffb8b8"/><circle cx="26" cy="19" r="1.5" fill="#2d3436"/><path d="M8 22 Q4 20 2 26" stroke="#e17055" stroke-width="1.5" fill="none"/></svg>`
     },
@@ -1562,35 +1565,88 @@ export const AVAILABLE_PETS: Pet[] = [
         id: 'pet_slime',
         name: 'Слайм',
         rarity: 'common',
+        expeditionHours: 1,
         description: 'Приносит немного базовых ингредиентов (1 час).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M20 10 Q35 15 35 30 Q35 35 20 35 Q5 35 5 30 Q5 15 20 10Z" fill="#55efc4" opacity="0.8"/><circle cx="15" cy="22" r="3" fill="#2d3436"/><circle cx="25" cy="22" r="3" fill="#2d3436"/></svg>`
+    },
+    {
+        id: 'pet_bat',
+        name: 'Ночной Нетопырь',
+        rarity: 'common',
+        expeditionHours: 2,
+        description: 'Бесшумный ночной летун. Выискивает пещерные грибы, тёмный мох и монетки (2 часа).',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="batWingGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4834d4"/><stop offset="100%" stop-color="#19102c"/></radialGradient></defs><path d="M20 22 C14 12 4 15 2 24 C8 24 13 28 16 32 C18 28 19 24 20 22 Z" fill="url(#batWingGrad)"/><path d="M20 22 C26 12 36 15 38 24 C32 24 27 28 24 32 C22 28 21 24 20 22 Z" fill="url(#batWingGrad)"/><ellipse cx="20" cy="24" rx="6" ry="8" fill="#2c2c54"/><polygon points="16,18 14,8 19,16" fill="#474787"/><polygon points="24,18 26,8 21,16" fill="#474787"/><circle cx="18" cy="22" r="1.5" fill="#2ed573"/><circle cx="22" cy="22" r="1.5" fill="#2ed573"/><polygon points="18,27 19,25 20,27" fill="#fff"/><polygon points="20,27 21,25 22,27" fill="#fff"/></svg>`
+    },
+    {
+        id: 'pet_frog',
+        name: 'Болотная Квакуша',
+        rarity: 'common',
+        expeditionHours: 2,
+        description: 'Знахарка топких болот, приносит лечебные травы и влажный мох (2 часа).',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="frogGrad" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#2ed573"/><stop offset="70%" stop-color="#26af5f"/><stop offset="100%" stop-color="#145a32"/></radialGradient></defs><ellipse cx="20" cy="25" rx="13" ry="10" fill="url(#frogGrad)"/><circle cx="13" cy="16" r="5.5" fill="#2ed573"/><circle cx="27" cy="16" r="5.5" fill="#2ed573"/><circle cx="13" cy="16" r="3.5" fill="#ffd32a"/><circle cx="27" cy="16" r="3.5" fill="#ffd32a"/><circle cx="13" cy="16" r="1.8" fill="#1e272e"/><circle cx="27" cy="16" r="1.8" fill="#1e272e"/><path d="M15 26 Q20 30 25 26" stroke="#145a32" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="10" cy="25" r="2" fill="#ff7675" opacity="0.6"/><circle cx="30" cy="25" r="2" fill="#ff7675" opacity="0.6"/><polygon points="18,11 20,7 22,11" fill="#f1c40f"/></svg>`
     },
     {
         id: 'pet_spirit',
         name: 'Лесной Дух',
         rarity: 'rare',
-        description: 'Может найти редкие травы (3 часа).',
+        expeditionHours: 3,
+        description: 'Может найти редкие лесные травы и эфирные капли (3 часа).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><ellipse cx="20" cy="20" rx="10" ry="15" fill="#74b9ff" opacity="0.7"/><circle cx="16" cy="18" r="2" fill="white"/><circle cx="24" cy="18" r="2" fill="white"/><path d="M20 25 Q20 35 10 38" stroke="#74b9ff" stroke-width="2" fill="none"/></svg>`
+    },
+    {
+        id: 'pet_owl',
+        name: 'Астральная Сова',
+        rarity: 'rare',
+        expeditionHours: 4,
+        description: 'Мудрая вестница ночи, находит редкие свитки и тайные травы (4 часа).',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="owlGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#686de0"/><stop offset="60%" stop-color="#4834d4"/><stop offset="100%" stop-color="#130f40"/></radialGradient></defs><ellipse cx="20" cy="23" rx="11" ry="13" fill="url(#owlGrad)"/><path d="M9 16 Q6 28 13 32 Q10 24 9 16 Z" fill="#30336b"/><path d="M31 16 Q34 28 27 32 Q30 24 31 16 Z" fill="#30336b"/><circle cx="15" cy="18" r="5" fill="#130f40" stroke="#f0932b" stroke-width="1.4"/><circle cx="25" cy="18" r="5" fill="#130f40" stroke="#f0932b" stroke-width="1.4"/><circle cx="15" cy="18" r="2.5" fill="#ffbe76"/><circle cx="25" cy="18" r="2.5" fill="#ffbe76"/><circle cx="15" cy="18" r="1.2" fill="#130f40"/><circle cx="25" cy="18" r="1.2" fill="#130f40"/><polygon points="18,22 22,22 20,27" fill="#f0932b"/><polygon points="12,13 14,8 16,13" fill="#686de0"/><polygon points="28,13 26,8 24,13" fill="#686de0"/></svg>`
+    },
+    {
+        id: 'pet_fox',
+        name: 'Огненный Лис',
+        rarity: 'rare',
+        expeditionHours: 5,
+        description: 'Шустрый пламенный зверёк, вынюхивает янтарь, серу и самоцветы (5 часов).',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="foxGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffbe76"/><stop offset="40%" stop-color="#f0932b"/><stop offset="100%" stop-color="#eb4d4b"/></radialGradient></defs><path d="M26 28 Q38 28 36 14 Q32 20 26 22 Z" fill="url(#foxGrad)"/><circle cx="36" cy="15" r="3" fill="#ffffff"/><polygon points="12,18 10,7 18,14" fill="#eb4d4b"/><polygon points="28,18 30,7 22,14" fill="#eb4d4b"/><polygon points="12,18 11,10 16,14" fill="#fff"/><polygon points="28,18 29,10 24,14" fill="#fff"/><polygon points="10,17 30,17 20,31" fill="url(#foxGrad)"/><polygon points="14,24 26,24 20,31" fill="#ffffff"/><circle cx="16" cy="20" r="1.8" fill="#2c3e50"/><circle cx="24" cy="20" r="1.8" fill="#2c3e50"/><polygon points="19,29 21,29 20,31" fill="#1e272e"/></svg>`
     },
     {
         id: 'pet_gryphon',
         name: 'Мини-Грифон',
         rarity: 'epic',
-        description: 'Приносит ценные артефакты с гор (6 часов).',
+        expeditionHours: 6,
+        description: 'Приносит ценные артефакты и сокровища с гор (6 часов).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M10 20 L20 10 L30 20 L20 30 Z" fill="#f1c40f"/><circle cx="15" cy="18" r="2" fill="black"/><path d="M20 20 L35 10 L30 25 Z" fill="#e67e22"/></svg>`
+    },
+    {
+        id: 'pet_golem',
+        name: 'Хрустальный Голем',
+        rarity: 'epic',
+        expeditionHours: 8,
+        description: 'Несокрушимый страж недр, откалывает кристаллы и приносит ларец чародея (8 часов).',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><linearGradient id="golemRock" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a4b0be"/><stop offset="50%" stop-color="#57606f"/><stop offset="100%" stop-color="#2f3542"/></linearGradient><filter id="golemGlow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points="6,24 14,14 26,14 34,24 28,34 12,34" fill="url(#golemRock)" stroke="#2f3542" stroke-width="1.5"/><polygon points="15,14 20,8 25,14" fill="#747d8c" stroke="#2f3542" stroke-width="1"/><circle cx="16" cy="20" r="2.2" fill="#00d2d3" filter="url(#golemGlow)"/><circle cx="24" cy="20" r="2.2" fill="#00d2d3" filter="url(#golemGlow)"/><polygon points="20,24 23,28 20,32 17,28" fill="#00d2d3" filter="url(#golemGlow)"/></svg>`
     },
     {
         id: 'pet_dragon',
         name: 'Дракончик',
         rarity: 'legendary',
+        expeditionHours: 12,
         description: 'Легендарные сокровища и самоцветы (12 часов)!',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="#d63031"/><circle cx="15" cy="20" r="2" fill="#f1c40f"/><circle cx="25" cy="20" r="2" fill="#f1c40f"/><path d="M5 25 L10 10 L15 25 Z" fill="#ff7675"/><path d="M35 25 L30 10 L25 25 Z" fill="#ff7675"/></svg>`
+    },
+    {
+        id: 'pet_manticore',
+        name: 'Крылатая Мантикора',
+        rarity: 'legendary',
+        expeditionHours: 14,
+        description: 'Грозная владычица пустошей, приносит великие астральные сокровища и россыпи кристаллов (14 часов)!',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="manticoreGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff7675"/><stop offset="60%" stop-color="#d63031"/><stop offset="100%" stop-color="#540808"/></radialGradient><filter id="manticoreGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M20 20 C10 8 2 14 4 26 C10 24 15 22 20 24 Z" fill="#2d3436" stroke="#d63031" stroke-width="1"/><path d="M20 20 C30 8 38 14 36 26 C30 24 25 22 20 24 Z" fill="#2d3436" stroke="#d63031" stroke-width="1"/><path d="M20 30 Q34 38 34 22 Q34 16 30 14" fill="none" stroke="#e17055" stroke-width="2.5" stroke-linecap="round"/><polygon points="30,12 33,16 28,15" fill="#f1c40f" filter="url(#manticoreGlow)"/><circle cx="20" cy="20" r="9" fill="#e67e22"/><ellipse cx="20" cy="22" rx="7" ry="9" fill="url(#manticoreGrad)"/><circle cx="20" cy="16" r="6" fill="#c0392b"/><polygon points="16,13 14,6 18,10" fill="#f1c40f"/><polygon points="24,13 26,6 22,10" fill="#f1c40f"/><circle cx="18" cy="16" r="1.5" fill="#00d2d3"/><circle cx="22" cy="16" r="1.5" fill="#00d2d3"/></svg>`
     },
     {
         id: 'pet_moon_cat',
         name: 'Лунная Пантера',
         rarity: 'legendary',
         isCollectionExclusive: true,
+        expeditionHours: 8,
         description: 'Мистический хранитель Лунного Круга. Приносит ночные самоцветы и редкие эссенции.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="moonCatGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a29bfe"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1035"/></radialGradient></defs><ellipse cx="20" cy="22" rx="10" ry="12" fill="url(#moonCatGrad)"/><circle cx="20" cy="12" r="7" fill="#2d134d"/><polygon points="14,10 13,3 18,7" fill="#6c5ce7"/><polygon points="26,10 27,3 22,7" fill="#6c5ce7"/><ellipse cx="17" cy="12" rx="1.5" ry="2.2" fill="#ffeaa7"/><ellipse cx="23" cy="12" rx="1.5" ry="2.2" fill="#ffeaa7"/><path d="M20 7 Q23 9 21 12" stroke="#f1c40f" stroke-width="1.2" fill="none"/></svg>`
     },
@@ -1599,6 +1655,7 @@ export const AVAILABLE_PETS: Pet[] = [
         name: 'Астральный Дракончик',
         rarity: 'legendary',
         isCollectionExclusive: true,
+        expeditionHours: 12,
         description: 'Уникальный питомец Сета Архимага. Находит редчайшие материалы из пустоты.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="astralGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#9b59b6"/><stop offset="100%" stop-color="#2c3e50"/></radialGradient></defs><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="url(#astralGrad)"/><circle cx="15" cy="20" r="2" fill="#00cec9"/><circle cx="25" cy="20" r="2" fill="#00cec9"/><path d="M5 25 L10 10 L15 25 Z" fill="#6c5ce7"/><path d="M35 25 L30 10 L25 25 Z" fill="#6c5ce7"/></svg>`
     },
@@ -1607,6 +1664,7 @@ export const AVAILABLE_PETS: Pet[] = [
         name: 'Солнечный Феникс',
         rarity: 'legendary',
         isCollectionExclusive: true,
+        expeditionHours: 12,
         description: 'Легендарный хранитель пламени. Экспедиция приносит редчайшие астральные сундуки и кристаллы.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="phoenixBodyGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#e17055"/><stop offset="100%" stop-color="#d63031"/></radialGradient></defs><path d="M20 28 Q15 38 8 36 Q18 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q25 38 32 36 Q22 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q20 40 20 40 Q20 32 20 28Z" fill="#f1c40f"/><path d="M20 18 C14 8 4 12 6 22 C10 24 16 22 20 24 Z" fill="#ff7675"/><path d="M20 18 C26 8 36 12 34 22 C30 24 24 22 20 24 Z" fill="#ff7675"/><ellipse cx="20" cy="20" rx="6" ry="9" fill="url(#phoenixBodyGrad)"/><circle cx="20" cy="11" r="5" fill="#f1c40f"/><path d="M20 6 L18 10 L22 10 Z" fill="#d63031"/><path d="M16 8 L18 11 L16 12 Z" fill="#e67e22"/><path d="M24 8 L22 11 L24 12 Z" fill="#e67e22"/><circle cx="18" cy="11" r="1.2" fill="#2d3436"/><circle cx="22" cy="11" r="1.2" fill="#2d3436"/><polygon points="19,13 21,13 20,16" fill="#d35400"/></svg>`
     },
@@ -1615,6 +1673,7 @@ export const AVAILABLE_PETS: Pet[] = [
         name: 'Эфирный Грифон',
         rarity: 'legendary',
         isCollectionExclusive: true,
+        expeditionHours: 16,
         description: 'Мифический страж вечности и пустоты. Экспедиция гарантирует высший астральный сундук и самоцветы.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="voidTitanGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#81ecec"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1347"/></radialGradient></defs><path d="M20 18 C12 6 3 10 5 22 C11 22 16 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><path d="M20 18 C28 6 37 10 35 22 C29 22 24 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><ellipse cx="20" cy="22" rx="7" ry="10" fill="url(#voidTitanGrad)"/><path d="M15 28 L14 36 M25 28 L26 36" stroke="#00cec9" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="12" r="6" fill="#4834d4"/><path d="M15 10 L12 4 L17 8 Z" fill="#00d2d3"/><path d="M25 10 L28 4 L23 8 Z" fill="#00d2d3"/><polygon points="18,14 22,14 20,18" fill="#ffeaa7"/><circle cx="17" cy="11" r="1.5" fill="#00ffff"/><circle cx="23" cy="11" r="1.5" fill="#00ffff"/><circle cx="20" cy="22" r="2" fill="#fff"/></svg>`
     }
@@ -1768,7 +1827,8 @@ const defaultState: GameState = {
     recipeAdHintsUsed: {},
     alchemyBrewsCount: 0,
     totalStardustEarned: 0,
-    petLevels: { 'pet_rat': 1 }
+    petLevels: { 'pet_rat': 1 },
+    activeCompanionId: 'pet_rat'
 };
 
 // --- Premium stores ---
@@ -2386,7 +2446,8 @@ function createGameStore() {
             return state;
         }),
         claimDragonGift: () => update(state => ({ ...state, lastDragonGiftTime: Date.now() })),
-        claimFreeTimeSkip: () => update(state => ({ ...state, lastFreeTimeSkipTime: Date.now() }))
+        claimFreeTimeSkip: () => update(state => ({ ...state, lastFreeTimeSkipTime: Date.now() })),
+        setActiveCompanion: (petId: string) => update(state => ({ ...state, activeCompanionId: petId }))
     };
 }
 

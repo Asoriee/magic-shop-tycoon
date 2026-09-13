@@ -3,6 +3,7 @@
     import gsap from 'gsap';
     import { gameStore, isVip, formatNumber } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import { playCoinSound, playLevelUpSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -56,6 +57,7 @@
     function handleClaimRegular() {
         if (isClaiming) return;
         isClaiming = true;
+        playCoinSound();
         gameStore.addGold(offlineGold);
         saveGame();
         closeModal();
@@ -66,6 +68,7 @@
         isClaiming = true;
 
         showRewardedAd(() => {
+            playLevelUpSound();
             gameStore.addGold(offlineGold * 2);
             gameStore.updateQuestProgress('watch_ads', 1);
             saveGame();

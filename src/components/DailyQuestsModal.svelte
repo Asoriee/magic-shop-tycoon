@@ -10,6 +10,7 @@
         type QuestDifficulty 
     } from '../store';
     import { saveGame } from '../yandex-sdk';
+    import { playCoinSound, playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
 
@@ -96,6 +97,7 @@
     }
 
     function claim(id: string) {
+        playCoinSound();
         const btn = claimButtons[id];
         if (btn) {
             gsap.to(btn, {
@@ -115,6 +117,7 @@
     }
 
     function claimDailyMastery() {
+        playLevelUpSound();
         gameStore.claimDailyBonus();
         saveGame();
     }

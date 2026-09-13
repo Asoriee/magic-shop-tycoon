@@ -2,6 +2,7 @@
     import { tick } from 'svelte';
     import { gameStore, formatNumber, calculateEarnedStardust } from '../store';
     import { saveGame } from '../yandex-sdk';
+    import { playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
 
@@ -48,6 +49,7 @@
 
     function confirmRebirth() {
         if (earnedStardust > 0) {
+            playLevelUpSound();
             gameStore.performRebirth();
             saveGame();
             showConfirm = false;

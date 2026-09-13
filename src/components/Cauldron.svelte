@@ -2,13 +2,14 @@
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
     import { gameStore, currentClickPower, critChance, heatBonusLevel, crystals, formatNumber } from '../store';
-    import { playCauldronBubble } from '../audio';
+    import { playCauldronBubble, playOverheatSizzle } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
     
     let cauldronGroup: SVGGElement;
 
     let heat = 0; // 0 to 100
     let decayInterval: any;
+    let prevOverheated = false;
 
     onMount(() => {
         decayInterval = setInterval(() => {
@@ -26,6 +27,13 @@
 
     $: comboMultiplier = 1 + (heat / 100) * (1.0 + ($heatBonusLevel * 0.25));
     $: isOverheated = heat >= 85;
+
+    $: {
+        if (isOverheated && !prevOverheated) {
+            playOverheatSizzle();
+        }
+        prevOverheated = isOverheated;
+    }
 
     // Use a localized array for tracking click effects
     let clickEffects: { id: number, x: number, y: number, value: number, offsetX: number, isCrystal: boolean, isCrit: boolean, isCombo: boolean }[] = [];

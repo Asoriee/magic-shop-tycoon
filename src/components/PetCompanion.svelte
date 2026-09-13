@@ -1,26 +1,28 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
-    import { currentIdleIncome } from '../store';
+    import { gameStore, currentIdleIncome, AVAILABLE_PETS } from '../store';
+    import { playCauldronBubble } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     let petNode: SVGGElement;
     let bodyGroup: SVGGElement;
-    let wingsGroup: SVGGElement;
-    let eyesGroup: SVGGElement;
 
     let effects: { id: number, type: 'coin' | 'heart', x: number, y: number }[] = [];
     let effectIdCounter = 0;
     
     let idleLoop: any;
-    let delayedBlink: gsap.core.Tween | null = null;
+
+    $: activePet = AVAILABLE_PETS.find(p => p.id === $gameStore.activeCompanionId) 
+        || AVAILABLE_PETS.find(p => p.id === ($gameStore.unlockedPets?.[0] || 'pet_rat')) 
+        || AVAILABLE_PETS[0];
 
     onMount(() => {
         // 1. Hovering animation (entire pet)
         if (petNode) {
             gsap.to(petNode, {
-                y: -15,
-                duration: 2,
+                y: -12,
+                duration: 2.2,
                 yoyo: true,
                 repeat: -1,
                 ease: "sine.inOut"
@@ -30,8 +32,9 @@
         // 2. Breathing animation (body scales slightly)
         if (bodyGroup) {
             gsap.to(bodyGroup, {
-                scaleY: 1.05,
-                duration: 1.5,
+                scaleY: 1.06,
+                scaleX: 0.97,
+                duration: 1.6,
                 yoyo: true,
                 repeat: -1,
                 transformOrigin: "center bottom",
@@ -39,48 +42,29 @@
             });
         }
 
-        // 3. Blinking animation (random interval)
-        const blink = () => {
-            if (!eyesGroup) return;
-            gsap.to(eyesGroup, {
-                scaleY: 0.1,
-                duration: 0.1,
-                yoyo: true,
-                repeat: 1,
-                transformOrigin: "center center",
-                onComplete: () => {
-                    if (eyesGroup) {
-                        delayedBlink = gsap.delayedCall(Math.random() * 4 + 3, blink);
-                    }
-                }
-            });
-        };
-        delayedBlink = gsap.delayedCall(2, blink);
-
-        // Passive Income Tick listener (checks every second)
+        // Passive Income Tick listener (checks every 1.5 seconds)
         idleLoop = setInterval(() => {
             if ($currentIdleIncome > 0) {
-                flapWingsAndDropCoin();
+                dropCoin();
             }
-        }, 1000);
+        }, 1500);
     });
 
     onDestroy(() => {
         if (idleLoop) clearInterval(idleLoop);
-        if (delayedBlink) delayedBlink.kill();
-        const targets = [petNode, bodyGroup, wingsGroup, eyesGroup].filter(Boolean);
+        const targets = [petNode, bodyGroup].filter(Boolean);
         if (targets.length) gsap.killTweensOf(targets);
     });
 
-    function flapWingsAndDropCoin() {
-        if (!wingsGroup) return;
-        // Quick wing flap to visualize income
-        gsap.to(wingsGroup, {
-            rotation: 15,
-            duration: 0.1,
+    function dropCoin() {
+        if (!petNode) return;
+        // Cute jump
+        gsap.to(petNode, {
+            y: -18,
+            duration: 0.15,
             yoyo: true,
             repeat: 1,
-            transformOrigin: "center center"
+            ease: "power1.out"
         });
 
         // Drop coin effect
@@ -89,10 +73,11 @@
 
     function handlePetClick() {
         if (!petNode) return;
+        playCauldronBubble();
         // Easter egg flip
         gsap.to(petNode, {
             rotation: "+=360",
-            duration: 0.5,
+            duration: 0.55,
             ease: "back.out(1.5)",
             transformOrigin: "center center"
         });
@@ -101,20 +86,18 @@
     }
 
     function addEffect(type: 'coin' | 'heart') {
-        if (effects.length >= 5) return; // prevent memory leak from spam
+        if (effects.length >= 6) return; // prevent memory leak from spam
         const id = effectIdCounter++;
-        // Start effect from the center of the pet container
         effects = [...effects, { id, type, x: 70, y: 70 }];
     }
 
     function animateEffect(node: HTMLElement, { type, id }: { type: 'coin' | 'heart', id: number }) {
         if (!node) return;
         if (type === 'coin') {
-            // Coin drops down and right into the cauldron
             const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 769;
             gsap.to(node, {
-                y: isDesktop ? 150 : 120, // Move down towards cauldron
-                x: isDesktop ? 150 : 120, // Move right towards cauldron
+                y: isDesktop ? 150 : 120,
+                x: isDesktop ? 150 : 120,
                 opacity: 0,
                 duration: 0.85,
                 ease: "power2.in",
@@ -123,7 +106,6 @@
                 }
             });
         } else {
-            // Heart floats up and fades
             gsap.to(node, {
                 y: -80,
                 opacity: 0,
@@ -163,50 +145,31 @@
         {/each}
     </div>
 
-    <!-- The Pet SVG (Magic Bat) -->
+    <!-- The Companion SVG -->
     <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="pet-clickable" on:click={handlePetClick} role="button" tabindex="0">
+    <div 
+        class="pet-clickable" 
+        on:click={handlePetClick} 
+        role="button" 
+        tabindex="0"
+        title="{activePet.name} (нажмите, чтобы погладить)"
+    >
         <svg width="140" height="140" viewBox="0 0 140 140">
             <g bind:this={petNode} class="pet-group">
-                <!-- Shadow/Glow behind the bat -->
-                <circle cx="70" cy="70" r="35" fill="rgba(155, 89, 182, 0.4)" filter="blur(12px)"/>
+                <!-- Aura glow -->
+                <circle cx="70" cy="70" r="38" fill="rgba(155, 89, 182, 0.35)" filter="blur(10px)"/>
                 
-                <!-- Wings Group -->
-                <g bind:this={wingsGroup}>
-                    <!-- Left Wing -->
-                    <path d="M 60 70 Q 25 35 5 55 Q 20 75 30 85 Q 45 80 60 75 Z" fill="#2c3e50" stroke="#34495e" stroke-width="2"/>
-                    <!-- Right Wing -->
-                    <path d="M 80 70 Q 115 35 135 55 Q 120 75 110 85 Q 95 80 80 75 Z" fill="#2c3e50" stroke="#34495e" stroke-width="2"/>
-                </g>
-                
-                <!-- Body Group -->
-                <g bind:this={bodyGroup}>
-                    <!-- Body -->
-                    <ellipse cx="70" cy="75" rx="18" ry="22" fill="#34495e"/>
-                    <ellipse cx="70" cy="80" rx="12" ry="14" fill="#2c3e50"/>
-                    <!-- Ears -->
-                    <path d="M 57 60 L 50 35 L 67 50 Z" fill="#2c3e50"/>
-                    <path d="M 83 60 L 90 35 L 73 50 Z" fill="#2c3e50"/>
-                    <path d="M 54 45 L 61 52" stroke="#e74c3c" stroke-width="1.5" opacity="0.5"/>
-                    <path d="M 86 45 L 79 52" stroke="#e74c3c" stroke-width="1.5" opacity="0.5"/>
-                    <!-- Cute fangs -->
-                    <path d="M 66 85 L 68 90 L 70 85 Z" fill="#fff"/>
-                    <path d="M 74 85 L 72 90 L 70 85 Z" fill="#fff"/>
-                </g>
-                
-                <!-- Eyes Group -->
-                <g bind:this={eyesGroup}>
-                    <ellipse cx="61" cy="68" rx="5" ry="6" fill="#f1c40f"/>
-                    <ellipse cx="79" cy="68" rx="5" ry="6" fill="#f1c40f"/>
-                    <!-- Pupils -->
-                    <circle cx="61" cy="68" r="2.5" fill="#2c3e50"/>
-                    <circle cx="79" cy="68" r="2.5" fill="#2c3e50"/>
-                    <!-- Eye shine -->
-                    <circle cx="59" cy="66" r="1" fill="#fff"/>
-                    <circle cx="77" cy="66" r="1" fill="#fff"/>
+                <g bind:this={bodyGroup} class="companion-body">
+                    <!-- Dynamic rendering of the active pet SVG icon scaled to 100x100 centered -->
+                    <g transform="translate(20, 20) scale(2.5)">
+                        {@html activePet.icon}
+                    </g>
                 </g>
             </g>
         </svg>
+        <div class="companion-tag">
+            <span>{activePet.name}</span>
+        </div>
     </div>
 </div>
 
@@ -225,6 +188,7 @@
     }
 
     .pet-clickable {
+        position: relative;
         pointer-events: auto; /* Enable clicks on the pet itself */
         cursor: pointer;
         width: 100%;
@@ -258,6 +222,23 @@
         will-change: transform, opacity;
         transform: translate(-50%, -50%); /* Center effect on its coords */
     }
+
+    .companion-tag {
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(26, 17, 43, 0.88);
+        border: 1px solid rgba(255, 215, 0, 0.45);
+        border-radius: 10px;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #ffd700;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
     
     @media (min-width: 1200px) and (min-height: 750px) {
         .pet-container {
@@ -273,9 +254,8 @@
 
     @media (max-width: 600px) {
         .pet-container {
-            /* Adjust positioning for smaller screens so it doesn't get cut off */
             transform: translate(-100px, -150px);
-            scale: 0.82;
+            scale: 0.85;
         }
     }
 </style>

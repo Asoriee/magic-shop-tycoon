@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
+    import { get } from 'svelte/store';
     import { 
         gameStore, 
         crystals, 
@@ -9,7 +10,8 @@
         type ActiveExpedition, 
         openChest, 
         formatNumber,
-        getExpeditionSkipCost
+        getExpeditionSkipCost,
+        currentIdleIncome
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playSuccessSound, playLevelUpSound, playCoinSound } from '../audio';
@@ -180,13 +182,9 @@
         const pet = AVAILABLE_PETS.find(p => p.id === petId);
         if (!pet) return;
         
-        let hours = 1;
-        if (pet.rarity === 'rare') hours = 3;
-        if (pet.rarity === 'epic') hours = 6;
-        if (pet.rarity === 'legendary') hours = 12;
-
+        const hours = pet.expeditionHours || 2;
         gameStore.startExpedition(petId, hours);
-        showToast(`${pet.name} отправлен в экспедицию!`);
+        showToast(`${pet.name} отправлен в поход (${hours}ч)!`);
         saveGame();
     }
 
@@ -232,9 +230,25 @@
         const bonusCrystals = Math.floor((petLevel - 1) * 0.5);
         const totalCrystals = crystalGain + bonusCrystals;
 
+        // Dynamic gold reward based on shop's idle income, expedition length, and +15% per pet level:
+        const idle = get(currentIdleIncome) || 0;
+        const expHours = pet?.expeditionHours || 2;
+        const baseGold = Math.max(5000, Math.round(idle * expHours * 300));
+        const lootMult = 1 + (petLevel - 1) * 0.15;
+        const awardedGold = Math.round(baseGold * lootMult);
+        gameStore.addGold(awardedGold);
+
         crystals.update(c => c + totalCrystals);
         playSuccessSound();
-        showToast(`Добыча и +${totalCrystals} самоцветов получены!`);
+        showToast(`Добыча: +${formatNumber(awardedGold)} золота и +${totalCrystals} самоцветов!`);
+        saveGame();
+    }
+
+    function setCompanion(petId: string) {
+        gameStore.setActiveCompanion(petId);
+        playCoinSound();
+        const pet = AVAILABLE_PETS.find(p => p.id === petId);
+        showToast(`${pet?.name || 'Фамильяр'} теперь ваш спутник в лавке!`);
         saveGame();
     }
 
@@ -367,14 +381,41 @@
                                         {/if}
                                     </div>
 
-                                    {#if isExpDone}
-                                        <button class="action-btn claim-btn" on:click={() => claimExpedition(pet.id)}>
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                                                <polyline points="20 6 9 17 4 12"></polyline>
-                                            </svg>
-                                            Забрать награду и сундук!
-                                        </button>
-                                    {:else if isExpActive}
+                                    <div class="pet-card-actions">
+                                        {#if $gameStore.activeCompanionId === pet.id}
+                                            <button class="action-btn companion-btn active" disabled title="Этот питомец сопровождает вас в лавке">
+                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd700">
+                                                    <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
+                                                </svg>
+                                                <span>В лавке</span>
+                                            </button>
+                                        {:else}
+                                            <button class="action-btn companion-btn" on:click={() => setCompanion(pet.id)} title="Назначить спутником в главном зале">
+                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
+                                                </svg>
+                                                <span>Взять в лавку</span>
+                                            </button>
+                                        {/if}
+
+                                        {#if isExpDone}
+                                            <button class="action-btn claim-btn" on:click={() => claimExpedition(pet.id)}>
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                                Забрать награду!
+                                            </button>
+                                        {:else if !isExpActive}
+                                            <button class="action-btn start-btn" on:click={() => startExpedition(pet.id)}>
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                                                </svg>
+                                                <span>В поход ({pet.expeditionHours || 2}ч)</span>
+                                            </button>
+                                        {/if}
+                                    </div>
+
+                                    {#if isExpActive && !isExpDone}
                                         <div class="exp-progress-container">
                                             <div class="exp-meta">
                                                 <span class="exp-timer">
@@ -415,13 +456,6 @@
                                                 <span>Пропуск ({skipCost})</span>
                                             </button>
                                         </div>
-                                    {:else}
-                                        <button class="action-btn start-btn" on:click={() => startExpedition(pet.id)}>
-                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-                                            </svg>
-                                            <span>Отправить в поход</span>
-                                        </button>
                                     {/if}
                                 </div>
                             </div>
@@ -941,6 +975,34 @@
         background: linear-gradient(135deg, #2ed573, #10ac84);
         color: #042410;
         box-shadow: 0 3px 12px rgba(46, 213, 115, 0.4);
+    }
+
+    .pet-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+    }
+    .pet-card-actions .action-btn {
+        margin-top: 0;
+    }
+
+    .companion-btn {
+        background: rgba(255, 215, 0, 0.12);
+        border: 1px solid rgba(255, 215, 0, 0.35);
+        color: #f1c40f;
+    }
+    .companion-btn:hover:not(:disabled) {
+        background: rgba(255, 215, 0, 0.22);
+        border-color: #ffd700;
+    }
+    .companion-btn.active {
+        background: rgba(46, 213, 115, 0.18);
+        border-color: rgba(46, 213, 115, 0.5);
+        color: #2ed573;
+        cursor: default;
+        opacity: 0.9;
     }
 
     /* Gacha */

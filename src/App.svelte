@@ -37,7 +37,6 @@
     let isPremiumOpen = false;
     let isShopOpen = false;
     let isLeaderboardOpen = false;
-    let soundMuted = false;
     
     let offlineGoldAmount = 0;
     let offlineSecondsCount = 0;
@@ -133,7 +132,6 @@
         // Calculate offline income on startup
         checkOfflineEarnings();
         gameStore.checkOrderSpawns();
-        soundMuted = isSoundMuted();
         isReady = true;
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -161,7 +159,7 @@
     });
 
     function handleToggleSound() {
-        soundMuted = toggleSound();
+        toggleSound();
     }
 
     function handleKeydown(e: KeyboardEvent) {
@@ -307,11 +305,11 @@
             <button 
                 type="button" 
                 class="hud-icon-btn sound-btn" 
-                class:muted={soundMuted} 
-                title={soundMuted ? 'Включить звук' : 'Выключить звук'} 
+                class:muted={$isSoundMuted} 
+                title={$isSoundMuted ? 'Включить звук' : 'Выключить звук'} 
                 on:click={handleToggleSound}
             >
-                {#if soundMuted}
+                {#if $isSoundMuted}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
                         <line x1="23" y1="9" x2="17" y2="15"/>

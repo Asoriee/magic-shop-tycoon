@@ -14,6 +14,8 @@
     let showConfirm = false;
 
     $: earnedStardust = calculateEarnedStardust($gameStore);
+    $: hasTitanBonus = $gameStore?.unlockedCollections?.includes('titan_set') || false;
+    $: extractorLevel = $gameStore?.secretUpgrades?.find(u => u.id === 'stardust_extractor')?.level || 0;
     $: rawStardust = Math.floor(Math.sqrt(($gameStore?.gold || 0) / 1_000_000));
     $: currentThreshold = Math.pow(rawStardust, 2) * 1_000_000;
     $: nextThreshold = Math.pow(rawStardust + 1, 2) * 1_000_000;
@@ -137,6 +139,9 @@
                         <span class="gain-label">Звёздной Пыли</span>
                         {#if hasTitanBonus}
                             <span class="titan-bonus-badge">✦ +15% Хроники Титанов</span>
+                        {/if}
+                        {#if extractorLevel > 0}
+                            <span class="titan-bonus-badge" style="border-color: #a29bfe; color: #a29bfe;">✦ +{extractorLevel * 5}% Экстрактор</span>
                         {/if}
                     </div>
 

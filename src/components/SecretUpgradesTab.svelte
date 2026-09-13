@@ -57,11 +57,9 @@
     }
 
     function triggerInsightReward() {
-        showRewardedAd({
-            onRewarded: () => {
-                gameStore.activateSecretKnowledgeBoost(30 * 60 * 1000);
-                saveGame();
-            }
+        showRewardedAd(() => {
+            gameStore.activateSecretKnowledgeBoost(30 * 60 * 1000);
+            saveGame();
         });
     }
 

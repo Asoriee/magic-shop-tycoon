@@ -295,7 +295,22 @@ export async function loadGame(): Promise<void> {
 
 // --- Ads ---
 
-export function showRewardedAd(onReward: () => void, onClose?: () => void, onError?: (err: any) => void) {
+export interface RewardedAdOptions {
+    onRewarded?: () => void;
+    onClose?: () => void;
+    onError?: (err: any) => void;
+}
+
+export function showRewardedAd(
+    onRewardOrOptions: (() => void) | RewardedAdOptions,
+    onCloseParam?: () => void,
+    onErrorParam?: (err: any) => void
+) {
+    const isOptions = typeof onRewardOrOptions === 'object' && onRewardOrOptions !== null;
+    const onReward = isOptions ? (onRewardOrOptions.onRewarded || (() => {})) : onRewardOrOptions;
+    const onClose = isOptions ? onRewardOrOptions.onClose : onCloseParam;
+    const onError = isOptions ? onRewardOrOptions.onError : onErrorParam;
+
     // If user is VIP — skip ad and reward immediately
     if (get(isVip)) {
         onReward();

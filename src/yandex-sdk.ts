@@ -228,6 +228,10 @@ export async function loadGame(): Promise<void> {
             if (merged.cauldronOverheatUntil === undefined) merged.cauldronOverheatUntil = 0;
             if (merged.recipeAdHintsUsed === undefined) merged.recipeAdHintsUsed = {};
             if (merged.alchemyBrewsCount === undefined) merged.alchemyBrewsCount = 0;
+            if (merged.totalStardustEarned === undefined) merged.totalStardustEarned = merged.stardust || 0;
+            if (!merged.petLevels || typeof merged.petLevels !== 'object') {
+                merged.petLevels = { 'pet_rat': 1 };
+            }
             
             // Restore missing upgrades from default state
             if (!merged.upgrades) {
@@ -410,3 +414,95 @@ export function showInterstitialAd(onClose?: () => void) {
 export function isAdActive() {
     return isAdPlaying;
 }
+
+// --- Leaderboards API ---
+
+export interface LeaderboardEntry {
+    rank: number;
+    name: string;
+    score: number;
+    isUser?: boolean;
+    avatarUrl?: string;
+}
+
+const LEADERBOARD_NAME = 'stardust_masters';
+let leaderboards: any = null;
+
+export async function submitLeaderboardScore(score: number): Promise<void> {
+    const numericScore = Math.floor(Math.max(0, score));
+    if (numericScore <= 0) return;
+
+    // Save locally always for fallback
+    try {
+        const currentSaved = parseInt(localStorage.getItem('localLeaderboardScore') || '0', 10);
+        if (numericScore > currentSaved) {
+            localStorage.setItem('localLeaderboardScore', String(numericScore));
+        }
+    } catch (e) {}
+
+    if (!ysdk) return;
+
+    try {
+        if (!leaderboards) {
+            leaderboards = await ysdk.getLeaderboards();
+        }
+        await leaderboards.setLeaderboardScore(LEADERBOARD_NAME, numericScore);
+    } catch (e) {
+        console.warn('Failed to submit leaderboard score to Yandex SDK', e);
+    }
+}
+
+export async function getLeaderboardEntries(topCount: number = 10): Promise<{ entries: LeaderboardEntry[]; userEntry: LeaderboardEntry | null }> {
+    if (!ysdk) {
+        // Mock fallback for local testing & preview
+        const savedScore = parseInt(localStorage.getItem('localLeaderboardScore') || '0', 10);
+        const mockEntries: LeaderboardEntry[] = [
+            { rank: 1, name: 'Архимаг Мерлин', score: Math.max(125000, savedScore + 5000) },
+            { rank: 2, name: 'Магистр Вайт', score: Math.max(84000, savedScore + 2000) },
+            { rank: 3, name: 'Алхимик Ника', score: Math.max(52000, savedScore + 500) },
+            { rank: 4, name: 'Вы (Игрок)', score: savedScore, isUser: true },
+            { rank: 5, name: 'Хранитель Огня', score: Math.max(15000, Math.floor(savedScore * 0.8)) },
+            { rank: 6, name: 'Травник Луны', score: 9800 },
+            { rank: 7, name: 'Рунный Мастер', score: 6400 },
+            { rank: 8, name: 'Искатель Звезд', score: 3200 },
+        ].sort((a, b) => b.score - a.score).map((entry, idx) => ({ ...entry, rank: idx + 1 }));
+
+        const user = mockEntries.find(e => e.isUser) || null;
+        return { entries: mockEntries.slice(0, topCount), userEntry: user };
+    }
+
+    try {
+        if (!leaderboards) {
+            leaderboards = await ysdk.getLeaderboards();
+        }
+        const res = await leaderboards.getLeaderboardEntries(LEADERBOARD_NAME, {
+            quantityTop: topCount,
+            includeUser: true,
+            quantityAround: 2
+        });
+
+        const entries: LeaderboardEntry[] = (res.entries || []).map((e: any) => ({
+            rank: e.rank,
+            name: e.player?.publicName || 'Неизвестный маг',
+            score: e.score,
+            isUser: e.player?.uniqueID === player?.getUniqueID?.(),
+            avatarUrl: e.player?.getAvatarSrc?.('small') || ''
+        }));
+
+        let userEntry: LeaderboardEntry | null = null;
+        if (res.userRank && res.userRank > 0) {
+            userEntry = entries.find(e => e.isUser) || {
+                rank: res.userRank,
+                name: player?.getPublicName?.() || 'Вы',
+                score: res.score || 0,
+                isUser: true
+            };
+        }
+
+        return { entries, userEntry };
+    } catch (e) {
+        console.warn('Failed to get leaderboard entries from Yandex SDK', e);
+        return { entries: [], userEntry: null };
+    }
+}
+

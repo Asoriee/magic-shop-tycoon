@@ -153,7 +153,7 @@
                         <div class="progress-track">
                             <div class="progress-fill" style="width: {progressToNext}%"></div>
                         </div>
-                        <span class="exchange-rate-hint">Священная Пыль рождается исключительно в пламени Ритуала (+1% ко всему доходу за каждую пылинку)</span>
+                        <span class="exchange-rate-hint">Священная Пыль рождается исключительно в пламени Ритуала (+1% к доходу за каждую пылинку). Вкладывайте её в Тайные Знания и Артефакты — рейтинг в Зале Славы не уменьшается!</span>
                     </div>
                 </div>
             </div>

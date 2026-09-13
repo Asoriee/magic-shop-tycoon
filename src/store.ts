@@ -224,6 +224,7 @@ export interface GameState {
     recipeAdHintsUsed?: Record<string, boolean>;
     alchemyBrewsCount?: number;
     secretKnowledgeBoostUntil?: number;
+    petLevels?: Record<string, number>;
 }
 
 // ============================================================
@@ -893,27 +894,39 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             if (regularPets.length > 0) {
                 const rolledPet = regularPets[Math.floor(Math.random() * regularPets.length)];
                 const state = get(gameStore);
-                const alreadyOwned = state.unlockedPets?.includes(rolledPet.id);
-                if (alreadyOwned) {
-                    const bonusCry = 25 * multiplier;
-                    totalCrystals += bonusCry;
-                    drops.push({
-                        type: 'crystals',
-                        id: 'pet_duplicate_bonus',
-                        name: `Эхо ${rolledPet.name} (+${bonusCry} 💎)`,
-                        count: bonusCry,
-                        rarity: 'legendary',
-                        crystalAmount: bonusCry
-                    });
-                } else {
+                const currentLevel = state.petLevels?.[rolledPet.id] || (state.unlockedPets?.includes(rolledPet.id) ? 1 : 0);
+                
+                if (currentLevel > 0) {
+                    const newLevel = Math.min(10, currentLevel + 1);
                     gameStore.update(s => ({
                         ...s,
-                        unlockedPets: [...new Set([...(s.unlockedPets || []), rolledPet.id])]
+                        petLevels: {
+                            ...(s.petLevels || {}),
+                            [rolledPet.id]: newLevel
+                        }
                     }));
                     drops.push({
                         type: 'pet',
                         id: rolledPet.id,
-                        name: `Фамильяр: ${rolledPet.name}`,
+                        name: `Улучшение: ${rolledPet.name} (Ур. ${newLevel})`,
+                        count: 1,
+                        rarity: rolledPet.rarity,
+                        icon: rolledPet.icon,
+                        pet: rolledPet
+                    });
+                } else {
+                    gameStore.update(s => ({
+                        ...s,
+                        unlockedPets: [...new Set([...(s.unlockedPets || []), rolledPet.id])],
+                        petLevels: {
+                            ...(s.petLevels || {}),
+                            [rolledPet.id]: 1
+                        }
+                    }));
+                    drops.push({
+                        type: 'pet',
+                        id: rolledPet.id,
+                        name: `Новый спутник: ${rolledPet.name} (Ур. 1)`,
                         count: 1,
                         rarity: rolledPet.rarity,
                         icon: rolledPet.icon,
@@ -1446,6 +1459,35 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
         description: '+300% ко всему доходу золота',
         cost: 120000,
         svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="titanHeart" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#81ecec"/><stop offset="60%" stop-color="#0984e3"/><stop offset="90%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2c2c54"/></radialGradient><linearGradient id="orbitRings" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="url(#orbitRings)" stroke-width="2.5" transform="rotate(-30 50 50)"/><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="#a29bfe" stroke-width="2" stroke-dasharray="6 3" transform="rotate(45 50 50)"/><circle cx="18" cy="32" r="4" fill="#00d2d3" stroke="#fff" stroke-width="1"/><circle cx="82" cy="68" r="4" fill="#ffeaa7" stroke="#fff" stroke-width="1"/><circle cx="78" cy="26" r="3" fill="#a29bfe"/><polygon points="50,15 75,50 50,85 25,50" fill="url(#titanHeart)" stroke="#ffffff" stroke-width="2"/><polygon points="50,26 67,50 50,74 33,50" fill="#ffffff" opacity="0.4"/><polygon points="50,35 60,50 50,65 40,50" fill="#ffffff"/><line x1="50" y1="6" x2="50" y2="94" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/><line x1="6" y1="50" x2="94" y2="50" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/></svg>`
+    },
+    // --- Moon Witch Set ---
+    {
+        id: 16,
+        name: 'Лунный Серп',
+        description: '+25% к золоту за городские заказы',
+        cost: 600,
+        svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="silverBlade" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dfe6e9"/><stop offset="50%" stop-color="#b2bec3"/><stop offset="100%" stop-color="#636e72"/></linearGradient></defs><path d="M70 20 C40 20 25 45 35 75 C20 55 30 30 65 15 Z" fill="url(#silverBlade)" stroke="#a29bfe" stroke-width="2"/><circle cx="55" cy="45" r="5" fill="#f1c40f"/><circle cx="68" cy="65" r="3" fill="#ffeaa7"/><path d="M35 75 L25 85 L20 80 L30 70 Z" fill="#2d3436" stroke="#d63031" stroke-width="1.5"/></svg>`
+    },
+    {
+        id: 17,
+        name: 'Звёздная Мантия',
+        description: '+75% к пассивному доходу золота',
+        cost: 1100,
+        svg: `<svg viewBox="0 0 100 100"><path d="M50 15 L80 85 L20 85 Z" fill="#2c1654" stroke="#a29bfe" stroke-width="2.5"/><circle cx="50" cy="40" r="3" fill="#fff"/><circle cx="40" cy="60" r="2" fill="#ffeaa7"/><circle cx="62" cy="55" r="2.5" fill="#74b9ff"/><path d="M50 15 Q30 50 35 85 M50 15 Q70 50 65 85" stroke="#a29bfe" stroke-width="1.5" fill="none"/></svg>`
+    },
+    {
+        id: 18,
+        name: 'Амулет Полуночи',
+        description: '+50% к шансу удвоения зелья при варке',
+        cost: 1800,
+        svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="28" fill="#1e1035" stroke="#a29bfe" stroke-width="4"/><path d="M50 25 C40 25 35 35 40 50 C45 65 55 70 65 65 C50 65 42 55 45 42 C48 30 58 28 50 25 Z" fill="#ffeaa7"/><circle cx="60" cy="35" r="2" fill="#fff"/></svg>`
+    },
+    {
+        id: 19,
+        name: 'Фолиант Приливов',
+        description: '+1.5 ч офлайн-времени и +10% к Звездной Пыли',
+        cost: 2600,
+        svg: `<svg viewBox="0 0 100 100"><rect x="25" y="18" width="50" height="64" rx="4" fill="#341f97" stroke="#54a0ff" stroke-width="2"/><path d="M25 82 Q50 78 75 82" stroke="#dfe6e9" stroke-width="3"/><path d="M40 35 Q50 45 60 35 Q50 55 40 35 Z" fill="#54a0ff" opacity="0.7"/><circle cx="50" cy="60" r="4" fill="#ffeaa7"/></svg>`
     }
 ];
 
@@ -1461,6 +1503,20 @@ export const AVAILABLE_COLLECTIONS: Collection[] = [
             { iconColor: '#f1c40f', text: '<strong>+150%</strong> к пассивному доходу золота' },
             { iconColor: '#74b9ff', text: '<strong>+100%</strong> к силе магического клика' },
             { iconColor: '#e056fd', text: 'Уникальный спутник и экспедиции за редкими сокровищами' }
+        ]
+    },
+    {
+        id: 'moon_witch_set',
+        name: 'Круг Лунной Ведьмы',
+        description: 'Тайные реликвии ночного шабаша. Усиливают заказы, варку зелий и призывают грациозную Лунную Пантеру.',
+        themeColor: '#a29bfe',
+        requiredArtifactIds: [16, 17, 18, 19],
+        rewardPetId: 'pet_moon_cat',
+        perks: [
+            { iconColor: '#a29bfe', text: '<strong>+100%</strong> к пассивному доходу золота' },
+            { iconColor: '#2ecc71', text: '<strong>+30%</strong> к шансу удвоения зелья при варке' },
+            { iconColor: '#f1c40f', text: '<strong>+25%</strong> к шансу получить кристаллы за заказы' },
+            { iconColor: '#ffeaa7', text: 'Лунная Пантера приносит ночные самоцветы и редкие эссенции' }
         ]
     },
     {
@@ -1495,6 +1551,13 @@ export const AVAILABLE_COLLECTIONS: Collection[] = [
 
 export const AVAILABLE_PETS: Pet[] = [
     {
+        id: 'pet_rat',
+        name: 'Лавочная Крыса',
+        rarity: 'common',
+        description: 'Шустрый помощник, вынюхивает базовые травы и монетки (1 час).',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><ellipse cx="20" cy="22" rx="12" ry="9" fill="#7f8c8d"/><circle cx="28" cy="17" r="3.5" fill="#bdc3c7"/><ellipse cx="14" cy="14" rx="4" ry="5" fill="#ffb8b8"/><circle cx="26" cy="19" r="1.5" fill="#2d3436"/><path d="M8 22 Q4 20 2 26" stroke="#e17055" stroke-width="1.5" fill="none"/></svg>`
+    },
+    {
         id: 'pet_slime',
         name: 'Слайм',
         rarity: 'common',
@@ -1521,6 +1584,14 @@ export const AVAILABLE_PETS: Pet[] = [
         rarity: 'legendary',
         description: 'Легендарные сокровища и самоцветы (12 часов)!',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="#d63031"/><circle cx="15" cy="20" r="2" fill="#f1c40f"/><circle cx="25" cy="20" r="2" fill="#f1c40f"/><path d="M5 25 L10 10 L15 25 Z" fill="#ff7675"/><path d="M35 25 L30 10 L25 25 Z" fill="#ff7675"/></svg>`
+    },
+    {
+        id: 'pet_moon_cat',
+        name: 'Лунная Пантера',
+        rarity: 'legendary',
+        isCollectionExclusive: true,
+        description: 'Мистический хранитель Лунного Круга. Приносит ночные самоцветы и редкие эссенции.',
+        icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="moonCatGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a29bfe"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1035"/></radialGradient></defs><ellipse cx="20" cy="22" rx="10" ry="12" fill="url(#moonCatGrad)"/><circle cx="20" cy="12" r="7" fill="#2d134d"/><polygon points="14,10 13,3 18,7" fill="#6c5ce7"/><polygon points="26,10 27,3 22,7" fill="#6c5ce7"/><ellipse cx="17" cy="12" rx="1.5" ry="2.2" fill="#ffeaa7"/><ellipse cx="23" cy="12" rx="1.5" ry="2.2" fill="#ffeaa7"/><path d="M20 7 Q23 9 21 12" stroke="#f1c40f" stroke-width="1.2" fill="none"/></svg>`
     },
     {
         id: 'pet_astral_dragon',
@@ -1973,12 +2044,17 @@ function createGameStore() {
                 startingGold += Math.floor((state.gold || 0) * 0.10);
             }
 
+            const newTotalStardustEarned = (state.totalStardustEarned || 0) + earnedStardust;
+            // Leaderboard submission:
+            import('./yandex-sdk').then(sdk => sdk.submitLeaderboardScore(newTotalStardustEarned)).catch(() => {});
+
             return {
                 ...state,
                 gold: startingGold,
                 upgrades: state.upgrades.map(u => ({ ...u, level: 0 })),
                 // Тайные знания не сбрасываются!
-                stardust: state.stardust + earnedStardust
+                stardust: state.stardust + earnedStardust,
+                totalStardustEarned: newTotalStardustEarned
             };
         }),
         buyArtifact: (artifactId: number, cost: number) => {
@@ -2053,9 +2129,28 @@ function createGameStore() {
         })),
         unlockPet: (petId: string) => update(state => {
             if (!state.unlockedPets.includes(petId)) {
-                return { ...state, unlockedPets: [...state.unlockedPets, petId] };
+                return { 
+                    ...state, 
+                    unlockedPets: [...state.unlockedPets, petId],
+                    petLevels: {
+                        ...(state.petLevels || {}),
+                        [petId]: 1
+                    }
+                };
             }
             return state;
+        }),
+        upgradePet: (petId: string) => update(state => {
+            const currentLevels = state.petLevels || {};
+            const currentLvl = currentLevels[petId] || 1;
+            const nextLvl = Math.min(10, currentLvl + 1);
+            return {
+                ...state,
+                petLevels: {
+                    ...currentLevels,
+                    [petId]: nextLvl
+                }
+            };
         }),
         startExpedition: (petId: string, durationHours: number) => update(state => {
             if (state.activeExpeditions.some(e => e.petId === petId)) return state;
@@ -2070,6 +2165,11 @@ function createGameStore() {
             });
 
             let effectiveHours = durationHours;
+            // Pet level bonus: -4% duration per level above 1 (capped at level 10: -36%)
+            const petLevel = (state.petLevels && state.petLevels[petId]) || 1;
+            if (petLevel > 1) {
+                effectiveHours *= Math.max(0.5, 1 - (petLevel - 1) * 0.04);
+            }
             // Artifact 12 (Хронометр Вечности): -20% к времени экспедиций
             if (state.artifacts?.includes(12)) {
                 effectiveHours *= 0.8;

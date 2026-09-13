@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
     import { gameStore, currentClickPower, critChance, heatBonusLevel, crystals, formatNumber } from '../store';
+    import { playCauldronBubble } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
     
     let cauldronGroup: SVGGElement;
@@ -45,6 +46,7 @@
 
         gameStore.addGold(clickValue);
         gameStore.updateQuestProgress('clicks', 1);
+        playCauldronBubble();
 
         const isCrystal = false;
         

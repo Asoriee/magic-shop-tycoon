@@ -12,6 +12,7 @@
         getExpeditionSkipCost
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
+    import { playSuccessSound, playLevelUpSound, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -21,6 +22,8 @@
     let activeTab: 'pets' | 'gacha' = 'pets';
     let gachaAnimating = false;
     let rolledPet: Pet | null = null;
+    let rollType: 'new' | 'upgrade' | 'max_refund' = 'new';
+    let newLevelReached = 1;
     let eggElement: HTMLElement;
     let resultElement: HTMLElement;
 
@@ -38,7 +41,8 @@
     }
 
     $: unlockedPets = AVAILABLE_PETS.filter(p => $gameStore.unlockedPets.includes(p.id));
-    $: lockedPets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive && !$gameStore.unlockedPets.includes(p.id));
+    $: rollablePets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
+    $: lockedPets = rollablePets.filter(p => !$gameStore.unlockedPets.includes(p.id));
     $: activeExps = $gameStore.activeExpeditions;
 
     // Timers update
@@ -78,10 +82,6 @@
     }
 
     function rollGacha() {
-        if (lockedPets.length === 0) {
-            showToast('Вы уже собрали всех доступных фамильяров!');
-            return;
-        }
         if ($crystals < GACHA_COST) {
             showToast('Недостаточно кристаллов для призыва!');
             const gachaBtn = document.querySelector('.gacha-btn');
@@ -94,12 +94,43 @@
             return;
         }
 
+        // Available rollable pets ONLY (collection exclusive pets can NEVER be rolled)
+        const rollablePool = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
+        if (rollablePool.length === 0) return;
+
         // Deduct crystals
         crystals.update(c => c - GACHA_COST);
-        
-        // Pick random locked pet
-        const randomIndex = Math.floor(Math.random() * lockedPets.length);
-        const newPet = lockedPets[randomIndex];
+
+        // Weighted roll: Common 55%, Rare 28%, Epic 13%, Legendary 4%
+        const rand = Math.random() * 100;
+        let targetRarity: 'common' | 'rare' | 'epic' | 'legendary' = 'common';
+        if (rand < 4) {
+            targetRarity = 'legendary';
+        } else if (rand < 17) {
+            targetRarity = 'epic';
+        } else if (rand < 45) {
+            targetRarity = 'rare';
+        } else {
+            targetRarity = 'common';
+        }
+
+        let candidates = rollablePool.filter(p => p.rarity === targetRarity);
+        if (candidates.length === 0) candidates = rollablePool;
+        const newPet = candidates[Math.floor(Math.random() * candidates.length)];
+
+        const isUnlocked = $gameStore.unlockedPets.includes(newPet.id);
+        const currentLvl = ($gameStore.petLevels && $gameStore.petLevels[newPet.id]) || (isUnlocked ? 1 : 0);
+
+        if (!isUnlocked) {
+            rollType = 'new';
+            newLevelReached = 1;
+        } else if (currentLvl < 10) {
+            rollType = 'upgrade';
+            newLevelReached = currentLvl + 1;
+        } else {
+            rollType = 'max_refund';
+            newLevelReached = 10;
+        }
 
         gachaAnimating = true;
         rolledPet = null;
@@ -114,7 +145,18 @@
                     .to(eggElement, { scale: 1.5, duration: 0.2 })
                     .to(eggElement, { scale: 0, duration: 0.1, ease: 'back.in(2)', onComplete: () => {
                         rolledPet = newPet;
-                        gameStore.unlockPet(newPet.id);
+                        
+                        if (rollType === 'new') {
+                            gameStore.unlockPet(newPet.id);
+                            playSuccessSound();
+                        } else if (rollType === 'upgrade') {
+                            gameStore.upgradePet(newPet.id);
+                            playLevelUpSound();
+                        } else {
+                            crystals.update(c => c + 50);
+                            playCoinSound();
+                        }
+                        saveGame();
                         
                         setTimeout(() => {
                             if (resultElement) {
@@ -185,8 +227,14 @@
         if (pet?.rarity === 'legendary') crystalGain = 5;
         if (petId === 'pet_void_titan') crystalGain = 8;
 
-        crystals.update(c => c + crystalGain);
-        showToast(`Добыча и +${crystalGain} самоцветов получены!`);
+        const petLevel = ($gameStore.petLevels && $gameStore.petLevels[petId]) || 1;
+        // Level bonus: extra crystals for high level pets
+        const bonusCrystals = Math.floor((petLevel - 1) * 0.5);
+        const totalCrystals = crystalGain + bonusCrystals;
+
+        crystals.update(c => c + totalCrystals);
+        playSuccessSound();
+        showToast(`Добыча и +${totalCrystals} самоцветов получены!`);
         saveGame();
     }
 
@@ -262,9 +310,9 @@
                 </svg>
                 <span>Магический Призыв</span>
                 {#if lockedPets.length > 0}
-                    <span class="sub-pill gold-pill">{lockedPets.length} ждут</span>
+                    <span class="sub-pill gold-pill">{lockedPets.length} новых</span>
                 {:else}
-                    <span class="sub-pill ok-pill">Собраны</span>
+                    <span class="sub-pill ok-pill">Прокачка</span>
                 {/if}
             </button>
         </div>
@@ -288,11 +336,13 @@
                             {@const isExpActive = !!exp}
                             {@const isExpDone = isExpActive && timeRem <= 0}
                             {@const progress = exp ? getExpeditionProgress(exp) : 0}
+                            {@const petLevel = ($gameStore.petLevels && $gameStore.petLevels[pet.id]) || 1}
                             
                             <div class="pet-card {pet.rarity}">
                                 <div class="pet-icon-box">
                                     <div class="pet-svg-wrap">{@html pet.icon}</div>
                                     <span class="rarity-badge {pet.rarity}">{RARITY_NAMES[pet.rarity]}</span>
+                                    <span class="pet-level-badge" class:max-level={petLevel >= 10}>Ур. {petLevel}</span>
                                 </div>
                                 
                                 <div class="pet-info">
@@ -308,6 +358,15 @@
                                     </div>
                                     <p class="pet-desc">{pet.description}</p>
                                     
+                                    <!-- Pet Level Perks -->
+                                    <div class="pet-perks-row">
+                                        <span class="pet-perk-tag loot-tag">+{Math.min(135, (petLevel - 1) * 15)}% к добыче</span>
+                                        <span class="pet-perk-tag time-tag">-{Math.min(36, (petLevel - 1) * 4)}% времени</span>
+                                        {#if petLevel >= 10}
+                                            <span class="pet-perk-tag max-tag">МАКС. УРОВЕНЬ</span>
+                                        {/if}
+                                    </div>
+
                                     {#if isExpDone}
                                         <button class="action-btn claim-btn" on:click={() => claimExpedition(pet.id)}>
                                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -375,8 +434,7 @@
                         <div class="gacha-info">
                             <h3 class="gacha-headline">Алтарь Магического Призыва</h3>
                             <p class="gacha-desc">
-                                Пробудите новых легендарных существ! Каждый фамильяр приносит редкие ингредиенты, 
-                                сундуки с наградами и усиливает магию вашей лавки.
+                                Пробуждайте и улучшайте фамильяров (до Ур. 10)! Повторное получение спутника повышает его уровень, увеличивая объём добычи и сокращая время походов.
                             </p>
                             
                             <div class="cost-badge">
@@ -387,18 +445,11 @@
                                 </div>
                             </div>
 
-                            <button class="gacha-btn" on:click={rollGacha} disabled={lockedPets.length === 0}>
-                                {#if lockedPets.length === 0}
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                    Все фамильяры собраны!
-                                {:else}
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                                    </svg>
-                                    Призвать Фамильяра
-                                {/if}
+                            <button class="gacha-btn" on:click={rollGacha}>
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                </svg>
+                                Призвать / Улучшить Фамильяра
                             </button>
                         </div>
                         
@@ -435,13 +486,33 @@
                             </div>
                         {:else}
                             <div class="gacha-result {rolledPet.rarity}" bind:this={resultElement}>
-                                <span class="result-celebration">НОВЫЙ СПУТНИК ПРИЗВАН!</span>
+                                {#if rollType === 'new'}
+                                    <span class="result-celebration">НОВЫЙ СПУТНИК ПРИЗВАН!</span>
+                                {:else if rollType === 'upgrade'}
+                                    <span class="result-celebration upgrade-celebration">УРОВЕНЬ ПОВЫШЕН! (УР. {newLevelReached})</span>
+                                {:else}
+                                    <span class="result-celebration max-celebration">МАКСИМАЛЬНЫЙ УРОВЕНЬ!</span>
+                                {/if}
                                 <div class="result-icon">{@html rolledPet.icon}</div>
                                 <h2 class="pet-name">{rolledPet.name}</h2>
-                                <p class="rarity-label {rolledPet.rarity}">{RARITY_NAMES[rolledPet.rarity]}</p>
-                                <p class="result-desc">{rolledPet.description}</p>
+                                <p class="rarity-label {rolledPet.rarity}">{RARITY_NAMES[rolledPet.rarity]} • Уровень {newLevelReached}</p>
+                                
+                                {#if rollType === 'upgrade'}
+                                    <div class="upgrade-bonus-notice">
+                                        <span>Эффективность в походах возросла:</span>
+                                        <strong>+15% к добыче • -4% ко времени</strong>
+                                    </div>
+                                {:else if rollType === 'max_refund'}
+                                    <div class="upgrade-bonus-notice refund-notice">
+                                        <span>Фамильяр достиг максимума (Ур. 10)!</span>
+                                        <strong>+50 кристаллов компенсации получено</strong>
+                                    </div>
+                                {:else}
+                                    <p class="result-desc">{rolledPet.description}</p>
+                                {/if}
+
                                 <button class="action-btn claim-btn celebrate-btn" on:click={closeGachaResult}>
-                                    Принять спутника
+                                    {rollType === 'new' ? 'Принять спутника' : 'Отлично!'}
                                 </button>
                             </div>
                         {/if}
@@ -1009,6 +1080,83 @@
         margin-top: 12px;
         font-size: 0.95rem;
         padding: 10px 24px;
+    }
+
+    .pet-level-badge {
+        font-size: 0.68rem;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 8px;
+        background: rgba(241, 196, 15, 0.18);
+        border: 1px solid rgba(241, 196, 15, 0.5);
+        color: #f1c40f;
+        text-shadow: 0 0 6px rgba(241, 196, 15, 0.5);
+    }
+    .pet-level-badge.max-level {
+        background: rgba(46, 213, 115, 0.2);
+        border-color: #2ed573;
+        color: #2ed573;
+        text-shadow: 0 0 6px rgba(46, 213, 115, 0.5);
+    }
+
+    .pet-perks-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 4px 0 8px;
+    }
+    .pet-perk-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 6px;
+    }
+    .pet-perk-tag.loot-tag {
+        background: rgba(46, 213, 115, 0.12);
+        color: #2ed573;
+        border: 1px solid rgba(46, 213, 115, 0.25);
+    }
+    .pet-perk-tag.time-tag {
+        background: rgba(116, 185, 255, 0.12);
+        color: #74b9ff;
+        border: 1px solid rgba(116, 185, 255, 0.25);
+    }
+    .pet-perk-tag.max-tag {
+        background: rgba(241, 196, 15, 0.2);
+        color: #ffd700;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+    }
+
+    .upgrade-celebration {
+        color: #2ed573 !important;
+        text-shadow: 0 0 10px rgba(46, 213, 115, 0.6);
+    }
+    .max-celebration {
+        color: #00cec9 !important;
+        text-shadow: 0 0 10px rgba(0, 206, 201, 0.6);
+    }
+
+    .upgrade-bonus-notice {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        background: rgba(46, 213, 115, 0.1);
+        border: 1px solid rgba(46, 213, 115, 0.3);
+        padding: 8px 14px;
+        border-radius: 12px;
+        margin: 6px 0;
+        font-size: 0.8rem;
+        color: #e4fbf0;
+    }
+    .upgrade-bonus-notice strong {
+        color: #ffd700;
+        font-size: 0.85rem;
+    }
+    .upgrade-bonus-notice.refund-notice {
+        background: rgba(241, 196, 15, 0.1);
+        border-color: rgba(241, 196, 15, 0.3);
+        color: #ffeaa7;
     }
 
     @media (max-width: 480px) {

@@ -26,14 +26,18 @@
     import GrimoireModal from './components/GrimoireModal.svelte';
     import CityModal from './components/CityModal.svelte';
     import PremiumModal from './components/PremiumModal.svelte';
+    import LeaderboardModal from './components/LeaderboardModal.svelte';
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
+    import { isSoundMuted, toggleSound } from './audio';
 
     let isOfflinePopupOpen = false;
     let isGrimoireOpen = false;
     let isCityOpen = false;
     let isPremiumOpen = false;
     let isShopOpen = false;
+    let isLeaderboardOpen = false;
+    let soundMuted = false;
     
     let offlineGoldAmount = 0;
     let offlineSecondsCount = 0;
@@ -129,6 +133,7 @@
         // Calculate offline income on startup
         checkOfflineEarnings();
         gameStore.checkOrderSpawns();
+        soundMuted = isSoundMuted();
         isReady = true;
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -155,13 +160,18 @@
         window.removeEventListener('focus', handleWindowFocus);
     });
 
+    function handleToggleSound() {
+        soundMuted = toggleSound();
+    }
+
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === 'Escape') {
-            const wasAnyOpen = isGrimoireOpen || isCityOpen || isPremiumOpen || isShopOpen;
+            const wasAnyOpen = isGrimoireOpen || isCityOpen || isPremiumOpen || isShopOpen || isLeaderboardOpen;
             isGrimoireOpen = false;
             isCityOpen = false;
             isPremiumOpen = false;
             isShopOpen = false;
+            isLeaderboardOpen = false;
             if (wasAnyOpen) showInterstitialAd();
         }
     }
@@ -273,6 +283,47 @@
                 {/if}
             </div>
             {/if}
+        </div>
+
+        <!-- HUD Control Actions -->
+        <div class="hud-controls-cluster">
+            <!-- Leaderboard Button -->
+            <button 
+                type="button" 
+                class="hud-icon-btn leaderboard-btn" 
+                title="Таблица Лидеров (Зал Славы Архимагов)" 
+                on:click={() => isLeaderboardOpen = true}
+            >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                    <path d="M6 4 L18 4 C18 4 19 13 12 15 C5 13 6 4 6 4 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.2"/>
+                    <path d="M6 6 C2 6 2 11 6 11" stroke="#f1c40f" stroke-width="1.5" fill="none"/>
+                    <path d="M18 6 C22 6 22 11 18 11" stroke="#f1c40f" stroke-width="1.5" fill="none"/>
+                    <path d="M12 15 L12 19" stroke="#f1c40f" stroke-width="2"/>
+                    <path d="M8 19 L16 19 L17 21 L7 21 Z" fill="#e67e22"/>
+                </svg>
+            </button>
+
+            <!-- Sound Toggle Button -->
+            <button 
+                type="button" 
+                class="hud-icon-btn sound-btn" 
+                class:muted={soundMuted} 
+                title={soundMuted ? 'Включить звук' : 'Выключить звук'} 
+                on:click={handleToggleSound}
+            >
+                {#if soundMuted}
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+                        <line x1="23" y1="9" x2="17" y2="15"/>
+                        <line x1="17" y1="9" x2="23" y2="15"/>
+                    </svg>
+                {:else}
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                {/if}
+            </button>
         </div>
     </header>
 
@@ -432,6 +483,11 @@
     <PremiumModal 
         isOpen={isPremiumOpen} 
         onClose={() => { isPremiumOpen = false; }} 
+    />
+
+    <LeaderboardModal 
+        isOpen={isLeaderboardOpen} 
+        onClose={() => { isLeaderboardOpen = false; }} 
     />
 
     <!-- Wait, CustomerOrders is embedded in CityModal now! But we must remove it from App.svelte -->
@@ -678,6 +734,43 @@
     @keyframes pulseRewardDot {
         0%, 100% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    /* HUD Controls Cluster (Leaderboard & Sound) */
+    .hud-controls-cluster {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .hud-icon-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: #dfe4ea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        padding: 0;
+    }
+    .hud-icon-btn:hover {
+        background: rgba(255, 255, 255, 0.16);
+        border-color: rgba(255, 255, 255, 0.35);
+        transform: translateY(-2px);
+    }
+    .hud-icon-btn.leaderboard-btn:hover {
+        border-color: #f1c40f;
+        box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+    }
+    .hud-icon-btn.sound-btn.muted {
+        color: #e74c3c;
+        border-color: rgba(231, 76, 60, 0.45);
+        background: rgba(231, 76, 60, 0.12);
     }
 
     /* ============================================================ */

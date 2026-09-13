@@ -225,6 +225,7 @@ export interface GameState {
     alchemyBrewsCount?: number;
     secretKnowledgeBoostUntil?: number;
     petLevels?: Record<string, number>;
+    totalStardustEarned?: number;
 }
 
 // ============================================================
@@ -1765,7 +1766,9 @@ const defaultState: GameState = {
     chestResonanceProgress: 0,
     cauldronOverheatUntil: 0,
     recipeAdHintsUsed: {},
-    alchemyBrewsCount: 0
+    alchemyBrewsCount: 0,
+    totalStardustEarned: 0,
+    petLevels: { 'pet_rat': 1 }
 };
 
 // --- Premium stores ---

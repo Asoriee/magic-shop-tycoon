@@ -15,7 +15,7 @@
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playCoinSound, playSuccessSound } from '../audio';
-    import { t, currentLang, getCustomerName, getCustomerArchetype } from '../i18n';
+    import { t, currentLang, getCustomerName, getCustomerArchetype, getIngredientName, getPotionName } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isEmbedded = false;
@@ -344,13 +344,14 @@
                             {@const item = getRequirementItem(req.type, req.id)}
                             {@const current = req.type === 'ingredient' ? ($ingredientsCount[req.id] || 0) : ($potionsCount[req.id] || 0)}
                             {@const isEnough = current >= req.count}
+                            {@const itemName = req.type === 'ingredient' ? getIngredientName(req.id, $currentLang) : getPotionName(req.id, $currentLang)}
                             
                             {#if item}
-                                <div class="req-chip" class:enough={isEnough} class:missing={!isEnough} title="{item.name}">
+                                <div class="req-chip" class:enough={isEnough} class:missing={!isEnough} title="{itemName}">
                                     <div class="req-icon">
                                         {@html item.icon}
                                     </div>
-                                    <span class="req-name">{item.name}</span>
+                                    <span class="req-name">{itemName}</span>
                                     <span class="req-qty">{current} / {req.count}</span>
                                 </div>
                             {/if}

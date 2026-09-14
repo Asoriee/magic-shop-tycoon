@@ -13,7 +13,7 @@
         getExpeditionSkipCost,
         currentIdleIncome
     } from '../store';
-    import { t } from '../i18n';
+    import { t, currentLang, getPetName, getPetDesc } from '../i18n';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playSuccessSound, playLevelUpSound, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -185,7 +185,7 @@
         
         const hours = pet.expeditionHours || 2;
         gameStore.startExpedition(petId, hours);
-        showToast(get(t)('familiars.expeditionSent', { name: pet.name, hours }));
+        showToast(get(t)('familiars.expeditionSent', { name: getPetName(pet.id, get(currentLang)), hours }));
         saveGame();
     }
 
@@ -249,7 +249,7 @@
         gameStore.setActiveCompanion(petId);
         playCoinSound();
         const pet = AVAILABLE_PETS.find(p => p.id === petId);
-        showToast(get(t)('familiars.companionAssigned', { name: pet?.name || '' }));
+        showToast(get(t)('familiars.companionAssigned', { name: pet ? getPetName(pet.id, get(currentLang)) : '' }));
         saveGame();
     }
 
@@ -362,7 +362,7 @@
                                 
                                 <div class="pet-info">
                                     <div class="pet-name-line">
-                                        <h3 class="pet-title">{pet.name}</h3>
+                                        <h3 class="pet-title">{getPetName(pet.id, $currentLang)}</h3>
                                         {#if isExpDone}
                                             <span class="status-chip ready-chip">{$t('familiars.readyToClaim')}</span>
                                         {:else if isExpActive}
@@ -371,7 +371,7 @@
                                             <span class="status-chip idle-chip">{$t('familiars.inAbode')}</span>
                                         {/if}
                                     </div>
-                                    <p class="pet-desc">{pet.description}</p>
+                                    <p class="pet-desc">{getPetDesc(pet.id, $currentLang)}</p>
                                     
                                     <!-- Pet Level Perks -->
                                     <div class="pet-perks-row">
@@ -529,7 +529,7 @@
                                     <span class="result-celebration max-celebration">{$t('familiars.maxLevelCelebration')}</span>
                                 {/if}
                                 <div class="result-icon">{@html rolledPet.icon}</div>
-                                <h2 class="pet-name">{rolledPet.name}</h2>
+                                <h2 class="pet-name">{rolledPet ? getPetName(rolledPet.id, $currentLang) : ''}</h2>
                                 <p class="rarity-label {rolledPet.rarity}">{RARITY_NAMES[rolledPet.rarity]} • {$t('common.levelShort')} {newLevelReached}</p>
                                 
                                 {#if rollType === 'upgrade'}

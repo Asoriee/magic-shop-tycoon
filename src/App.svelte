@@ -490,7 +490,7 @@
             </div>
             <div class="portal-texts">
                 <span class="portal-name">{$t('premium.title')}</span>
-                <span class="portal-sub">VIP</span>
+                <span class="portal-sub">{$t('common.vip')}</span>
             </div>
         </button>
     </nav>

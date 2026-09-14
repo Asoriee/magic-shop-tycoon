@@ -8,7 +8,7 @@
         AVAILABLE_PETS,
         formatNumber 
     } from '../store';
-    import { t } from '../i18n';
+    import { t, currentLang, getCollectionName, getCollectionDesc, getArtifactName, getPetName, getCollectionPerks } from '../i18n';
 
     let containerEl: HTMLElement;
 
@@ -55,12 +55,12 @@
 
                 <div class="vitrine-titles">
                     <div class="vitrine-name-line">
-                        <h3 class="vitrine-name">{collection.name}</h3>
+                        <h3 class="vitrine-name">{getCollectionName(collection.id, $currentLang)}</h3>
                         {#if isUnlocked}
                             <span class="complete-badge">{$t('collectionsMeta.completed')}</span>
                         {/if}
                     </div>
-                    <span class="vitrine-desc">{collection.description}</span>
+                    <span class="vitrine-desc">{getCollectionDesc(collection.id, $currentLang)}</span>
                 </div>
 
                 <div class="vitrine-progress-badge">
@@ -86,7 +86,7 @@
                                 {@html artifact.svg}
                             </div>
                             <div class="pedestal-info">
-                                <span class="pedestal-name">{artifact.name}</span>
+                                <span class="pedestal-name">{getArtifactName(artifact.id, $currentLang)}</span>
                                 {#if isOwned}
                                     <span class="pedestal-status owned-status">
                                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
@@ -126,14 +126,15 @@
                         </div>
 
                         <div class="reward-details">
-                            <h4 class="reward-pet-title">{rewardPet.name}</h4>
+                            <h4 class="reward-pet-title">{getPetName(rewardPet.id, $currentLang)}</h4>
                             <div class="perks-list">
-                                {#each (collection.perks || []) as perk}
+                                {#each getCollectionPerks(collection.id, $currentLang) as perkText, i}
+                                    {@const colors = ['#f1c40f', '#74b9ff', '#e056fd', '#2ecc71']}
                                     <div class="perk-item">
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill={perk.iconColor}>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill={colors[i % colors.length]}>
                                             <polygon points="12,2 15,8.5 22,9.5 17,14.5 18.5,21.5 12,18 5.5,21.5 7,14.5 2,9.5 9,8.5"/>
                                         </svg>
-                                        <span>{@html perk.text}</span>
+                                        <span>{@html perkText}</span>
                                     </div>
                                 {/each}
                             </div>

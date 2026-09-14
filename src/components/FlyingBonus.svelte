@@ -14,7 +14,7 @@
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
-    import { t } from '../i18n';
+    import { t, currentLang, getPotionName, getPotionDesc } from '../i18n';
 
     interface SparkBlessing {
         type: 'gold' | 'crystals' | 'astral';
@@ -483,13 +483,15 @@
 
                     <!-- Magic Potion Chip -->
                     {#if currentBlessing.potion}
-                        <div class="reward-chip potion-chip" title="{currentBlessing.potion.name}: {currentBlessing.potion.description}">
+                        {@const pName = getPotionName(currentBlessing.potion.id, $currentLang)}
+                        {@const pDesc = getPotionDesc(currentBlessing.potion.id, $currentLang)}
+                        <div class="reward-chip potion-chip" title="{pName}: {pDesc}">
                             <span class="reward-svg-icon potion-svg-box">
                                 {@html currentBlessing.potion.icon}
                             </span>
                             <div class="reward-data">
                                 <span class="reward-label">{$t('alchemy.allRecipes')}</span>
-                                <span class="reward-amount potion-text">{currentBlessing.potion.name}</span>
+                                <span class="reward-amount potion-text">{pName}</span>
                             </div>
                         </div>
                     {/if}

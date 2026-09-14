@@ -4,6 +4,7 @@
     import { gameStore, currentIdleIncome, AVAILABLE_PETS } from '../store';
     import { playCauldronBubble } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { currentLang, getPetName } from '../i18n';
 
     let petNode: SVGGElement;
     let bodyGroup: SVGGElement;
@@ -152,7 +153,7 @@
         on:click={handlePetClick} 
         role="button" 
         tabindex="0"
-        title={activePet.name}
+        title={activePet ? getPetName(activePet.id, $currentLang) : ''}
     >
         <svg width="140" height="140" viewBox="0 0 140 140">
             <g bind:this={petNode} class="pet-group">

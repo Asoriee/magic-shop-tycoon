@@ -2029,6 +2029,36 @@ export function calculateEarnedStardust(state: GameState): number {
     return Math.floor(rawStardust * stardustMultiplier);
 }
 
+function updateUpgradeLevel(upgrade: Upgrade, newLevel: number): Upgrade {
+    const u = { ...upgrade, level: newLevel };
+    Object.defineProperty(u, 'name', {
+        get() { return getUpgradeName(upgrade.id); },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(u, 'description', {
+        get() { return getUpgradeDesc(upgrade.id); },
+        enumerable: true,
+        configurable: true
+    });
+    return u;
+}
+
+function updateSecretUpgradeLevel(upgrade: SecretUpgrade, newLevel: number): SecretUpgrade {
+    const u = { ...upgrade, level: newLevel };
+    Object.defineProperty(u, 'name', {
+        get() { return getSecretUpgradeName(upgrade.id); },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(u, 'description', {
+        get() { return getSecretUpgradeDesc(upgrade.id); },
+        enumerable: true,
+        configurable: true
+    });
+    return u;
+}
+
 function createGameStore() {
     const { subscribe, set, update } = writable<GameState>(defaultState);
 
@@ -2120,7 +2150,7 @@ function createGameStore() {
             return {
                 ...state,
                 gold: startingGold,
-                upgrades: state.upgrades.map(u => ({ ...u, level: 0 })),
+                upgrades: state.upgrades.map(u => updateUpgradeLevel(u, 0)),
                 // Тайные знания не сбрасываются!
                 stardust: state.stardust + earnedStardust,
                 totalStardustEarned: newTotalStardustEarned
@@ -2160,7 +2190,7 @@ function createGameStore() {
                 const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
                 if (state.gold >= cost) {
                     const newUpgrades = [...state.upgrades];
-                    newUpgrades[upgradeIndex] = { ...upgrade, level: upgrade.level + 1 };
+                    newUpgrades[upgradeIndex] = updateUpgradeLevel(upgrade, upgrade.level + 1);
                     return { ...state, gold: state.gold - cost, upgrades: newUpgrades };
                 }
             }
@@ -2171,7 +2201,7 @@ function createGameStore() {
             if (upgradeIndex !== -1 && count > 0 && state.gold >= totalCost) {
                 const upgrade = state.upgrades[upgradeIndex];
                 const newUpgrades = [...state.upgrades];
-                newUpgrades[upgradeIndex] = { ...upgrade, level: upgrade.level + count };
+                newUpgrades[upgradeIndex] = updateUpgradeLevel(upgrade, upgrade.level + count);
                 return { ...state, gold: state.gold - totalCost, upgrades: newUpgrades };
             }
             return state;
@@ -2185,7 +2215,7 @@ function createGameStore() {
                     const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
                     if (state.stardust >= cost) {
                         const newUpgrades = [...state.secretUpgrades];
-                        newUpgrades[upgradeIndex] = { ...upgrade, level: upgrade.level + 1 };
+                        newUpgrades[upgradeIndex] = updateSecretUpgradeLevel(upgrade, upgrade.level + 1);
                         return { ...state, stardust: state.stardust - cost, secretUpgrades: newUpgrades };
                     }
                 }

@@ -8,7 +8,7 @@
         type Rarity
     } from '../store';
     import { saveGame } from '../yandex-sdk';
-    import { t } from '../i18n';
+    import { t, currentLang, getIngredientName, getPotionName, getPotionDesc } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -63,10 +63,11 @@
     }
 
     // All ingredients with their current count
-    $: ingredientSlots = AVAILABLE_INGREDIENTS.map(ing => ({
+    $: ingredientSlots = $currentLang ? AVAILABLE_INGREDIENTS.map(ing => ({
         ...ing,
+        name: getIngredientName(ing.id, $currentLang),
         count: $ingredientsCount[ing.id] ?? 0
-    }));
+    })) : [];
 
     // Rarity order for sorting
     const RARITY_ORDER: Record<Rarity, number> = { legendary: 0, epic: 1, rare: 2, common: 3 };
@@ -96,7 +97,7 @@
         if (($potionsCount[potionId] ?? 0) > 0) {
             gameStore.usePotion(potionId);
             saveGame();
-            showFeedback($t('inventory.potionDrunk', { name: potion?.name ?? '' }));
+            showFeedback($t('inventory.potionDrunk', { name: potion ? getPotionName(potion.id, $currentLang) : '' }));
         }
     }
 </script>
@@ -218,10 +219,10 @@
                                     <div class="potion-icon">{@html potion.icon}</div>
                                     <div class="potion-info">
                                         <div class="potion-name-row">
-                                            <span class="potion-name">{potion.name}</span>
+                                            <span class="potion-name">{getPotionName(potion.id, $currentLang)}</span>
                                             <span class="potion-count-pill">×{$potionsCount[potion.id]}</span>
                                         </div>
-                                        <div class="potion-desc">{potion.description}</div>
+                                        <div class="potion-desc">{getPotionDesc(potion.id, $currentLang)}</div>
                                     </div>
                                     <button class="use-potion-btn" on:click={() => handleUsePotion(potion.id)}>
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">

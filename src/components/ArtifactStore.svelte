@@ -10,7 +10,7 @@
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
-    import { t } from '../i18n';
+    import { t, currentLang, getCollectionName, getCollectionDesc, getArtifactName, getArtifactDesc, getPetName } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -116,7 +116,7 @@
                     on:click={() => activeSynergySetId = col.id}
                 >
                     <span class="tab-dot" style="background: {col.themeColor}"></span>
-                    <span class="tab-col-name">{col.name}</span>
+                    <span class="tab-col-name">{getCollectionName(col.id, $currentLang)}</span>
                     <span class="tab-col-badge">{ownedInCol}/{col.requiredArtifactIds.length}</span>
                 </button>
             {/each}
@@ -138,14 +138,14 @@
             </div>
             <div class="synergy-info">
                 <div class="synergy-title-row">
-                    <span class="synergy-name">{currentSynergySet?.name || 'Artifacts'}</span>
+                    <span class="synergy-name">{currentSynergySet ? getCollectionName(currentSynergySet.id, $currentLang) : 'Artifacts'}</span>
                     <span class="synergy-count" class:done={isSetComplete}>{setOwnedCount}/{setTotalCount}</span>
                 </div>
                 <div class="synergy-desc">
                     {#if isSetComplete}
-                        {rewardPet ? $t('artifactsStore.setCompleted', { name: rewardPet.name }) : $t('artifactsStore.setCompletedAll')}
+                        {rewardPet ? $t('artifactsStore.setCompleted', { name: getPetName(rewardPet.id, $currentLang) }) : $t('artifactsStore.setCompletedAll')}
                     {:else}
-                        {currentSynergySet?.description || $t('artifactsStore.setHint')}
+                        {currentSynergySet ? getCollectionDesc(currentSynergySet.id, $currentLang) : $t('artifactsStore.setHint')}
                     {/if}
                 </div>
             </div>
@@ -176,7 +176,7 @@
                     class:active={activeFilter === col.id} 
                     on:click={() => activeFilter = col.id}
                 >
-                    {col.name} ({col.requiredArtifactIds.length})
+                    {getCollectionName(col.id, $currentLang)} ({col.requiredArtifactIds.length})
                 </button>
             {/each}
         </div>
@@ -199,14 +199,14 @@
                     </div>
                     <div class="artifact-info">
                         <div class="art-header-line">
-                            <h3>{art.name}</h3>
+                            <h3>{getArtifactName(art.id, $currentLang)}</h3>
                             {#if setInfo}
                                 <span class="badge-set" style="background: {setInfo.themeColor}">
-                                    {setInfo.name}
+                                    {getCollectionName(setInfo.id, $currentLang)}
                                 </span>
                             {/if}
                         </div>
-                        <p>{art.description}</p>
+                        <p>{getArtifactDesc(art.id, $currentLang)}</p>
                     </div>
                     <div class="artifact-action">
                         {#if isBought}

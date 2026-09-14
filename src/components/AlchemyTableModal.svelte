@@ -11,7 +11,7 @@
         buyRecipeHint, unlockRecipeHintFree,
         type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
-    import { t } from '../i18n';
+    import { t, currentLang, getIngredientName, getPotionName } from '../i18n';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
     import { playSuccessSound, playOverheatSizzle, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -245,7 +245,7 @@
         for (const [ing, cnt] of Object.entries(needed)) {
             if ((counts[ing] ?? 0) < cnt) {
                 const ingObj = getIng(ing);
-                return { can: false, missingName: ingObj?.name ?? ing };
+                return { can: false, missingName: ingObj ? getIngredientName(ingObj.id, get(currentLang)) : ing };
             }
         }
         return { can: true };
@@ -426,7 +426,7 @@
                     <div class="slot" class:filled={!!slotId}
                         style={ing ? `--sg:${RC[ing.rarity]}` : ''}
                         on:click={() => slotId && clearSlot(i)}
-                        title={ing ? `${ing.name} — ${$t('alchemy.removeSlot')}` : `${$t('alchemy.slot')} ${i+1}`}
+                        title={ing ? `${getIngredientName(ing.id, $currentLang)} — ${$t('alchemy.removeSlot')}` : `${$t('alchemy.slot')} ${i+1}`}
                     >
                         {#if ing}
                             <div class="slot-icon">{@html ing.icon}</div>
@@ -494,7 +494,7 @@
                             <div class="picker-item"
                                 class:depleted={avail <= 0} class:all-full={slotsAll && avail > 0}
                                 style="--bc:{RC[ing.rarity]}"
-                                on:click={() => addToSlot(ing.id)} title={ing.name}>
+                                on:click={() => addToSlot(ing.id)} title={getIngredientName(ing.id, $currentLang)}>
                                 <div class="picker-icon">{@html ing.icon}</div>
                                 <div class="picker-cnt">{ing.total}</div>
                                 {#if used > 0}<div class="picker-used">-{used}</div>{/if}
@@ -525,7 +525,7 @@
                     <div class="recipe-head">
                         <div class="r-pot-icon">{@html potion.icon}</div>
                         <div class="r-pot-info">
-                            <div class="r-pot-name">{potion.name}</div>
+                            <div class="r-pot-name">{getPotionName(potion.id, $currentLang)}</div>
                             <div class="r-rarity" style="color:{RC[recipe.rarity]}">{RL[recipe.rarity]}</div>
                         </div>
                         {#if hints === 3}
@@ -545,7 +545,7 @@
                                 {#if ing}
                                 <div class="r-ing revealed"
                                     style="border-color:{RC[ing.rarity]};box-shadow:0 0 8px {RC[ing.rarity]}44"
-                                    title={ing.name}>
+                                    title={getIngredientName(ing.id, $currentLang)}>
                                     <div class="r-ing-icon">{@html ing.icon}</div>
                                 </div>
                                 {/if}
@@ -554,7 +554,7 @@
                             {/if}
                         {/each}
                         <span class="rp">=</span>
-                        <div class="r-result" title={potion.name}>{@html potion.icon}</div>
+                        <div class="r-result" title={getPotionName(potion.id, $currentLang)}>{@html potion.icon}</div>
                     </div>
 
                     {#if hints < 3}

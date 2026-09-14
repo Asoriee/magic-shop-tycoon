@@ -15,7 +15,7 @@
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playSuccessSound, playLevelUpSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
-    import { t } from '../i18n';
+    import { t, currentLang, getIngredientName, getPotionName, getPetName } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -630,7 +630,11 @@
                         {/if}
                     </div>
 
-                    <div class="loot-name">{item.name}</div>
+                    <div class="loot-name">
+                        {item.type === 'ingredient' ? getIngredientName(item.id, $currentLang) : 
+                         (item.type === 'potion' ? getPotionName(item.id, $currentLang) : 
+                         (item.type === 'pet' ? getPetName(item.id, $currentLang) : item.name))}
+                    </div>
 
                     {#if item.type === 'gold'}
                         <div class="loot-detail gold-text">+{formatNumber(item.goldAmount || 0)} {$t('common.gold')}</div>

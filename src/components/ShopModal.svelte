@@ -13,6 +13,7 @@
     } from '../store';
     import gsap from 'gsap';
     import { playCoinSound, playLevelUpSound } from '../audio';
+    import { t, currentLang, getUpgradeName, getUpgradeDesc } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -142,19 +143,19 @@
 
                 <!-- Economic Stats Row -->
                 <div class="currencies-panel">
-                    <div class="curr-chip gold-chip" title="Золото">
+                    <div class="curr-chip gold-chip" title="{$t('common.gold')}">
                         <ResourceIcon type="gold" size={16} />
-                        <span class="curr-val">{formatNumber($gameStore.gold)} золота</span>
+                        <span class="curr-val">{formatNumber($gameStore.gold)} {$t('common.gold')}</span>
                     </div>
 
-                    <div class="curr-chip click-chip" title="Сила клика">
+                    <div class="curr-chip click-chip" title="{$t('shop.clickPower', { val: '' })}">
                         <ResourceIcon type="click" size={16} />
-                        <span class="curr-val">+{formatNumber($currentClickPower)}/клик</span>
+                        <span class="curr-val">+{formatNumber($currentClickPower)}{$t('common.perClick')}</span>
                     </div>
 
-                    <div class="curr-chip idle-chip" title="Доход в секунду">
+                    <div class="curr-chip idle-chip" title="{$t('shop.incomePerSec', { val: '' })}">
                         <ResourceIcon type="income" size={16} />
-                        <span class="curr-val">+{formatNumber($currentIdleIncome)}/сек</span>
+                        <span class="curr-val">+{formatNumber($currentIdleIncome)}{$t('common.perSec')}</span>
                     </div>
                 </div>
             </div>
@@ -171,9 +172,9 @@
                         <path d="M4 6 H6 V10 H4 Z M18 6 H20 V10 H18 Z" fill="#f39c12"/>
                         <rect x="10" y="18" width="4" height="4" fill="#b7791f"/>
                     </svg>
-                    <span>Золотая Жила: x{$milestoneInfo.multiplier.toFixed(2)} ко всему доходу</span>
+                    <span>{$t('shop.multiplier')}: x{$milestoneInfo.multiplier.toFixed(2)}</span>
                 </div>
-                <span class="milestone-step">{$milestoneInfo.progress} / 25 уровней</span>
+                <span class="milestone-step">{$milestoneInfo.progress} / 25 {$t('common.level')}</span>
             </div>
             <div class="milestone-bar">
                 <div class="milestone-fill" style="width: {($milestoneInfo.progress / 25) * 100}%"></div>
@@ -189,7 +190,7 @@
                     class:active={activeCategory === 'all'} 
                     on:click={() => activeCategory = 'all'}
                 >
-                    Все <span class="pill-count">{$gameStore.upgrades.length}</span>
+                    {$currentLang === 'ru' ? 'Все' : ($currentLang === 'tr' ? 'Tümü' : 'All')} <span class="pill-count">{$gameStore.upgrades.length}</span>
                 </button>
                 <button 
                     type="button"
@@ -200,7 +201,7 @@
                     <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
                         <path d="M8 0a8 8 0 1 0 8 8 8 8 0 0 0-8-8zm0 14A6 6 0 1 1 14 8a6 6 0 0 1-6 6zm1-9H7v4h4V8H9z"/>
                     </svg>
-                    Доход <span class="pill-count">{productionCount}</span>
+                    {$t('shop.tabProduction')} <span class="pill-count">{productionCount}</span>
                 </button>
                 <button 
                     type="button"
@@ -211,7 +212,7 @@
                     <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
                         <polygon points="9,1 2,9 7,9 6,15 14,6 9,6"/>
                     </svg>
-                    Клик & Чары <span class="pill-count">{clickCount}</span>
+                    {$t('shop.tabClick')} <span class="pill-count">{clickCount}</span>
                 </button>
                 <button 
                     type="button"
@@ -223,18 +224,18 @@
                         <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
                         <polygon points="8,3 10,7 14,7 11,10 12,14 8,11 4,14 5,10 2,7 6,7"/>
                     </svg>
-                    Мастерство <span class="pill-count">{masteryCount}</span>
+                    {$t('shop.tabMastery')} <span class="pill-count">{masteryCount}</span>
                 </button>
             </div>
 
-            <div class="buy-mode-group" role="group" aria-label="Режим покупки">
+            <div class="buy-mode-group" role="group" aria-label="{$t('common.buy')}">
                 <button 
                     type="button"
                     class="mode-btn" 
                     class:active={buyMode === '1'} 
                     on:click={() => buyMode = '1'}
                 >
-                    х1
+                    {$t('shop.bulkBuy1')}
                 </button>
                 <button 
                     type="button"
@@ -242,7 +243,7 @@
                     class:active={buyMode === '10'} 
                     on:click={() => buyMode = '10'}
                 >
-                    х10
+                    {$t('shop.bulkBuy10')}
                 </button>
                 <button 
                     type="button"
@@ -250,7 +251,7 @@
                     class:active={buyMode === 'max'} 
                     on:click={() => buyMode = 'max'}
                 >
-                    МАКС
+                    {$t('shop.bulkBuyMax')}
                 </button>
             </div>
         </div>
@@ -264,6 +265,8 @@
                 {@const isResonance = upgrade.type === 'resonance'}
                 {@const isHearth = upgrade.type === 'hearth'}
                 {@const isHeat = upgrade.type === 'heat'}
+                {@const upgName = getUpgradeName(upgrade.id, $currentLang)}
+                {@const upgDesc = getUpgradeDesc(upgrade.id, $currentLang)}
                 
                 <div class="upgrade-card" class:disabled={!canAfford}>
                     <div class="icon-wrap">
@@ -272,45 +275,45 @@
 
                     <div class="info">
                         <div class="name-row">
-                            <h4 class="name">{upgrade.name}</h4>
+                            <h4 class="name">{upgName}</h4>
                             <div class="badges-row">
                                 {#if upgrade.type === 'idle'}
-                                    <span class="type-badge idle">Пассивно</span>
+                                    <span class="type-badge idle">{$t('shop.tabProduction')}</span>
                                 {:else if upgrade.type === 'click'}
-                                    <span class="type-badge click">Клик</span>
+                                    <span class="type-badge click">{$t('shop.tabClick')}</span>
                                 {:else if isCrit}
-                                    <span class="type-badge crit">Крит x5</span>
+                                    <span class="type-badge crit">x5</span>
                                 {:else if isResonance}
-                                    <span class="type-badge resonance">Резонанс</span>
+                                    <span class="type-badge resonance">%</span>
                                 {:else if isHearth}
-                                    <span class="type-badge mastery">Офлайн</span>
+                                    <span class="type-badge mastery">{$t('common.hour')}</span>
                                 {:else if isHeat}
-                                    <span class="type-badge heat">Комбо</span>
+                                    <span class="type-badge heat">{$t('cauldron.combo')}</span>
                                 {/if}
-                                <span class="level-badge">Ур. {upgrade.level}</span>
+                                <span class="level-badge">{$t('common.levelShort')} {upgrade.level}</span>
                             </div>
                         </div>
 
-                        <p class="description">{upgrade.description}</p>
+                        <p class="description">{upgDesc}</p>
 
                         <div class="effect-preview">
                             {#if upgrade.type === 'idle'}
-                                <span class="effect-current">Текущий: +{formatNumber(upgrade.baseValue * upgrade.level)}/сек</span>
-                                <span class="effect-next">→ +{formatNumber(upgrade.baseValue * (upgrade.level + bulk.count))}/сек</span>
+                                <span class="effect-current">+{formatNumber(upgrade.baseValue * upgrade.level)}{$t('common.perSec')}</span>
+                                <span class="effect-next">→ +{formatNumber(upgrade.baseValue * (upgrade.level + bulk.count))}{$t('common.perSec')}</span>
                             {:else if upgrade.type === 'click'}
-                                <span class="effect-current">Текущий: +{formatNumber(upgrade.baseValue * upgrade.level)}</span>
+                                <span class="effect-current">+{formatNumber(upgrade.baseValue * upgrade.level)}</span>
                                 <span class="effect-next">→ +{formatNumber(upgrade.baseValue * (upgrade.level + bulk.count))}</span>
                             {:else if isCrit}
-                                <span class="effect-current">Шанс: {Math.round(upgrade.level * 3)}%</span>
-                                <span class="effect-next">→ {Math.min(50, Math.round((upgrade.level + bulk.count) * 3))}% (кап 50%)</span>
+                                <span class="effect-current">{Math.round(upgrade.level * 3)}%</span>
+                                <span class="effect-next">→ {Math.min(50, Math.round((upgrade.level + bulk.count) * 3))}%</span>
                             {:else if isResonance}
-                                <span class="effect-current">Бонус: +{upgrade.level}% дохода</span>
+                                <span class="effect-current">+{upgrade.level}%</span>
                                 <span class="effect-next">→ +{upgrade.level + bulk.count}% (+{formatNumber($resonanceBonus)})</span>
                             {:else if isHearth}
-                                <span class="effect-current">Офлайн: +{upgrade.level} ч (всего: {$maxOfflineTimeHours} ч)</span>
-                                <span class="effect-next">→ +{upgrade.level + bulk.count} ч</span>
+                                <span class="effect-current">+{upgrade.level}{$t('common.hour')} ({$maxOfflineTimeHours}{$t('common.hour')})</span>
+                                <span class="effect-next">→ +{upgrade.level + bulk.count}{$t('common.hour')}</span>
                             {:else if isHeat}
-                                <span class="effect-current">Комбо-жар: +{upgrade.level * 25}%</span>
+                                <span class="effect-current">+{upgrade.level * 25}%</span>
                                 <span class="effect-next">→ +{(upgrade.level + bulk.count) * 25}%</span>
                             {/if}
                         </div>
@@ -322,7 +325,7 @@
                         class:can-afford={canAfford}
                         bind:this={buttons[upgrade.id]}
                         on:click|stopPropagation={() => buyUpgrade(upgrade)}
-                        aria-label="Купить {upgrade.name}"
+                        aria-label="{$t('common.buy')} {upgName}"
                     >
                         <span class="buy-count">+{bulk.count}</span>
                         <span class="buy-price">

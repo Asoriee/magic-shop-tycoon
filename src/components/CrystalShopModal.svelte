@@ -11,6 +11,7 @@
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -63,31 +64,31 @@
         skip24: { text: '', visible: false }
     };
 
-    const skips = [
+    $: skips = [
         {
             id: 'skip4',
-            label: 'Малый Скачок',
+            label: $t('timeskip.skip4Label'),
             hours: 4,
             cost: 15,
-            desc: '4 часа пассивного дохода',
+            desc: $t('timeskip.skip4Desc'),
             color: '#74b9ff',
             glow: 'rgba(116, 185, 255, 0.4)'
         },
         {
             id: 'skip8',
-            label: 'Сдвиг Эпохи',
+            label: $t('timeskip.skip8Label'),
             hours: 8,
             cost: 25,
-            desc: '8 часов пассивного дохода',
+            desc: $t('timeskip.skip8Desc'),
             color: '#a29bfe',
             glow: 'rgba(162, 155, 254, 0.4)'
         },
         {
             id: 'skip24',
-            label: 'Временной Разлом',
+            label: $t('timeskip.skip24Label'),
             hours: 24,
             cost: 60,
-            desc: '24 часа пассивного дохода',
+            desc: $t('timeskip.skip24Desc'),
             color: '#fd79a8',
             glow: 'rgba(253, 121, 168, 0.5)'
         }
@@ -101,7 +102,7 @@
     }
 
     function triggerResultAnimation(id: string, earned: number) {
-        const formatted = `+${formatNumber(earned)} золота`;
+        const formatted = $t('timeskip.goldAdded', { val: formatNumber(earned) });
         resultMessages[id] = { text: formatted, visible: true };
 
         setTimeout(() => {
@@ -179,9 +180,9 @@
                             <path d="M20 8 V20 L26 26" stroke="#f1c40f" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </div>
-                    <h2 class="tab-title">Хрономантия</h2>
+                    <h2 class="tab-title">{$t('timeskip.title')}</h2>
                 </div>
-                <button class="close-btn" on:click={onClose} aria-label="Закрыть">✕</button>
+                <button class="close-btn" on:click={onClose} aria-label={$t('common.close')}>✕</button>
             </div>
         {/if}
 
@@ -192,7 +193,7 @@
                     <line x1="10" y1="6" x2="10" y2="10" stroke="#f39c12" stroke-width="2" stroke-linecap="round"/>
                     <circle cx="10" cy="14" r="1.2" fill="#f39c12"/>
                 </svg>
-                <span>У вас пока нет пассивного дохода. Улучшайте лавку, чтобы временные скачки приносили золото!</span>
+                <span>{$t('timeskip.noIncome')}</span>
             </div>
         {/if}
 
@@ -220,13 +221,13 @@
 
                 <div class="card-content">
                     <div class="card-title-row">
-                        <h4 class="card-label">Малый Хроно-Импульс</h4>
-                        <span class="free-pill">БЕСПЛАТНО</span>
+                        <h4 class="card-label">{$t('timeskip.freeImpulseLabel')}</h4>
+                        <span class="free-pill">{$t('common.free')}</span>
                     </div>
-                    <p class="card-desc">1 час пассивного дохода за рекламу</p>
+                    <p class="card-desc">{$t('timeskip.freeImpulseDesc')}</p>
                     <div class="card-estimate">
                         <ResourceIcon type="gold" size={13} />
-                        <span>≈ +{estimateGold(1)} золота</span>
+                        <span>{$t('timeskip.goldEstimate', { val: estimateGold(1) })}</span>
                     </div>
                 </div>
 
@@ -241,7 +242,7 @@
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
                             </svg>
-                            <span>Смотреть</span>
+                            <span>{$t('common.watchAd')}</span>
                         </button>
                     {:else}
                         <div class="cooldown-badge">
@@ -304,7 +305,7 @@
                         <p class="card-desc">{skip.desc}</p>
                         <div class="card-estimate">
                             <ResourceIcon type="gold" size={13} />
-                            <span>≈ +{estimateGold(skip.hours)} золота</span>
+                            <span>{$t('timeskip.goldEstimate', { val: estimateGold(skip.hours) })}</span>
                         </div>
                     </div>
 
@@ -320,7 +321,7 @@
                                 <ResourceIcon type="crystals" size={14} />
                                 {skip.cost}
                             </span>
-                            <span class="btn-sub">Купить</span>
+                            <span class="btn-sub">{$t('common.buy')}</span>
                         </button>
 
                         {#if resultMessages[skip.id].visible}

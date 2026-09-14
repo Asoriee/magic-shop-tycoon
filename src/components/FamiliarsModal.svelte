@@ -13,6 +13,7 @@
         getExpeditionSkipCost,
         currentIdleIncome
     } from '../store';
+    import { t } from '../i18n';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playSuccessSound, playLevelUpSound, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -252,11 +253,11 @@
         saveGame();
     }
 
-    const RARITY_NAMES: Record<string, string> = {
-        common: 'Обычный',
-        rare: 'Редкий',
-        epic: 'Эпический',
-        legendary: 'Легендарный'
+    $: RARITY_NAMES = {
+        common: $t('rarity.common') || 'Обычный',
+        rare: $t('rarity.rare') || 'Редкий',
+        epic: $t('rarity.epic') || 'Эпический',
+        legendary: $t('rarity.legendary') || 'Легендарный'
     };
 </script>
 
@@ -286,8 +287,8 @@
                     </svg>
                 </div>
                 <div class="header-text">
-                    <h2>Обитель Фамильяров</h2>
-                    <p class="header-sub">Призывайте питомцев и отправляйте их в экспедиции</p>
+                    <h2>{$t('familiars.title')}</h2>
+                    <p class="header-sub">{$t('city.expeditionsTitle')}</p>
                 </div>
                 <button class="close-btn" on:click={onClose}>✕</button>
             </div>
@@ -295,7 +296,7 @@
             <div class="balance-row">
                 <div class="balance-chip crystal">
                     <ResourceIcon type="crystals" size={14} />
-                    <span>{formatNumber($crystals)} кристаллов</span>
+                    <span>{formatNumber($crystals)} {$t('common.crystals')}</span>
                 </div>
             </div>
         {/if}
@@ -310,7 +311,7 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M12 3C8 3 4.5 5.5 3 9c-1.5 3.5 0 8 3 10.5 1.5 1.2 3.5 1.5 5 1 .5 1.5 1.8 2.5 3.5 2.5 2 0 3.5-1.5 3.5-3.5 0-.5-.1-1-.3-1.5 2.8-1 4.8-3.5 5.3-6.5C24 6 18 3 12 3z"/>
                 </svg>
-                <span>Мои Питомцы</span>
+                <span>{$t('familiars.myPets')}</span>
                 <span class="sub-pill">{unlockedPets.length}/{AVAILABLE_PETS.length}</span>
             </button>
             <button 
@@ -322,11 +323,11 @@
                     <circle cx="12" cy="12" r="9"/>
                     <path d="M12 7v10M7 12h10"/>
                 </svg>
-                <span>Магический Призыв</span>
+                <span>{$t('familiars.magicSummon')}</span>
                 {#if lockedPets.length > 0}
-                    <span class="sub-pill gold-pill">{lockedPets.length} новых</span>
+                    <span class="sub-pill gold-pill">{$t('familiars.newPetsTag', { count: lockedPets.length })}</span>
                 {:else}
-                    <span class="sub-pill ok-pill">Прокачка</span>
+                    <span class="sub-pill ok-pill">{$t('familiars.levelingTag')}</span>
                 {/if}
             </button>
         </div>
@@ -340,8 +341,8 @@
                                 <circle cx="24" cy="24" r="20"/>
                                 <path d="M16 20h2M30 20h2M18 30c2 3 10 3 12 0"/>
                             </svg>
-                            <p class="empty-title">У вас пока нет призванных фамильяров</p>
-                            <p class="empty-sub">Перейдите во вкладку «Магический Призыв», чтобы пробудить первого верного спутника!</p>
+                            <p class="empty-title">{$t('familiars.emptyTitle')}</p>
+                            <p class="empty-sub">{$t('familiars.emptySub')}</p>
                         </div>
                     {:else}
                         {#each unlockedPets as pet (pet.id)}
@@ -356,45 +357,45 @@
                                 <div class="pet-icon-box">
                                     <div class="pet-svg-wrap">{@html pet.icon}</div>
                                     <span class="rarity-badge {pet.rarity}">{RARITY_NAMES[pet.rarity]}</span>
-                                    <span class="pet-level-badge" class:max-level={petLevel >= 10}>Ур. {petLevel}</span>
+                                    <span class="pet-level-badge" class:max-level={petLevel >= 10}>{$t('common.levelShort')} {petLevel}</span>
                                 </div>
                                 
                                 <div class="pet-info">
                                     <div class="pet-name-line">
                                         <h3 class="pet-title">{pet.name}</h3>
                                         {#if isExpDone}
-                                            <span class="status-chip ready-chip">Готово к сбору</span>
+                                            <span class="status-chip ready-chip">{$t('familiars.readyToClaim')}</span>
                                         {:else if isExpActive}
-                                            <span class="status-chip active-chip">В экспедиции</span>
+                                            <span class="status-chip active-chip">{$t('familiars.inExpedition')}</span>
                                         {:else}
-                                            <span class="status-chip idle-chip">В обители</span>
+                                            <span class="status-chip idle-chip">{$t('familiars.inAbode')}</span>
                                         {/if}
                                     </div>
                                     <p class="pet-desc">{pet.description}</p>
                                     
                                     <!-- Pet Level Perks -->
                                     <div class="pet-perks-row">
-                                        <span class="pet-perk-tag loot-tag">+{Math.min(135, (petLevel - 1) * 15)}% к добыче</span>
-                                        <span class="pet-perk-tag time-tag">-{Math.min(36, (petLevel - 1) * 4)}% времени</span>
+                                        <span class="pet-perk-tag loot-tag">{$t('familiars.lootBonus', { pct: Math.min(135, (petLevel - 1) * 15) })}</span>
+                                        <span class="pet-perk-tag time-tag">{$t('familiars.timeBonus', { pct: Math.min(36, (petLevel - 1) * 4) })}</span>
                                         {#if petLevel >= 10}
-                                            <span class="pet-perk-tag max-tag">МАКС. УРОВЕНЬ</span>
+                                            <span class="pet-perk-tag max-tag">{$t('familiars.maxLevel')}</span>
                                         {/if}
                                     </div>
 
                                     <div class="pet-card-actions">
                                         {#if $gameStore.activeCompanionId === pet.id}
-                                            <button class="action-btn companion-btn active" disabled title="Этот питомец сопровождает вас в лавке">
+                                            <button class="action-btn companion-btn active" disabled title="Companion">
                                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd700">
                                                     <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
                                                 </svg>
-                                                <span>В лавке</span>
+                                                <span>{$t('familiars.inShop')}</span>
                                             </button>
                                         {:else}
-                                            <button class="action-btn companion-btn" on:click={() => setCompanion(pet.id)} title="Назначить спутником в главном зале">
+                                            <button class="action-btn companion-btn" on:click={() => setCompanion(pet.id)} title="Set as companion">
                                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
                                                     <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
                                                 </svg>
-                                                <span>Взять в лавку</span>
+                                                <span>{$t('familiars.takeToShop')}</span>
                                             </button>
                                         {/if}
 
@@ -403,14 +404,14 @@
                                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
                                                     <polyline points="20 6 9 17 4 12"></polyline>
                                                 </svg>
-                                                Забрать награду!
+                                                {$t('familiars.claimReward')}
                                             </button>
                                         {:else if !isExpActive}
                                             <button class="action-btn start-btn" on:click={() => startExpedition(pet.id)}>
                                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                                     <polygon points="3 11 22 2 13 21 11 13 3 11"/>
                                                 </svg>
-                                                <span>В поход ({pet.expeditionHours || 2}ч)</span>
+                                                <span>{$t('familiars.startExpedition', { hours: pet.expeditionHours || 2 })}</span>
                                             </button>
                                         {/if}
                                     </div>
@@ -437,23 +438,23 @@
                                             <button 
                                                 class="action-btn speed-btn" 
                                                 on:click={() => speedUpExpedition(pet.id)}
-                                                title="Ускорить экспедицию на 2 часа за просмотр рекламы"
+                                                title="Speed up"
                                             >
                                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
                                                     <polygon points="5,3 19,12 5,21"/>
                                                 </svg>
-                                                <span>-2ч</span>
-                                                <span class="exp-ad-tag">РЕК</span>
+                                                <span>{$t('familiars.speedUp2h')}</span>
+                                                <span class="exp-ad-tag">{$t('common.ad') || 'РЕК'}</span>
                                             </button>
 
                                             <button 
                                                 class="action-btn skip-crystal-btn" 
                                                 disabled={$crystals < skipCost}
                                                 on:click={() => instantSkipExpedition(pet.id, timeRem)}
-                                                title="Мгновенно завершить экспедицию за кристаллы"
+                                                title="Skip"
                                             >
                                                 <ResourceIcon type="crystals" size={13} />
-                                                <span>Пропуск ({skipCost})</span>
+                                                <span>{$t('familiars.instantReturn', { cost: skipCost })}</span>
                                             </button>
                                         </div>
                                     {/if}
@@ -466,7 +467,7 @@
                 <div class="gacha-container">
                     {#if !gachaAnimating}
                         <div class="gacha-info">
-                            <h3 class="gacha-headline">Алтарь Магического Призыва</h3>
+                            <h3 class="gacha-headline">{$t('familiars.magicSummon')}</h3>
                             <p class="gacha-desc">
                                 Пробуждайте и улучшайте фамильяров (до Ур. 10)! Повторное получение спутника повышает его уровень, увеличивая объём добычи и сокращая время походов.
                             </p>
@@ -483,7 +484,7 @@
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                                 </svg>
-                                Призвать / Улучшить Фамильяра
+                                {$t('familiars.magicSummon')}
                             </button>
                         </div>
                         
@@ -529,7 +530,7 @@
                                 {/if}
                                 <div class="result-icon">{@html rolledPet.icon}</div>
                                 <h2 class="pet-name">{rolledPet.name}</h2>
-                                <p class="rarity-label {rolledPet.rarity}">{RARITY_NAMES[rolledPet.rarity]} • Уровень {newLevelReached}</p>
+                                <p class="rarity-label {rolledPet.rarity}">{RARITY_NAMES[rolledPet.rarity]} • {$t('common.levelShort')} {newLevelReached}</p>
                                 
                                 {#if rollType === 'upgrade'}
                                     <div class="upgrade-bonus-notice">
@@ -546,7 +547,7 @@
                                 {/if}
 
                                 <button class="action-btn claim-btn celebrate-btn" on:click={closeGachaResult}>
-                                    {rollType === 'new' ? 'Принять спутника' : 'Отлично!'}
+                                    {rollType === 'new' ? $t('common.confirm') : $t('common.ready')}
                                 </button>
                             </div>
                         {/if}

@@ -5,6 +5,7 @@
     import { playSuccessSound, playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     let buttons: Record<string, HTMLElement> = {};
     let nowTime = Date.now();
@@ -66,13 +67,21 @@
         });
     }
 
-    const categoryLabels: Record<string, { name: string; color: string; bg: string }> = {
-        'ritual':      { name: '✦ Ритуал',      color: '#e056fd', bg: 'rgba(224, 86, 253, 0.15)' },
-        'alchemy':     { name: '⚗️ Алхимия',     color: '#2ecc71', bg: 'rgba(46, 204, 113, 0.15)' },
-        'expeditions': { name: '🐾 Экспедиции',  color: '#f39c12', bg: 'rgba(243, 156, 18, 0.15)' },
-        'orders':      { name: '📜 Заказы',      color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
-        'economy':     { name: '💎 Экономика',   color: '#f1c40f', bg: 'rgba(241, 196, 15, 0.15)' },
+    const categoryIcons: Record<string, string> = {
+        'ritual': `<svg viewBox="0 0 12 12" width="10" height="10" fill="currentColor"><polygon points="6,1 7.5,4.5 11,6 7.5,7.5 6,11 4.5,7.5 1,6 4.5,4.5"/></svg>`,
+        'alchemy': `<svg viewBox="0 0 12 12" width="10" height="10" fill="currentColor"><path d="M4 1h4v2l2 6a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 2 9l2-6V1z"/></svg>`,
+        'expeditions': `<svg viewBox="0 0 12 12" width="10" height="10" fill="currentColor"><ellipse cx="6" cy="7.5" rx="2.5" ry="2"/><circle cx="3.5" cy="4" r="1.1"/><circle cx="6" cy="3" r="1.1"/><circle cx="8.5" cy="4" r="1.1"/></svg>`,
+        'orders': `<svg viewBox="0 0 12 12" width="10" height="10" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1.5"/></svg>`,
+        'economy': `<svg viewBox="0 0 12 12" width="10" height="10" fill="currentColor"><polygon points="6,1 10.5,4.5 6,11 1.5,4.5"/></svg>`,
     };
+
+    $: categoryColors = {
+        'ritual':      { label: $t('secretUpgradesMeta.ritual'), color: '#e056fd', bg: 'rgba(224, 86, 253, 0.15)' },
+        'alchemy':     { label: $t('secretUpgradesMeta.alchemy'), color: '#2ecc71', bg: 'rgba(46, 204, 113, 0.15)' },
+        'expeditions': { label: $t('secretUpgradesMeta.expeditions'), color: '#f39c12', bg: 'rgba(243, 156, 18, 0.15)' },
+        'orders':      { label: $t('secretUpgradesMeta.orders'), color: '#3498db', bg: 'rgba(52, 152, 219, 0.15)' },
+        'economy':     { label: $t('secretUpgradesMeta.economy'), color: '#f1c40f', bg: 'rgba(241, 196, 15, 0.15)' },
+    } as Record<string, { label: string; color: string; bg: string }>;
 
     const icons: Record<string, string> = {
         'stardust_extractor': `<svg viewBox="0 0 28 28" width="28" height="28" fill="none">
@@ -156,8 +165,8 @@
                 </svg>
             </div>
             <div class="info-text">
-                <span class="info-title">Постоянные Рунические Знания</span>
-                <span class="info-sub">Каждое знание навсегда меняет правила мира и усиливает лавку даже после Тёмного Ритуала.</span>
+                <span class="info-title">{$t('secretUpgradesMeta.title')}</span>
+                <span class="info-sub">{$t('secretUpgradesMeta.subtitle')}</span>
             </div>
         </div>
     </div>
@@ -174,16 +183,16 @@
             </div>
             <div class="insight-texts">
                 <div class="insight-title-row">
-                    <span class="insight-title">Озарение Архимага</span>
+                    <span class="insight-title">{$t('secretUpgradesMeta.insightTitle')}</span>
                     {#if isBoosted}
-                        <span class="active-pill">+50% ЭФФЕКТ</span>
+                        <span class="active-pill">{$t('secretUpgradesMeta.insightActiveTag')}</span>
                     {/if}
                 </div>
                 <span class="insight-desc">
                     {#if isBoosted}
-                        Руны временно усилены на +50%! Осталось: <strong>{boostFormattedTime}</strong>
+                        {$t('secretUpgradesMeta.insightActiveDesc', { time: boostFormattedTime })}
                     {:else}
-                        Активируйте озарение на 30 минут: все эффекты рунических знаний усилятся на 50%!
+                        {$t('secretUpgradesMeta.insightInactiveDesc')}
                     {/if}
                 </span>
             </div>
@@ -196,7 +205,7 @@
                         <rect x="3" y="5" width="18" height="14" rx="3" stroke="#fff" stroke-width="1.5"/>
                         <polygon points="10,9 16,12 10,15" fill="#f1c40f"/>
                     </svg>
-                    <span>Активировать</span>
+                    <span>{$t('secretUpgradesMeta.insightActivate')}</span>
                 </button>
             {:else}
                 <div class="insight-timer-box">
@@ -212,7 +221,7 @@
             {@const cost = getCost(upgrade.baseCost, upgrade.costMultiplier, upgrade.level)}
             {@const isMax = upgrade.level >= upgrade.maxLevel}
             {@const canAfford = $gameStore.stardust >= cost}
-            {@const category = categoryLabels[upgrade.category || 'ritual'] || categoryLabels['ritual']}
+            {@const category = categoryColors[upgrade.category || 'ritual'] || categoryColors['ritual']}
             
             <div class="card" class:is-max={isMax}>
                 <div class="icon-wrap">
@@ -224,18 +233,19 @@
                         <div class="name-with-tag">
                             <h4 class="card-name">{upgrade.name}</h4>
                             <span class="category-chip" style="color: {category.color}; background: {category.bg}">
-                                {category.name}
+                                {@html categoryIcons[upgrade.category || 'ritual'] || categoryIcons['ritual']}
+                                <span>{category.label}</span>
                             </span>
                         </div>
                         <span class="level-tag" class:max-tag={isMax}>
-                            {isMax ? 'МАКС' : `${upgrade.level} / ${upgrade.maxLevel}`}
+                            {isMax ? $t('common.maxLevel') : `${upgrade.level} / ${upgrade.maxLevel}`}
                         </span>
                     </div>
 
                     <p class="desc">
                         {upgrade.description}
                         {#if isBoosted && upgrade.level > 0}
-                            <span class="boost-bonus-text"> (+50% усилено)</span>
+                            <span class="boost-bonus-text">{$t('secretUpgradesMeta.boostActiveBadge')}</span>
                         {/if}
                     </p>
 
@@ -256,7 +266,7 @@
                         disabled={isMax || !canAfford}
                     >
                         {#if isMax}
-                            <span>ИЗУЧЕНО</span>
+                            <span>{$t('secretUpgradesMeta.learned')}</span>
                         {:else}
                             <span class="btn-cost-row">
                                 <ResourceIcon type="stardust" size={13} />
@@ -382,10 +392,6 @@
         line-height: 1.3;
     }
 
-    .insight-desc strong {
-        color: #ffeaa7;
-    }
-
     .insight-action {
         flex-shrink: 0;
     }
@@ -493,6 +499,9 @@
     }
 
     .category-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         font-size: 0.65rem;
         font-weight: 800;
         padding: 1px 6px;

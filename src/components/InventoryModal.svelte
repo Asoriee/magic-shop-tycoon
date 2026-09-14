@@ -8,6 +8,7 @@
         type Rarity
     } from '../store';
     import { saveGame } from '../yandex-sdk';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -33,11 +34,11 @@
         legendary: '0 0 18px rgba(241,196,15,0.7)',
     };
 
-    const RARITY_LABELS: Record<Rarity, string> = {
-        common:    'Обычный',
-        rare:      'Редкий',
-        epic:      'Эпический',
-        legendary: 'Легендарный',
+    $: rarityLabels = {
+        common:    $t('rarity.common'),
+        rare:      $t('rarity.rare'),
+        epic:      $t('rarity.epic'),
+        legendary: $t('rarity.legendary'),
     };
 
     $: if (isOpen) {
@@ -95,7 +96,7 @@
         if (($potionsCount[potionId] ?? 0) > 0) {
             gameStore.usePotion(potionId);
             saveGame();
-            showFeedback(`Зелье «${potion?.name ?? ''}» выпито!`);
+            showFeedback($t('inventory.potionDrunk', { name: potion?.name ?? '' }));
         }
     }
 </script>
@@ -130,8 +131,8 @@
                     </svg>
                 </div>
                 <div class="header-text">
-                    <h2>Инвентарь</h2>
-                    <p class="header-sub">{uniqueIngredients}/{AVAILABLE_INGREDIENTS.length} видов · {totalIngredients} предметов</p>
+                    <h2>{$t('inventory.title')}</h2>
+                    <p class="header-sub">{$t('inventory.typesAndItems', { types: uniqueIngredients, total: totalIngredients })}</p>
                 </div>
                 <button class="close-btn" on:click={close}>✕</button>
             </div>
@@ -147,7 +148,7 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/>
                 </svg>
-                <span>Ингредиенты</span>
+                <span>{$t('inventory.ingredientsTab')}</span>
                 <span class="sub-pill">{totalIngredients}</span>
             </button>
             <button
@@ -159,7 +160,7 @@
                     <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3" stroke-linecap="round"/>
                     <line x1="8" y1="15" x2="16" y2="15" stroke="rgba(255,255,255,0.7)" stroke-linecap="round"/>
                 </svg>
-                <span>Зелья</span>
+                <span>{$t('inventory.potionsTab')}</span>
                 <span class="sub-pill">{totalPotions}</span>
             </button>
         </div>
@@ -169,7 +170,7 @@
             {#if activeTab === 'ingredients'}
                 <!-- Rarity Legend -->
                 <div class="rarity-legend">
-                    {#each Object.entries(RARITY_LABELS) as [rarity, label]}
+                    {#each Object.entries(rarityLabels) as [rarity, label]}
                         <span class="rarity-dot" style="--c: {RARITY_COLORS[rarity as Rarity]}">{label}</span>
                     {/each}
                 </div>
@@ -184,7 +185,7 @@
                                 --border-color: {ing.count > 0 ? RARITY_COLORS[ing.rarity] : 'rgba(255,255,255,0.08)'};
                                 --glow: {ing.count > 0 ? RARITY_GLOW[ing.rarity] : 'none'};
                             "
-                            title="{ing.name} ({RARITY_LABELS[ing.rarity]}){ing.count > 0 ? ` — ${ing.count} шт.` : ' — нет в наличии'}"
+                            title="{ing.name} ({rarityLabels[ing.rarity]}){ing.count > 0 ? ` — ${$t('inventory.inStock', { count: ing.count })}` : ` — ${$t('inventory.outOfStock')}`}"
                         >
                             <div class="item-icon">
                                 {@html ing.icon}
@@ -207,8 +208,8 @@
                                 <path d="M18 6h12M20 6v10l-10 18a4 4 0 0 0 3.5 6h21a4 4 0 0 0 3.5-6l-10-18V6" stroke-linecap="round"/>
                                 <circle cx="24" cy="30" r="3" fill="#718093" opacity="0.4"/>
                             </svg>
-                            <p class="no-potions">У вас пока нет готовых зелий.</p>
-                            <span class="no-potions-hint">Сварите эликсиры во вкладке «Алхимия» из найденных ингредиентов!</span>
+                            <p class="no-potions">{$t('inventory.emptyPotions')}</p>
+                            <span class="no-potions-hint">{$t('inventory.emptyPotionsHint')}</span>
                         </div>
                     {:else}
                         <div class="potions-grid">
@@ -226,7 +227,7 @@
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
-                                        Пить
+                                        {$t('inventory.drink')}
                                     </button>
                                 </div>
                             {/each}

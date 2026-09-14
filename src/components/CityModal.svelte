@@ -14,6 +14,7 @@
         AVAILABLE_ARTIFACTS,
         formatNumber 
     } from '../store';
+    import { t } from '../i18n';
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
 
@@ -102,27 +103,27 @@
                 </div>
 
                 <div class="header-titles">
-                    <h2 class="title-text">КОРОЛЕВСКИЙ ГОРОД</h2>
-                    <span class="subtitle-text">Торговая гильдия, контракты героев, сокровищницы и реликвии</span>
+                    <h2 class="title-text">{$t('city.title')}</h2>
+                    <span class="subtitle-text">{$t('city.subtitle')}</span>
                 </div>
             </div>
 
             <!-- Unified Multi-Currency Bar -->
             <div class="currencies-panel">
                 <!-- Gold -->
-                <div class="curr-chip gold-chip" title="Золото">
+                <div class="curr-chip gold-chip" title={$t('common.gold')}>
                     <ResourceIcon type="gold" size={16} />
                     <span class="curr-val">{formatNumber($gameStore.gold)}</span>
                 </div>
 
                 <!-- Crystals -->
-                <div class="curr-chip crystal-chip" title="Кристаллы">
+                <div class="curr-chip crystal-chip" title={$t('common.crystals')}>
                     <ResourceIcon type="crystals" size={16} />
                     <span class="curr-val">{formatNumber($crystals)}</span>
                 </div>
 
                 <!-- Stardust -->
-                <div class="curr-chip stardust-chip" title="Звёздная Пыль">
+                <div class="curr-chip stardust-chip" title={$t('common.stardust')}>
                     <ResourceIcon type="stardust" size={16} />
                     <span class="curr-val">{formatNumber($gameStore.stardust)}</span>
                 </div>
@@ -149,7 +150,7 @@
                         <line x1="10" y1="15" x2="14" y2="15" stroke="#b7791f" stroke-width="1.2" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <span class="tab-label">Заказы</span>
+                <span class="tab-label">{$t('city.tabOrders')}</span>
                 {#if $readyOrdersCount > 0}
                     <span class="tab-badge badge-ready">{$readyOrdersCount}</span>
                 {/if}
@@ -172,7 +173,7 @@
                         <circle cx="12" cy="12" r="2.5" fill="#e74c3c"/>
                     </svg>
                 </div>
-                <span class="tab-label">Квесты</span>
+                <span class="tab-label">{$t('city.tabQuests')}</span>
                 {#if $unclaimedQuestsCount > 0}
                     <span class="tab-badge badge-claim">{$unclaimedQuestsCount}</span>
                 {/if}
@@ -194,11 +195,11 @@
                         <rect x="10" y="9" width="4" height="4" rx="1" fill="#f1c40f" stroke="#b7791f" stroke-width="1"/>
                     </svg>
                 </div>
-                <span class="tab-label">Сундуки</span>
+                <span class="tab-label">{$t('city.tabChests')}</span>
                 {#if $isFreeChestReady}
-                    <span class="tab-badge badge-free">БЕСП</span>
+                    <span class="tab-badge badge-free">{$t('common.free')}</span>
                 {:else}
-                    <span class="tab-badge badge-ad">РЕК</span>
+                    <span class="tab-badge badge-ad">{$t('common.ad')}</span>
                 {/if}
             </button>
 
@@ -218,7 +219,7 @@
                         <path d="M12 4 L14 7 L10 7 Z" fill="#ffeaa7"/>
                     </svg>
                 </div>
-                <span class="tab-label">Древности</span>
+                <span class="tab-label">{$t('city.tabArtifacts')}</span>
                 <span class="tab-badge badge-count">{$gameStore.artifacts.length}/{AVAILABLE_ARTIFACTS.length}</span>
             </button>
         </div>

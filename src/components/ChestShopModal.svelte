@@ -15,6 +15,7 @@
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playSuccessSound, playLevelUpSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -71,11 +72,11 @@
         epic:      '0 0 18px rgba(162,155,254,0.8)',
         legendary: '0 0 24px rgba(241,196,15,1)',
     };
-    const RARITY_LABELS: Record<Rarity, string> = {
-        common:    'Обычный',
-        rare:      'Редкий',
-        epic:      'Эпический',
-        legendary: 'Легендарный',
+    $: RARITY_LABELS = {
+        common:    $t('rarity.common'),
+        rare:      $t('rarity.rare'),
+        epic:      $t('rarity.epic'),
+        legendary: $t('rarity.legendary'),
     };
 
     interface ChestConfig {
@@ -92,88 +93,88 @@
         chances: { label: string; color: string }[];
     }
 
-    const CHESTS: ChestConfig[] = [
+    $: CHESTS = [
         {
-            type: 'wooden',
-            name: 'Деревянный ларец',
-            desc: '3 ингредиента · Шанс золота',
+            type: 'wooden' as ChestType,
+            name: $t('chests.wooden'),
+            desc: $t('chests.itemsCount', { count: 3 }) + ' · ' + $t('common.gold'),
             crystalCost: 0,
             free: true,
             color: '#8B4513',
             accentColor: '#d4a259',
-            items: '3 предмета',
+            items: $t('chests.itemsCount', { count: 3 }),
             resonance: 5,
             chances: [
-                { label: '85% Обычные', color: '#b2bec3' },
-                { label: '15% Редкие', color: '#74b9ff' },
-                { label: '30% Золото (3 мин)', color: '#ffeaa7' }
+                { label: `85% ${$t('rarity.common')}`, color: '#b2bec3' },
+                { label: `15% ${$t('rarity.rare')}`, color: '#74b9ff' },
+                { label: `30% ${$t('common.gold')}`, color: '#ffeaa7' }
             ]
         },
         {
-            type: 'alchemist',
-            name: 'Ларец Зельевара',
-            desc: '2 готовых зелья + 3 ингредиента · Шанс золота',
+            type: 'alchemist' as ChestType,
+            name: $t('chests.alchemist'),
+            desc: `2x ${$t('inventory.potionsTab')} + 3x ${$t('inventory.ingredientsTab')}`,
             crystalCost: 15,
             canBuyWithGold: true,
             color: '#00b894',
             accentColor: '#55efc4',
-            items: '5 предметов',
+            items: $t('chests.itemsCount', { count: 5 }),
             resonance: 10,
             chances: [
-                { label: '2х Зелья', color: '#55efc4' },
-                { label: '1х Гарант Редкий', color: '#74b9ff' },
-                { label: '40% Золото (8 мин)', color: '#ffeaa7' }
+                { label: `2х ${$t('inventory.potionsTab')}`, color: '#55efc4' },
+                { label: `1х ${$t('rarity.rare')}`, color: '#74b9ff' },
+                { label: `40% ${$t('common.gold')}`, color: '#ffeaa7' }
             ]
         },
         {
-            type: 'magical',
-            name: 'Магический ларец',
-            desc: '5 ингредиентов + 1 зелье · Шанс золота и возврата',
+            type: 'magical' as ChestType,
+            name: $t('chests.magical'),
+            desc: `5x ${$t('inventory.ingredientsTab')} + 1x ${$t('inventory.potionsTab')}`,
             crystalCost: 25,
             color: '#6c5ce7',
             accentColor: '#a29bfe',
-            items: '6 предметов',
+            items: $t('chests.itemsCount', { count: 6 }),
             resonance: 15,
             chances: [
-                { label: '1х Гарант Эпик', color: '#a29bfe' },
-                { label: '1х Зелье', color: '#74b9ff' },
-                { label: '50% Золото (15 мин)', color: '#ffeaa7' },
-                { label: '20% Возврат +5 крист.', color: '#00cec9' }
+                { label: `1х ${$t('rarity.epic')}`, color: '#a29bfe' },
+                { label: `1х ${$t('inventory.potionsTab')}`, color: '#74b9ff' },
+                { label: `50% ${$t('common.gold')}`, color: '#ffeaa7' },
+                { label: `20% ${$t('common.crystals')}`, color: '#00cec9' }
             ]
         },
         {
-            type: 'astral',
-            name: 'Астральный ларец',
-            desc: '10 ингредиентов + 1 редкое зелье · Золото и возврат',
+            type: 'astral' as ChestType,
+            name: $t('chests.astral'),
+            desc: `10x ${$t('inventory.ingredientsTab')} + 1x ${$t('inventory.potionsTab')}`,
             crystalCost: 65,
             color: '#0984e3',
             accentColor: '#74b9ff',
-            items: '11 предметов',
+            items: $t('chests.itemsCount', { count: 11 }),
             resonance: 30,
             chances: [
-                { label: '1х Легендарка', color: '#f1c40f' },
-                { label: '3х Эпика', color: '#a29bfe' },
-                { label: '1х Редкое Зелье', color: '#74b9ff' },
-                { label: '70% Золото (30 мин)', color: '#ffeaa7' },
-                { label: '35% Возврат +15 крист.', color: '#00cec9' }
+                { label: `1х ${$t('rarity.legendary')}`, color: '#f1c40f' },
+                { label: `3х ${$t('rarity.epic')}`, color: '#a29bfe' },
+                { label: `1х ${$t('inventory.potionsTab')}`, color: '#74b9ff' },
+                { label: `70% ${$t('common.gold')}`, color: '#ffeaa7' },
+                { label: `35% ${$t('common.crystals')}`, color: '#00cec9' }
             ]
         },
         {
-            type: 'titan',
-            name: 'Ларец Древних Титанов',
-            desc: '16 ингредиентов + 2 зелья + Казна (1 час) + Возврат + Шанс Фамильяра!',
+            type: 'titan' as ChestType,
+            name: $t('chests.titan'),
+            desc: `16x ${$t('inventory.ingredientsTab')} + 2x ${$t('inventory.potionsTab')}`,
             crystalCost: 140,
             color: '#c0392b',
             accentColor: '#f1c40f',
-            items: '19+ наград',
+            items: $t('chests.itemsCount', { count: '19+' }),
             resonance: 60,
             chances: [
-                { label: '2х Легендарки', color: '#f1c40f' },
-                { label: '5х Эпиков', color: '#a29bfe' },
-                { label: '2х Зелья', color: '#ff7675' },
-                { label: '100% Казна (1 час)', color: '#ffeaa7' },
-                { label: '100% Возврат +25 крист.', color: '#00cec9' },
-                { label: '15% Фамильяр', color: '#e056fd' }
+                { label: `2х ${$t('rarity.legendary')}`, color: '#f1c40f' },
+                { label: `5х ${$t('rarity.epic')}`, color: '#a29bfe' },
+                { label: `2х ${$t('inventory.potionsTab')}`, color: '#ff7675' },
+                { label: `100% ${$t('common.gold')}`, color: '#ffeaa7' },
+                { label: `100% ${$t('common.crystals')}`, color: '#00cec9' },
+                { label: `15% ${$t('familiars.title')}`, color: '#e056fd' }
             ]
         }
     ];
@@ -339,9 +340,9 @@
                             <path d="M2 5 Q16 0 30 5 L30 10 L2 10Z" fill="#6B3410"/>
                         </svg>
                     </div>
-                    <h2 class="tab-title">Магические Сундуки</h2>
+                    <h2 class="tab-title">{$t('chests.title')}</h2>
                 </div>
-                <p class="header-sub">Добывайте редкие ингредиенты, готовые зелья, золото и питомцев</p>
+                <p class="header-sub">{$t('chests.subtitle')}</p>
 
                 <div class="balance-row">
                     <div class="balance-chip gold">
@@ -354,7 +355,7 @@
                     </div>
                 </div>
 
-                <button class="close-btn" on:click={close}>✕</button>
+                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
             </div>
         {/if}
 
@@ -375,7 +376,7 @@
                         {/if}
                     </span>
                     <span class="resonance-title">
-                        {isResonanceReady ? 'БЛАГОСЛОВЕНИЕ ТИТАНОВ АКТИВНО!' : 'Шкала Магического Резонанса'}
+                        {isResonanceReady ? $t('chests.resonanceActive') : $t('chests.resonanceScale')}
                     </span>
                 </div>
                 <span class="resonance-percent">{resonanceProgress}% / 100%</span>
@@ -391,16 +392,16 @@
 
             <p class="resonance-hint">
                 {#if isResonanceReady}
-                    <strong>Следующее открытие любого сундука принесёт удвоенную добычу (x2 всех наград)!</strong>
+                    <strong>{$t('chests.resonanceNextDouble')}</strong>
                 {:else}
-                    Каждый открытый ларец заряжает сосуд. На 100% срабатывает <strong>удвоение всей добычи (x2)</strong>!
+                    {@html $t('chests.resonanceHint')}
                 {/if}
             </p>
         </div>
 
         <!-- MULTIPLIER TOGGLE: x1 vs x5 -->
         <div class="multi-toggle-bar">
-            <span class="toggle-label">Режим открытия:</span>
+            <span class="toggle-label">{$t('chests.openMode')}</span>
             <div class="toggle-buttons">
                 <button 
                     type="button" 
@@ -480,7 +481,7 @@
                                     <circle cx="8" cy="8" r="6"/>
                                     <polyline points="8,4 8,8 11,8"/>
                                 </svg>
-                                <span>Бесплатно через: {freeCooldownText}</span>
+                                <span>{$t('chests.freeChestIn', { time: freeCooldownText })}</span>
                             </div>
                         {/if}
 
@@ -500,7 +501,7 @@
                                 class="open-btn gold-buy-btn"
                                 disabled={!canAffordGold}
                                 on:click={() => handleOpen(chest, true)}
-                                title="Купить за 10 мин пассивного дохода"
+                                title={$t('chests.buyGoldHint')}
                             >
                                 <ResourceIcon type="gold" size={13} />
                                 <span>{formatNumber(alchemistGoldCost)}</span>
@@ -520,16 +521,16 @@
                                     <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="3,8 7,12 13,4" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                    <span>Забрать Бесплатно!</span>
+                                    <span>{$t('chests.openFree')}</span>
                                 {:else}
                                     <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
                                         <polygon points="4,2 14,8 4,14"/>
                                     </svg>
-                                    <span>Открыть (Реклама)</span>
+                                    <span>{$t('chests.openAd')}</span>
                                 {/if}
                             {:else}
                                 <ResourceIcon type="crystals" size={13} />
-                                <span>{currentCost} {mult > 1 ? `(${mult}x)` : 'Открыть'}</span>
+                                <span>{currentCost} {mult > 1 ? `(${mult}x)` : $t('chests.open')}</span>
                             {/if}
                         </button>
                     </div>
@@ -542,7 +543,7 @@
     <!-- PHASE: ANIMATING -->
     {#if phase === 'animating'}
     <div class="anim-stage">
-        <p class="anim-label">Открываем {chestConfig.name}…</p>
+        <p class="anim-label">{$t('chests.openingTitle', { name: chestConfig.name })}</p>
         <svg bind:this={chestEl} viewBox="0 0 140 120" width="220" height="190"
             style="filter: drop-shadow(0 0 35px {chestConfig.accentColor}); will-change: transform, opacity">
             <ellipse cx="70" cy="115" rx="45" ry="8" fill="black" opacity="0.4"/>
@@ -568,7 +569,7 @@
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
                 <polygon points="12,2 15,8 21,9 17,14 18,21 12,17 6,21 7,14 3,9 9,8" fill="#f1c40f" stroke="#ffeaa7" stroke-width="1.5"/>
             </svg>
-            <h3 class="loot-title">Добыча получена!</h3>
+            <h3 class="loot-title">{$t('chests.lootCollected')}</h3>
         </div>
 
         {#if currentResult?.isDoubleResonance}
@@ -576,7 +577,7 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="#f1c40f">
                     <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
                 </svg>
-                <span>РЕЗОНАНС СРАБОТАЛ: ВСЯ ДОБЫЧА УДВОЕНА (х2)!</span>
+                <span>{$t('chests.doubleResonanceBanner')}</span>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="#f1c40f">
                     <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>
                 </svg>
@@ -587,17 +588,17 @@
             {#if currentResult && currentResult.totalGold > 0}
                 <div class="summary-chip gold">
                     <ResourceIcon type="gold" size={16} />
-                    <span>+{formatNumber(currentResult.totalGold)} Золота</span>
+                    <span>+{formatNumber(currentResult.totalGold)} {$t('common.gold')}</span>
                 </div>
             {/if}
             {#if currentResult && currentResult.totalCrystals > 0}
                 <div class="summary-chip crystals">
                     <ResourceIcon type="crystals" size={16} />
-                    <span>+{currentResult.totalCrystals} Самоцветов</span>
+                    <span>+{currentResult.totalCrystals} {$t('common.crystals')}</span>
                 </div>
             {/if}
             <div class="summary-chip items">
-                <span>Предметов: {droppedItems.length}</span>
+                <span>{$t('chests.itemsCount', { count: droppedItems.length })}</span>
             </div>
         </div>
 
@@ -632,13 +633,13 @@
                     <div class="loot-name">{item.name}</div>
 
                     {#if item.type === 'gold'}
-                        <div class="loot-detail gold-text">+{formatNumber(item.goldAmount || 0)}</div>
+                        <div class="loot-detail gold-text">+{formatNumber(item.goldAmount || 0)} {$t('common.gold')}</div>
                     {:else if item.type === 'crystals'}
-                        <div class="loot-detail crystal-text">+{item.crystalAmount || 0} кристаллов</div>
+                        <div class="loot-detail crystal-text">+{item.crystalAmount || 0} {$t('common.crystals')}</div>
                     {:else if item.type === 'potion'}
-                        <div class="loot-detail potion-text">Готовое зелье</div>
+                        <div class="loot-detail potion-text">{$t('chests.readyPotion')}</div>
                     {:else if item.type === 'pet'}
-                        <div class="loot-detail pet-text">Новый Фамильяр!</div>
+                        <div class="loot-detail pet-text">{$t('chests.newFamiliar')}</div>
                     {:else}
                         <div class="loot-rarity" style="color: {RARITY_COLORS[item.rarity]}">{RARITY_LABELS[item.rarity]}</div>
                     {/if}
@@ -650,7 +651,7 @@
             <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
                 <polyline points="3,8 7,12 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>Забрать в инвентарь</span>
+            <span>{$t('chests.claimToInventory')}</span>
         </button>
     </div>
     {/if}

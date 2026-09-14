@@ -5,6 +5,7 @@
     import { playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -75,9 +76,9 @@
                             <polygon points="20,6 32,28 8,28" stroke="#f1c40f" stroke-width="1.5" fill="none"/>
                         </svg>
                     </div>
-                    <h2 class="tab-title">Тёмный Ритуал</h2>
+                    <h2 class="tab-title">{$t('rebirth.title')}</h2>
                 </div>
-                <button class="close-btn" on:click={close} aria-label="Закрыть">✕</button>
+                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
             </div>
         {/if}
 
@@ -134,28 +135,28 @@
                 </div>
 
                 <div class="reward-highlight">
-                    <span class="reward-title">Вы получите после Ритуала:</span>
+                    <span class="reward-title">{$t('rebirth.willReceive')}</span>
                     <div class="stardust-gain">
                         <ResourceIcon type="stardust" size={28} />
                         <span class="gain-value">+{formatNumber(earnedStardust)}</span>
-                        <span class="gain-label">Звёздной Пыли</span>
+                        <span class="gain-label">{$t('common.stardust')}</span>
                         {#if hasTitanBonus}
-                            <span class="titan-bonus-badge">✦ +15% Хроники Титанов</span>
+                            <span class="titan-bonus-badge">✦ +15% {$t('collections.titan_set.name')}</span>
                         {/if}
                         {#if extractorLevel > 0}
-                            <span class="titan-bonus-badge" style="border-color: #a29bfe; color: #a29bfe;">✦ +{extractorLevel * 5}% Экстрактор</span>
+                            <span class="titan-bonus-badge" style="border-color: #a29bfe; color: #a29bfe;">✦ +{extractorLevel * 5}% {$t('secretUpgrades.stardust_extractor.name')}</span>
                         {/if}
                     </div>
 
                     <div class="stardust-progress-box">
                         <div class="progress-info-row">
-                            <span class="prog-label">До следующей +1 пыли:</span>
-                            <span class="prog-val">{formatNumber(goldNeededForNext)} золота</span>
+                            <span class="prog-label">{$t('rebirth.untilNextDust')}</span>
+                            <span class="prog-val">{formatNumber(goldNeededForNext)} {$t('common.gold').toLowerCase()}</span>
                         </div>
                         <div class="progress-track">
                             <div class="progress-fill" style="width: {progressToNext}%"></div>
                         </div>
-                        <span class="exchange-rate-hint">Священная Пыль рождается исключительно в пламени Ритуала (+1% к доходу за каждую пылинку). Вкладывайте её в Тайные Знания и Артефакты — рейтинг в Зале Славы не уменьшается!</span>
+                        <span class="exchange-rate-hint">{$t('rebirth.exchangeHint')}</span>
                     </div>
                 </div>
             </div>
@@ -170,12 +171,12 @@
                             <circle cx="10" cy="10" r="8" fill="#c0392b" stroke="#e74c3c" stroke-width="1.2"/>
                             <line x1="6" y1="10" x2="14" y2="10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <h4>Приносится в Жертву</h4>
+                        <h4>{$t('rebirth.sacrificed')}</h4>
                     </div>
                     <ul class="comp-list">
-                        <li>Всё текущее золото</li>
-                        <li>Обычные улучшения лавки</li>
-                        <li>Сваренные зелья в инвентаре</li>
+                        <li>{$t('rebirth.sacrGold')}</li>
+                        <li>{$t('rebirth.sacrUpgrades')}</li>
+                        <li>{$t('rebirth.sacrPotions')}</li>
                     </ul>
                 </div>
 
@@ -186,12 +187,12 @@
                             <circle cx="10" cy="10" r="8" fill="#27ae60" stroke="#2ecc71" stroke-width="1.2"/>
                             <path d="M6 10 L9 13 L14 7" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <h4>Сохраняется Навсегда</h4>
+                        <h4>{$t('rebirth.keptForever')}</h4>
                     </div>
                     <ul class="comp-list">
-                        <li><strong>ВИП-статус</strong> и все Кристаллы</li>
-                        <li><strong>Звёздная Пыль</strong> и Тайные Знания</li>
-                        <li>Все открытые <strong>Питомцы и Артефакты</strong></li>
+                        <li>{@html $t('rebirth.keptVip')}</li>
+                        <li>{@html $t('rebirth.keptDust')}</li>
+                        <li>{@html $t('rebirth.keptPets')}</li>
                     </ul>
                 </div>
 
@@ -206,17 +207,17 @@
                             <line x1="12" y1="9" x2="12" y2="13" stroke="#fff" stroke-width="2"/>
                             <circle cx="12" cy="16" r="1.2" fill="#fff"/>
                         </svg>
-                        <span>Подтверждение Тёмного Ритуала</span>
+                        <span>{$t('rebirth.confirmPrompt')}</span>
                     </div>
                     <p class="confirm-desc">
-                        Вы уверены? Золото лавки будет сброшено, но вы навсегда обретете <strong>+{formatNumber(earnedStardust)}</strong> Звёздной Пыли!
+                        {$t('rebirth.description')}
                     </p>
                     <div class="confirm-buttons-row">
                         <button type="button" class="btn-confirm-yes" on:click={confirmRebirth}>
-                            Да, Совершить Ритуал!
+                            {$t('rebirth.confirmButton')}
                         </button>
                         <button type="button" class="btn-confirm-cancel" on:click={() => showConfirm = false}>
-                            Отмена
+                            {$t('rebirth.cancelButton')}
                         </button>
                     </div>
                 </div>
@@ -228,10 +229,10 @@
                     on:click={handleStartRitual}
                 >
                     {#if earnedStardust === 0}
-                        <span>Накопите 1,000,000 Золота для Ритуала</span>
+                        <span>{$t('grimoire.prestigePrompt')}</span>
                     {:else}
                         <ResourceIcon type="stardust" size={18} />
-                        <span>Совершить Тёмный Ритуал (+{formatNumber(earnedStardust)} ✦)</span>
+                        <span>{$t('grimoire.prestigeButton')} (+{formatNumber(earnedStardust)} ✦)</span>
                     {/if}
                 </button>
             {/if}

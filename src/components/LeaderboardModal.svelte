@@ -3,6 +3,7 @@
     import { gameStore, formatNumber } from '../store';
     import { getLeaderboardEntries, type LeaderboardEntry } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -59,10 +60,10 @@
                 </svg>
             </div>
             <div class="header-text">
-                <h2>Зал Славы Архимагов</h2>
-                <p class="header-sub">Рейтинг мастеров по всей накопленной Звёздной Пыли</p>
+                <h2>{$t('leaderboard.title')}</h2>
+                <p class="header-sub">{$t('leaderboard.subtitle')}</p>
             </div>
-            <button class="close-btn" on:click={onClose} aria-label="Закрыть">✕</button>
+            <button class="close-btn" on:click={onClose} aria-label={$t('common.close')}>✕</button>
         </div>
 
         <!-- Info Note: Spending doesn't reduce score -->
@@ -72,21 +73,21 @@
                 <line x1="12" y1="16" x2="12" y2="12"/>
                 <line x1="12" y1="8" x2="12.01" y2="8"/>
             </svg>
-            <span>Рейтинг учитывает <strong>всю пыль за всё время</strong>. Траты на артефакты не снижают ваш рекорд!</span>
+            <span>{$t('leaderboard.infoBanner')}</span>
         </div>
 
         <!-- Player Card -->
         <div class="player-card">
             <div class="player-rank">
-                <span class="rank-label">ВАШ РАНГ</span>
+                <span class="rank-label">{$t('leaderboard.yourRank')}</span>
                 <span class="rank-value">#{userEntry?.rank || '—'}</span>
             </div>
             <div class="player-details">
-                <span class="player-name">Вы (Магистр Лавки)</span>
+                <span class="player-name">{$t('leaderboard.you')}</span>
                 <div class="player-score">
                     <ResourceIcon type="stardust" size={16} />
                     <span class="score-number">{formatNumber($gameStore.totalStardustEarned || $gameStore.stardust || 0)}</span>
-                    <span class="score-unit">пыли</span>
+                    <span class="score-unit">{$t('leaderboard.scoreDust')}</span>
                 </div>
             </div>
         </div>
@@ -96,16 +97,16 @@
             {#if isLoading}
                 <div class="state-container">
                     <div class="loader-spinner"></div>
-                    <p>Связь с Астральными Скрижалями...</p>
+                    <p>{$t('leaderboard.connecting')}</p>
                 </div>
             {:else if errorMessage}
                 <div class="state-container error">
                     <p>{errorMessage}</p>
-                    <button class="retry-btn" on:click={loadLeaderboard}>Повторить</button>
+                    <button class="retry-btn" on:click={loadLeaderboard}>{$t('leaderboard.retry')}</button>
                 </div>
             {:else if entries.length === 0}
                 <div class="state-container">
-                    <p>Пока нет записей в таблице лидеров</p>
+                    <p>{$t('leaderboard.empty')}</p>
                 </div>
             {:else}
                 <div class="entries-list">
@@ -113,7 +114,12 @@
                         <div class="entry-row" class:user-highlight={entry.isUser} class:top-one={entry.rank === 1} class:top-two={entry.rank === 2} class:top-three={entry.rank === 3}>
                             <div class="entry-rank">
                                 {#if entry.rank === 1}
-                                    <span class="medal-badge gold">1 👑</span>
+                                    <span class="medal-badge gold">
+                                        1
+                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="#ffd700">
+                                            <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                        </svg>
+                                    </span>
                                 {:else if entry.rank === 2}
                                     <span class="medal-badge silver">2</span>
                                 {:else if entry.rank === 3}
@@ -126,7 +132,7 @@
                             <div class="entry-info">
                                 <span class="entry-name">{entry.name}</span>
                                 {#if entry.isUser}
-                                    <span class="you-badge">ВЫ</span>
+                                    <span class="you-badge">{$t('leaderboard.youTag')}</span>
                                 {/if}
                             </div>
 
@@ -147,7 +153,7 @@
                     <path d="M23 4v6h-6M1 20v-6h6"/>
                     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
                 </svg>
-                <span>Обновить</span>
+                <span>{$t('leaderboard.refresh')}</span>
             </button>
         </div>
     </div>
@@ -247,9 +253,6 @@
         font-size: 0.74rem;
         color: #dcdde1;
         line-height: 1.3;
-    }
-    .info-banner strong {
-        color: #f1c40f;
     }
 
     .player-card {

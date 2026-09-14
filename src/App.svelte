@@ -38,11 +38,17 @@
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import { isSoundMuted, toggleSound } from './audio';
+    import { t, currentLang, setLanguage } from './i18n';
 
     let isOfflinePopupOpen = false;
     let isGrimoireOpen = false;
     let isCityOpen = false;
     let isPremiumOpen = false;
+
+    function cycleLanguage() {
+        const next = $currentLang === 'ru' ? 'en' : ($currentLang === 'en' ? 'tr' : 'ru');
+        setLanguage(next);
+    }
     let isShopOpen = false;
     let isLeaderboardOpen = false;
     
@@ -309,11 +315,22 @@
 
         <!-- HUD Control Actions -->
         <div class="hud-controls-cluster">
+            <!-- Language Switcher Button -->
+            <button 
+                type="button" 
+                class="hud-icon-btn lang-btn" 
+                title="{$t('header.language')}: {$currentLang.toUpperCase()}" 
+                on:click={cycleLanguage}
+                aria-label="{$t('header.language')}"
+            >
+                <span class="lang-label">{$currentLang.toUpperCase()}</span>
+            </button>
+
             <!-- Leaderboard Button -->
             <button 
                 type="button" 
                 class="hud-icon-btn leaderboard-btn" 
-                title="Таблица Лидеров (Зал Славы Архимагов)" 
+                title="{$t('leaderboard.title')}" 
                 on:click={() => isLeaderboardOpen = true}
             >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
@@ -330,7 +347,7 @@
                 type="button" 
                 class="hud-icon-btn sound-btn" 
                 class:muted={$isSoundMuted} 
-                title={$isSoundMuted ? 'Включить звук' : 'Выключить звук'} 
+                title={$isSoundMuted ? $t('header.soundOn') : $t('header.soundOff')} 
                 on:click={handleToggleSound}
             >
                 {#if $isSoundMuted}
@@ -351,7 +368,7 @@
 
     <!-- 2. Active Magic Deck (Live Potion Countdown Widgets) -->
     {#if liveBuffs.length > 0}
-        <div class="active-buffs-dock" aria-label="Активные чародейские зелья">
+        <div class="active-buffs-dock" aria-label="{$t('grimoire.title')}">
             {#each liveBuffs as buff (buff.potionId)}
                 <div class="buff-capsule" title="{getPotionName(buff.potionId)}: +{Math.round(buff.value * 100)}%">
                     <div class="buff-icon-flask">
@@ -373,13 +390,13 @@
     </div>
 
     <!-- 4. Master Hub Navigation Console -->
-    <nav class="master-hub-dock" aria-label="Порталы лавки">
+    <nav class="master-hub-dock" aria-label="Navigation">
         <!-- 1. Shop Portal -->
         <button 
             type="button" 
             class="hub-portal-btn shop-portal" 
             on:click={() => isShopOpen = true} 
-            title="Лавка улучшений"
+            title="{$t('shop.title')}"
         >
             <div class="portal-icon-box">
                 <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
@@ -391,8 +408,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">Лавка</span>
-                <span class="portal-sub">Улучшения</span>
+                <span class="portal-name">{$t('shop.title')}</span>
+                <span class="portal-sub">{$t('shop.tabProduction')}</span>
             </div>
         </button>
 
@@ -401,7 +418,7 @@
             type="button" 
             class="hub-portal-btn city-portal" 
             on:click={() => isCityOpen = true} 
-            title="Королевский Город (рынок, заказы, квесты)"
+            title="{$t('city.title')}"
         >
             {#if totalCityNotifications > 0}
                 <div class="portal-badge" class:pulse={$readyOrdersCount > 0}>
@@ -419,8 +436,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">Город</span>
-                <span class="portal-sub">Рынок</span>
+                <span class="portal-name">{$t('city.title')}</span>
+                <span class="portal-sub">{$t('city.tabOrders')}</span>
             </div>
         </button>
 
@@ -429,7 +446,7 @@
             type="button" 
             class="hub-portal-btn grimoire-portal" 
             on:click={() => isGrimoireOpen = true} 
-            title="Древний Гримуар (алхимия, экспедиции, артефакты)"
+            title="{$t('grimoire.title')}"
         >
             {#if $finishedExpeditionsCount > 0}
                 <div class="portal-badge pulse">
@@ -445,8 +462,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">Гримуар</span>
-                <span class="portal-sub">Алхимия</span>
+                <span class="portal-name">{$t('grimoire.title')}</span>
+                <span class="portal-sub">{$t('alchemy.title')}</span>
             </div>
         </button>
 
@@ -455,10 +472,10 @@
             type="button" 
             class="hub-portal-btn premium-portal" 
             on:click={() => isPremiumOpen = true} 
-            title="Великий Арканум (Сокровищница, Хрономантия, Перерождение)"
+            title="{$t('premium.title')}"
         >
             {#if $isVipDailyRewardAvailable}
-                <div class="portal-badge pulse vip-alert" title="Доступна ежедневная награда ВИП">
+                <div class="portal-badge pulse vip-alert" title="{$t('header.vipDailyReady')}">
                     !
                 </div>
             {/if}
@@ -472,8 +489,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">Премиум</span>
-                <span class="portal-sub">Арканум</span>
+                <span class="portal-name">{$t('premium.title')}</span>
+                <span class="portal-sub">VIP</span>
             </div>
         </button>
     </nav>

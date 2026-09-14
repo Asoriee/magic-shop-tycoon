@@ -4,6 +4,7 @@
     import { gameStore, isVip, formatNumber } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playCoinSound, playLevelUpSound } from '../audio';
+    import { t } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -39,19 +40,22 @@
         const hours = Math.floor(s / 3600);
         const mins = Math.floor((s % 3600) / 60);
         const secs = s % 60;
+        const hLabel = $t('common.hour');
+        const mLabel = $t('common.min');
+        const sLabel = $t('common.sec');
 
         if (hours > 0) {
-            return mins > 0 ? `${hours} ч ${mins} мин` : `${hours} ч`;
+            return mins > 0 ? `${hours} ${hLabel} ${mins} ${mLabel}` : `${hours} ${hLabel}`;
         }
         if (mins > 0) {
-            return secs > 0 ? `${mins} мин ${secs} с` : `${mins} мин`;
+            return secs > 0 ? `${mins} ${mLabel} ${secs} ${sLabel}` : `${mins} ${mLabel}`;
         }
-        return `${secs} сек`;
+        return `${secs} ${sLabel}`;
     }
 
     function formatCapacity(totalSecs: number): string {
         const h = Math.round(((totalSecs || 0) / 3600) * 10) / 10;
-        return `${h} ч`;
+        return `${h} ${$t('common.hour')}`;
     }
 
     function handleClaimRegular() {
@@ -187,8 +191,8 @@
         </div>
 
         <!-- Header Texts -->
-        <h2 class="popup-title">С ВОЗВРАЩЕНИЕМ!</h2>
-        <p class="popup-subtitle">Пока вас не было, чародейская лавка продолжала работать и приносить доход</p>
+        <h2 class="popup-title">{$t('offlineIncome.title').toUpperCase()}</h2>
+        <p class="popup-subtitle">{$t('offlineIncome.welcomeBack')}</p>
 
         <!-- Detailed Analytics & Storage Card -->
         <div class="offline-report-card">
@@ -197,24 +201,24 @@
             <div class="time-stat-row">
                 <div class="time-chip">
                     <ResourceIcon type="time" size={16} class="time-icon" />
-                    <span>Отсутствовали: <strong>{formatDuration(offlineSeconds)}</strong></span>
+                    <span>{$t('offlineIncome.awayTime')} <strong>{formatDuration(offlineSeconds)}</strong></span>
                 </div>
 
                 {#if isCapped}
-                    <span class="cap-badge capped">ПРЕДЕЛ</span>
+                    <span class="cap-badge capped">{$t('common.maxLevel')}</span>
                 {:else}
-                    <span class="cap-badge">Заполнено {progressPercent}%</span>
+                    <span class="cap-badge">{progressPercent}%</span>
                 {/if}
             </div>
 
             <!-- Capacity Progress Bar -->
             <div class="storage-bar-container">
                 <div class="storage-labels">
-                    <span class="storage-name">Вместимость хранилища</span>
+                    <span class="storage-name">{$t('offlineIncome.maxLimitReached')}</span>
                     <span class="storage-values">
-                        {formatDuration(Math.min(offlineSeconds, maxOfflineSeconds))} из {formatCapacity(maxOfflineSeconds)}
+                        {formatDuration(Math.min(offlineSeconds, maxOfflineSeconds))} / {formatCapacity(maxOfflineSeconds)}
                         {#if $isVip}
-                            <span class="vip-capacity-chip">+5ч ВИП</span>
+                            <span class="vip-capacity-chip">+5{$t('common.hour')} VIP</span>
                         {/if}
                     </span>
                 </div>
@@ -238,7 +242,7 @@
                 </div>
                 {#if currentRate > 0}
                     <div class="rate-subtext">
-                        <span>Скорость лавки: +{formatNumber(currentRate)}/сек</span>
+                        <span>{$t('shop.incomePerSec', { val: formatNumber(currentRate) })}</span>
                     </div>
                 {/if}
             </div>
@@ -252,7 +256,7 @@
                     <line x1="10" y1="6" x2="10" y2="11" stroke="#f1c40f" stroke-width="2" stroke-linecap="round"/>
                     <circle cx="10" cy="14" r="1" fill="#f1c40f"/>
                 </svg>
-                <span>Хранилище заполнено. Увеличьте «Очаг» в Лавке или оформите ВИП, чтобы накапливать больше!</span>
+                <span>{$t('offlineIncome.maxLimitReached')}</span>
             </div>
         {/if}
 
@@ -272,18 +276,18 @@
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" class="btn-crown-svg">
                                 <path d="M4 18 L20 18 L22 8 L17 12 L12 4 L7 12 L2 8 Z" fill="#ffeaa7" stroke="#fff" stroke-width="1.5"/>
                             </svg>
-                            <span>УДВОИТЬ (ВИП БОНУС)</span>
+                            <span>{$t('offlineIncome.claimVipBonus').toUpperCase()}</span>
                         </div>
-                        <span class="btn-sub-label">Мгновенно без рекламы: +{formatNumber(offlineGold * 2)}</span>
+                        <span class="btn-sub-label">+{formatNumber(offlineGold * 2)} {$t('common.gold')}</span>
                     {:else}
                         <div class="btn-main-label">
                             <svg viewBox="0 0 20 20" width="18" height="18" fill="none" class="btn-video-svg">
                                 <rect x="2" y="4" width="11" height="12" rx="2" fill="#ffffff" opacity="0.9"/>
                                 <polygon points="14,8 19,5 19,15 14,12" fill="#ffffff" opacity="0.9"/>
                             </svg>
-                            <span>УДВОИТЬ х2 (РЕКЛАМА)</span>
+                            <span>{$t('offlineIncome.claimDoubleAd').toUpperCase()}</span>
                         </div>
-                        <span class="btn-sub-label">Получить +{formatNumber(offlineGold * 2)} золота</span>
+                        <span class="btn-sub-label">+{formatNumber(offlineGold * 2)} {$t('common.gold')}</span>
                     {/if}
                 </div>
             </button>
@@ -295,7 +299,7 @@
                 on:click={handleClaimRegular} 
                 disabled={isClaiming}
             >
-                <span>Забрать +{formatNumber(offlineGold)}</span>
+                <span>{$t('offlineIncome.claimNormal')}: +{formatNumber(offlineGold)}</span>
             </button>
         </div>
 

@@ -12,6 +12,7 @@
     } from '../store';
     import { purchaseItem, showRewardedAd, saveGame, getProductDisplayPrice } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -60,20 +61,20 @@
         try {
             await purchaseItem(itemId);
             if (itemId === 'pack_crystals_100') {
-                showMessage('Вы получили 100 Кристаллов!');
+                showMessage($t('treasury.msgCrystals100'));
             } else if (itemId === 'pack_crystals_300') {
-                showMessage('Вы получили 350 Кристаллов (с бонусом)!');
+                showMessage($t('treasury.msgCrystals300'));
             } else if (itemId === 'pack_crystals_1000') {
-                showMessage('Вы получили 1250 Кристаллов (с бонусом)!');
+                showMessage($t('treasury.msgCrystals1000'));
             } else if (itemId === 'vip_status' || itemId === 'vip_month') {
-                showMessage('ВИП-статус успешно активирован на 30 дней! (+50 Кристаллов начислено)');
+                showMessage($t('treasury.msgVipSuccess'));
             }
         } catch (e: any) {
             const errMsg = e?.message || '';
             if (errMsg.toLowerCase().includes('cancel') || errMsg.toLowerCase().includes('closed')) {
-                showMessage('Покупка отменена.');
+                showMessage($t('treasury.msgPurchaseCancelled'));
             } else {
-                showMessage('Ошибка при покупке. Попробуйте позже.');
+                showMessage($t('treasury.msgPurchaseError'));
                 console.error('Purchase error:', e);
             }
         } finally {
@@ -85,7 +86,7 @@
         const success = claimVipDailyReward();
         if (success) {
             saveGame();
-            showMessage('Ежедневный алтарь ВИП: получено +15 Кристаллов!');
+            showMessage($t('treasury.msgVipDailyClaimed'));
         }
     }
 
@@ -96,7 +97,7 @@
                 crystals.update(n => n + 3);
                 gameStore.claimDragonGift();
                 saveGame();
-                showMessage('Дар Дракона получен: +3 Кристалла!');
+                showMessage($t('treasury.msgDragonGiftClaimed'));
                 updateGiftTimer();
             },
             () => {}
@@ -128,9 +129,9 @@
                             <circle cx="20" cy="22" r="3" fill="#f1c40f"/>
                         </svg>
                     </div>
-                    <h2 class="tab-title">Сокровищница</h2>
+                    <h2 class="tab-title">{$t('treasury.title')}</h2>
                 </div>
-                <button class="close-btn" on:click={onClose} aria-label="Закрыть">✕</button>
+                <button class="close-btn" on:click={onClose} aria-label={$t('common.close')}>✕</button>
             </div>
         {/if}
 
@@ -183,11 +184,11 @@
 
                     <div class="vip-info">
                         <div class="vip-header-row">
-                            <h3 class="vip-title">ВИП-Пропуск Алхимика</h3>
+                            <h3 class="vip-title">{$t('treasury.vipTitle')}</h3>
                             {#if $isVip}
-                                <span class="vip-badge-tag vip-active-tag">Активен: {$vipDaysLeft} дн.</span>
+                                <span class="vip-badge-tag vip-active-tag">{$t('treasury.vipActiveDays', { days: $vipDaysLeft })}</span>
                             {:else}
-                                <span class="vip-badge-tag">30 дней</span>
+                                <span class="vip-badge-tag">{$t('treasury.vipDays30')}</span>
                             {/if}
                         </div>
                         <ul class="vip-perks">
@@ -195,43 +196,43 @@
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>+50 кристаллов сразу</strong> при покупке или продлении</span>
+                                <span>{@html $t('treasury.perk1')}</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>+15 кристаллов каждый день</strong> в алтаре лавки</span>
+                                <span>{@html $t('treasury.perk2')}</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span>Без межстраничной рекламы (награды выдаются сразу)</span>
+                                <span>{$t('treasury.perk3')}</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>+50% ко всему доходу:</strong> пассивный доход и сила клика</span>
+                                <span>{@html $t('treasury.perk4')}</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>+5 часов к офлайн-доходу</strong> (увеличенный предел накопления)</span>
+                                <span>{@html $t('treasury.perk5')}</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span><strong>+1 право на ошибку</strong> при варке в котле алхимии</span>
+                                <span>{@html $t('treasury.perk6')}</span>
                             </li>
                             <li>
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
                                     <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span>Золотая корона ВИП и статус почётного жителя лавки</span>
+                                <span>{$t('treasury.perk7')}</span>
                             </li>
                         </ul>
                     </div>
@@ -244,17 +245,17 @@
                                         type="button" 
                                         class="claim-vip-daily-btn" 
                                         on:click={handleClaimVipDaily}
-                                        title="Получить ежедневную награду ВИП"
+                                        title={$t('treasury.claimVipDailyTitle')}
                                     >
                                         <ResourceIcon type="crystals" size={16} class="claim-gem-icon" />
-                                        <span>Забрать +15</span>
+                                        <span>{$t('treasury.claimVipDailyBtn')}</span>
                                     </button>
                                 {:else}
                                     <div class="vip-daily-collected-pill">
                                         <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
                                             <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
-                                        <span>День взят</span>
+                                        <span>{$t('treasury.vipDayClaimed')}</span>
                                     </div>
                                 {/if}
 
@@ -263,13 +264,13 @@
                                     class="extend-vip-btn" 
                                     on:click={() => handleBuy('vip_status')} 
                                     disabled={isPurchasing}
-                                    title="Продлить ВИП ещё на 30 дней"
+                                    title={$t('treasury.extendVipTitle')}
                                 >
                                     {#if isPurchasing}
                                         <span class="btn-spinner-sm"></span>
                                     {:else}
                                         <span class="btn-yan-small">{getProductDisplayPrice('vip_status', '249 ЯН')}</span>
-                                        <span class="btn-cta-small">Продлить (+30 д.)</span>
+                                        <span class="btn-cta-small">{$t('treasury.extendVipCta')}</span>
                                     {/if}
                                 </button>
                             </div>
@@ -284,7 +285,7 @@
                                     <span class="btn-spinner"></span>
                                 {:else}
                                     <span class="btn-yan">{getProductDisplayPrice('vip_status', '249 ЯН')}</span>
-                                    <span class="btn-cta">На 30 дней</span>
+                                    <span class="btn-cta">{$t('treasury.buyVipCta')}</span>
                                 {/if}
                             </button>
                         {/if}
@@ -310,10 +311,10 @@
                 </div>
                 <div class="gift-info">
                     <div class="gift-title-row">
-                        <span class="gift-title">Дар Дракона</span>
-                        <span class="free-badge">БЕСПЛАТНО</span>
+                        <span class="gift-title">{$t('treasury.dragonGiftTitle')}</span>
+                        <span class="free-badge">{$t('treasury.dragonGiftFree')}</span>
                     </div>
-                    <p class="gift-desc">Посмотрите магическое видение и получите кристаллы</p>
+                    <p class="gift-desc">{$t('treasury.dragonGiftDesc')}</p>
                 </div>
                 <div class="gift-action">
                     {#if secondsToDragonGift === 0}
@@ -325,7 +326,7 @@
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="#f1c40f">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
                             </svg>
-                            <span>+3 Кристалла</span>
+                            <span>{$t('treasury.dragonGiftClaim')}</span>
                         </button>
                     {:else}
                         <div class="gift-cooldown-badge">
@@ -339,7 +340,7 @@
             <!-- 3. Crystal Packs Grid -->
             <div class="packs-section-title">
                 <ResourceIcon type="crystals" size={18} />
-                <span>Наборы Кристаллов</span>
+                <span>{$t('treasury.packsTitle')}</span>
             </div>
 
             <div class="crystal-packs-grid">
@@ -357,7 +358,7 @@
                         </svg>
                     </div>
                     <div class="pack-details">
-                        <h4 class="pack-name">Горсть Кристаллов</h4>
+                        <h4 class="pack-name">{$t('treasury.pack1Name')}</h4>
                         <div class="pack-amount">
                             <ResourceIcon type="crystals" size={16} />
                             <span>+100</span>
@@ -375,7 +376,7 @@
 
                 <!-- Pack 2: 300 + 50 bonus crystals -->
                 <div class="pack-card featured-pack">
-                    <div class="ribbon-tag">ВЫГОДНО</div>
+                    <div class="ribbon-tag">{$t('treasury.tagBestValue')}</div>
                     <div class="pack-visual">
                         <svg viewBox="0 0 60 60" width="54" height="54" fill="none">
                             <circle cx="30" cy="30" r="24" fill="rgba(162, 155, 254, 0.15)"/>
@@ -388,11 +389,11 @@
                         </svg>
                     </div>
                     <div class="pack-details">
-                        <h4 class="pack-name">Сундук Алхимика</h4>
+                        <h4 class="pack-name">{$t('treasury.pack2Name')}</h4>
                         <div class="pack-amount">
                             <ResourceIcon type="crystals" size={16} />
                             <span>+350</span>
-                            <span class="bonus-sub">+50 Бонус</span>
+                            <span class="bonus-sub">{$t('treasury.bonusSub', { bonus: 50 })}</span>
                         </div>
                     </div>
                     <button 
@@ -407,7 +408,7 @@
 
                 <!-- Pack 3: 1000 + 250 bonus crystals -->
                 <div class="pack-card royal-pack">
-                    <div class="ribbon-tag hit-tag">ХИТ</div>
+                    <div class="ribbon-tag hit-tag">{$t('treasury.tagHit')}</div>
                     <div class="pack-visual">
                         <svg viewBox="0 0 60 60" width="54" height="54" fill="none">
                             <defs>
@@ -427,11 +428,11 @@
                         </svg>
                     </div>
                     <div class="pack-details">
-                        <h4 class="pack-name">Казна Архимага</h4>
+                        <h4 class="pack-name">{$t('treasury.pack3Name')}</h4>
                         <div class="pack-amount">
                             <ResourceIcon type="crystals" size={16} />
                             <span>+1250</span>
-                            <span class="bonus-sub">+250 Бонус</span>
+                            <span class="bonus-sub">{$t('treasury.bonusSub', { bonus: 250 })}</span>
                         </div>
                     </div>
                     <button 

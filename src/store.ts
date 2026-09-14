@@ -1,21 +1,29 @@
 import { writable, get, derived } from 'svelte/store';
+import { 
+    formatNumberLocalized, 
+    getIngredientName, 
+    getPotionName, 
+    getPotionDesc, 
+    getPetName, 
+    getPetDesc,
+    getUpgradeName,
+    getUpgradeDesc,
+    getSecretUpgradeName,
+    getSecretUpgradeDesc,
+    getArtifactName,
+    getArtifactDesc,
+    getCollectionName,
+    getCollectionDesc,
+    getCollectionPerks,
+    getCustomerName
+} from './i18n';
 
 // ============================================================
 // UTILS
 // ============================================================
 
 export function formatNumber(num: number | undefined | null): string {
-    if (num === undefined || num === null) return '0';
-    const n = Number(num);
-    if (isNaN(n) || !isFinite(n)) return '0';
-    if (n >= 1_000_000_000_000_000_000) return (n / 1_000_000_000_000_000_000).toFixed(2) + 'Кви';
-    if (n >= 1_000_000_000_000_000) return (n / 1_000_000_000_000_000).toFixed(2) + 'Кв';
-    if (n >= 1_000_000_000_000) return (n / 1_000_000_000_000).toFixed(2) + 'Т';
-    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'Б';
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'М';
-    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'К';
-    if (n % 1 !== 0) return n.toFixed(1);
-    return Math.floor(n).toString();
+    return formatNumberLocalized(num);
 }
 
 // ============================================================
@@ -238,7 +246,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     // --- Common ---
     {
         id: 'herb_mundane',
-        name: 'Мирная трава',
+        get name() { return getIngredientName('herb_mundane'); },
         rarity: 'common',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <path d="M20 35 Q10 20 12 8 Q16 15 20 12 Q24 15 28 8 Q30 20 20 35Z" fill="#55efc4" stroke="#00b894" stroke-width="1.5"/>
@@ -247,7 +255,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'mushroom_gray',
-        name: 'Серый гриб',
+        get name() { return getIngredientName('mushroom_gray'); },
         rarity: 'common',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <ellipse cx="20" cy="18" rx="14" ry="9" fill="#b2bec3"/>
@@ -257,7 +265,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'toadstone',
-        name: 'Жабий камень',
+        get name() { return getIngredientName('toadstone'); },
         rarity: 'common',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <ellipse cx="20" cy="24" rx="12" ry="8" fill="#81ecec"/>
@@ -269,7 +277,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     // --- Rare ---
     {
         id: 'moonpetal',
-        name: 'Лунный лепесток',
+        get name() { return getIngredientName('moonpetal'); },
         rarity: 'rare',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs><filter id="rareGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -279,7 +287,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'fairy_breath',
-        name: 'Дыхание феи',
+        get name() { return getIngredientName('fairy_breath'); },
         rarity: 'rare',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs><filter id="rareGlowFairy"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -290,7 +298,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'fire_salamander',
-        name: 'Хвост саламандры',
+        get name() { return getIngredientName('fire_salamander'); },
         rarity: 'rare',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs><filter id="rareGlow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -300,7 +308,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'stardew',
-        name: 'Звёздная роса',
+        get name() { return getIngredientName('stardew'); },
         rarity: 'rare',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs><filter id="rareGlow3"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -311,7 +319,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     // --- Epic ---
     {
         id: 'void_essence',
-        name: 'Эссенция Пустоты',
+        get name() { return getIngredientName('void_essence'); },
         rarity: 'epic',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs>
@@ -325,7 +333,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'troll_blood',
-        name: 'Кровь тролля',
+        get name() { return getIngredientName('troll_blood'); },
         rarity: 'epic',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs><filter id="epicGlowBlood"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -336,7 +344,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'dragon_scale',
-        name: 'Чешуя дракона',
+        get name() { return getIngredientName('dragon_scale'); },
         rarity: 'epic',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs><filter id="epicGlow2"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
@@ -348,7 +356,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     // --- Legendary ---
     {
         id: 'philosophers_tear',
-        name: 'Слеза Алхимика',
+        get name() { return getIngredientName('philosophers_tear'); },
         rarity: 'legendary',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs>
@@ -362,7 +370,7 @@ export const AVAILABLE_INGREDIENTS: Ingredient[] = [
     },
     {
         id: 'time_crystal',
-        name: 'Кристалл Времени',
+        get name() { return getIngredientName('time_crystal'); },
         rarity: 'legendary',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40">
             <defs>
@@ -409,8 +417,8 @@ export const potionsCount     = writable<Record<string, number>>({});
 export const AVAILABLE_POTIONS: Potion[] = [
     {
         id: 'potion_luck',
-        name: 'Зелье Удачи',
-        description: '+25% к золоту от кликов на 5 мин',
+        get name() { return getPotionName('potion_luck'); },
+        get description() { return getPotionDesc('potion_luck'); },
         effect: 'click_multiplier',
         value: 0.25,
         durationMin: 5,
@@ -426,8 +434,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_wealth',
-        name: 'Зелье Богатства',
-        description: '+50% пассивного дохода на 5 мин',
+        get name() { return getPotionName('potion_wealth'); },
+        get description() { return getPotionDesc('potion_wealth'); },
         effect: 'idle_multiplier',
         value: 0.5,
         durationMin: 5,
@@ -443,8 +451,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_void',
-        name: 'Зелье Пустоты',
-        description: '+100% ко всему золоту на 3 мин',
+        get name() { return getPotionName('potion_void'); },
+        get description() { return getPotionDesc('potion_void'); },
         effect: 'gold_multiplier',
         value: 1.0,
         durationMin: 3,
@@ -461,8 +469,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_focus',
-        name: 'Зелье Фокуса',
-        description: '+50% к кликам на 2 мин',
+        get name() { return getPotionName('potion_focus'); },
+        get description() { return getPotionDesc('potion_focus'); },
         effect: 'click_multiplier',
         value: 0.5,
         durationMin: 2,
@@ -478,8 +486,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_sage',
-        name: 'Эликсир Мудреца',
-        description: '+150% к пассивному доходу на 10 мин',
+        get name() { return getPotionName('potion_sage'); },
+        get description() { return getPotionDesc('potion_sage'); },
         effect: 'idle_multiplier',
         value: 1.5,
         durationMin: 10,
@@ -495,8 +503,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_fire',
-        name: 'Пламенное Зелье',
-        description: '+40% к золоту от кликов на 3 мин',
+        get name() { return getPotionName('potion_fire'); },
+        get description() { return getPotionDesc('potion_fire'); },
         effect: 'click_multiplier',
         value: 0.4,
         durationMin: 3,
@@ -516,8 +524,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_berserk',
-        name: 'Зелье Берсерка',
-        description: '+75% к золоту от кликов на 3 мин',
+        get name() { return getPotionName('potion_berserk'); },
+        get description() { return getPotionDesc('potion_berserk'); },
         effect: 'click_multiplier',
         value: 0.75,
         durationMin: 3,
@@ -537,8 +545,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_giant',
-        name: 'Кровь Великана',
-        description: '+80% к пассивному доходу на 7 мин',
+        get name() { return getPotionName('potion_giant'); },
+        get description() { return getPotionDesc('potion_giant'); },
         effect: 'idle_multiplier',
         value: 0.8,
         durationMin: 7,
@@ -558,8 +566,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_immortal',
-        name: 'Эликсир Бессмертия',
-        description: '+250% к пассивному доходу на 15 мин',
+        get name() { return getPotionName('potion_immortal'); },
+        get description() { return getPotionDesc('potion_immortal'); },
         effect: 'idle_multiplier',
         value: 2.5,
         durationMin: 15,
@@ -579,8 +587,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_chronos',
-        name: 'Хроносферный Эликсир',
-        description: '+300% ко всему золоту на 5 мин и -2ч экспедициям!',
+        get name() { return getPotionName('potion_chronos'); },
+        get description() { return getPotionDesc('potion_chronos'); },
         effect: 'gold_multiplier',
         value: 3.0,
         durationMin: 5,
@@ -603,8 +611,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_swift',
-        name: 'Зелье Ветрокрыла',
-        description: '-1ч всем экспедициям и +40% к пассивному доходу на 5 мин',
+        get name() { return getPotionName('potion_swift'); },
+        get description() { return getPotionDesc('potion_swift'); },
         effect: 'idle_multiplier',
         value: 0.4,
         durationMin: 5,
@@ -621,8 +629,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_midas',
-        name: 'Эликсир Мидаса',
-        description: '+150% к золоту от заказов и кликов на 5 мин',
+        get name() { return getPotionName('potion_midas'); },
+        get description() { return getPotionDesc('potion_midas'); },
         effect: 'gold_multiplier',
         value: 1.5,
         durationMin: 5,
@@ -638,8 +646,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_astral',
-        name: 'Астральный Нектар',
-        description: '+200% ко всему доходу мастерской на 5 минут!',
+        get name() { return getPotionName('potion_astral'); },
+        get description() { return getPotionDesc('potion_astral'); },
         effect: 'gold_multiplier',
         value: 2.0,
         durationMin: 5,
@@ -655,8 +663,8 @@ export const AVAILABLE_POTIONS: Potion[] = [
     },
     {
         id: 'potion_insight',
-        name: 'Раствор Озарения',
-        description: '+120% к пассивному доходу и силе клика на 8 мин',
+        get name() { return getPotionName('potion_insight'); },
+        get description() { return getPotionDesc('potion_insight'); },
         effect: 'gold_multiplier',
         value: 1.2,
         durationMin: 8,
@@ -1267,8 +1275,8 @@ const defaultUpgrades: Upgrade[] = [
 export const defaultSecretUpgrades: SecretUpgrade[] = [
     { 
         id: 'stardust_extractor', 
-        name: 'Астральный Экстрактор', 
-        description: '+5% Звездной Пыли за Ритуал', 
+        get name() { return getSecretUpgradeName('stardust_extractor'); }, 
+        get description() { return getSecretUpgradeDesc('stardust_extractor'); }, 
         category: 'ritual',
         baseCost: 15, 
         costMultiplier: 1.6, 
@@ -1277,8 +1285,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'essence_mastery', 
-        name: 'Эссенция Мастерства', 
-        description: '+6% шанс удвоенного зелья при варке', 
+        get name() { return getSecretUpgradeName('essence_mastery'); }, 
+        get description() { return getSecretUpgradeDesc('essence_mastery'); }, 
         category: 'alchemy',
         baseCost: 20, 
         costMultiplier: 1.6, 
@@ -1287,8 +1295,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'scout_whisper', 
-        name: 'Тропы Экспедиций', 
-        description: '-6% времени походов питомцев', 
+        get name() { return getSecretUpgradeName('scout_whisper'); }, 
+        get description() { return getSecretUpgradeDesc('scout_whisper'); }, 
         category: 'expeditions',
         baseCost: 20, 
         costMultiplier: 1.5, 
@@ -1297,8 +1305,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'orders', 
-        name: 'Королевские Контракты', 
-        description: '+15% золота за заказы гильдии', 
+        get name() { return getSecretUpgradeName('orders'); }, 
+        get description() { return getSecretUpgradeDesc('orders'); }, 
         category: 'orders',
         baseCost: 20, 
         costMultiplier: 1.6, 
@@ -1307,8 +1315,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'cooldown_mastery', 
-        name: 'Остывание Эфира', 
-        description: '-15 сек время остывания котла', 
+        get name() { return getSecretUpgradeName('cooldown_mastery'); }, 
+        get description() { return getSecretUpgradeDesc('cooldown_mastery'); }, 
         category: 'alchemy',
         baseCost: 15, 
         costMultiplier: 1.8, 
@@ -1317,8 +1325,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'crystal_transmute', 
-        name: 'Трансмутация Кристаллов', 
-        description: '8% шанс 1–2 кристаллов за сданный заказ', 
+        get name() { return getSecretUpgradeName('crystal_transmute'); }, 
+        get description() { return getSecretUpgradeDesc('crystal_transmute'); }, 
         category: 'economy',
         baseCost: 25, 
         costMultiplier: 1.6, 
@@ -1327,8 +1335,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'archmage_heritage', 
-        name: 'Наследие Архимага', 
-        description: 'Сохраняет до 0.5% золота при Ритуале', 
+        get name() { return getSecretUpgradeName('archmage_heritage'); }, 
+        get description() { return getSecretUpgradeDesc('archmage_heritage'); }, 
         category: 'ritual',
         baseCost: 20, 
         costMultiplier: 1.8, 
@@ -1337,8 +1345,8 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
     },
     { 
         id: 'familiar', 
-        name: 'Аура Фамильяра', 
-        description: '+15% к пассивному доходу лавки', 
+        get name() { return getSecretUpgradeName('familiar'); }, 
+        get description() { return getSecretUpgradeDesc('familiar'); }, 
         category: 'economy',
         baseCost: 30, 
         costMultiplier: 1.6, 
@@ -1350,145 +1358,145 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
 export const AVAILABLE_ARTIFACTS: Artifact[] = [
     {
         id: 0,
-        name: 'Свиток жадности',
-        description: '+20% к пассивному доходу',
+        get name() { return getArtifactName(0); },
+        get description() { return getArtifactDesc(0); },
         cost: 15,
         svg: `<svg viewBox="0 0 100 100"><rect x="30" y="10" width="40" height="80" fill="#f1c40f" rx="5"/><line x1="35" y1="20" x2="65" y2="20" stroke="#d35400" stroke-width="4"/><line x1="35" y1="35" x2="65" y2="35" stroke="#d35400" stroke-width="4"/><line x1="35" y1="50" x2="65" y2="50" stroke="#d35400" stroke-width="4"/></svg>`
     },
     {
         id: 1,
-        name: 'Кольцо мощи',
-        description: '+20% к силе клика',
+        get name() { return getArtifactName(1); },
+        get description() { return getArtifactDesc(1); },
         cost: 35,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#f39c12" stroke-width="10"/><circle cx="50" cy="20" r="12" fill="#e74c3c"/></svg>`
     },
     {
         id: 2,
-        name: 'Амулет времени',
-        description: 'Увеличивает макс. время офлайн-дохода до 12 ч',
+        get name() { return getArtifactName(2); },
+        get description() { return getArtifactDesc(2); },
         cost: 80,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#34495e" stroke="#ecf0f1" stroke-width="5"/><circle cx="50" cy="50" r="3" fill="#ecf0f1"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="65" y2="65" stroke="#ecf0f1" stroke-width="4" stroke-linecap="round"/></svg>`
     },
     // --- Archmage Set ---
     {
         id: 3,
-        name: 'Мантия Архимага',
-        description: '+35% к пассивному доходу',
+        get name() { return getArtifactName(3); },
+        get description() { return getArtifactDesc(3); },
         cost: 150,
         svg: `<svg viewBox="0 0 100 100"><path d="M50 10 L80 90 L20 90 Z" fill="#9b59b6" stroke="#8e44ad" stroke-width="3"/><path d="M50 10 L65 90 L35 90 Z" fill="#8e44ad"/><circle cx="50" cy="40" r="8" fill="#f1c40f"/></svg>`
     },
     {
         id: 4,
-        name: 'Посох Архимага',
-        description: '+60% к силе клика',
+        get name() { return getArtifactName(4); },
+        get description() { return getArtifactDesc(4); },
         cost: 300,
         svg: `<svg viewBox="0 0 100 100"><rect x="45" y="20" width="10" height="70" fill="#7f8c8d" rx="4"/><circle cx="50" cy="15" r="12" fill="#3498db" stroke="#2980b9" stroke-width="4"/><circle cx="50" cy="15" r="5" fill="#ecf0f1"/></svg>`
     },
     {
         id: 5,
-        name: 'Шляпа Архимага',
-        description: '+2 часа к макс. офлайн-времени',
+        get name() { return getArtifactName(5); },
+        get description() { return getArtifactDesc(5); },
         cost: 500,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="80" rx="40" ry="10" fill="#2c3e50"/><polygon points="20,75 80,75 50,10" fill="#34495e"/><polygon points="35,75 65,75 50,10" fill="#2c3e50"/><path d="M30 70 Q50 85 70 70" fill="none" stroke="#f1c40f" stroke-width="4"/></svg>`
     },
     {
         id: 6,
-        name: 'Кольцо Архимага',
-        description: '+35% к пассивному доходу',
+        get name() { return getArtifactName(6); },
+        get description() { return getArtifactDesc(6); },
         cost: 850,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#9b59b6" stroke-width="8"/><circle cx="50" cy="20" r="14" fill="#3498db" stroke="#2980b9" stroke-width="3"/><polygon points="50,10 55,20 65,25 55,30 50,40 45,30 35,25 45,20" fill="#ecf0f1" opacity="0.8"/></svg>`
     },
     {
         id: 7,
-        name: 'Око Архимага',
-        description: '+100% к пассивному доходу',
+        get name() { return getArtifactName(7); },
+        get description() { return getArtifactDesc(7); },
         cost: 1500,
         svg: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="25" fill="#ecf0f1" stroke="#f39c12" stroke-width="5"/><circle cx="50" cy="50" r="18" fill="#e74c3c"/><circle cx="50" cy="50" r="6" fill="#c0392b"/><circle cx="55" cy="45" r="4" fill="white"/></svg>`
     },
     // --- Phoenix Flame Set ---
     {
         id: 8,
-        name: 'Жемчужина Феникса',
-        description: '+40% золота за заказы и зелья',
+        get name() { return getArtifactName(8); },
+        get description() { return getArtifactDesc(8); },
         cost: 3000,
         svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="phoenixPearlGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="35%" stop-color="#f39c12"/><stop offset="70%" stop-color="#e74c3c"/><stop offset="100%" stop-color="#962d22"/></radialGradient><linearGradient id="goldFiligree" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="50%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#d35400"/></linearGradient></defs><path d="M50 12 Q38 30 42 45 Q30 50 35 68 Q40 85 50 90 Q60 85 65 68 Q70 50 58 45 Q62 30 50 12 Z" fill="#e74c3c" opacity="0.35"/><path d="M28 78 C35 70 42 75 50 82 C58 75 65 70 72 78 C65 88 35 88 28 78 Z" fill="url(#goldFiligree)" stroke="#b7791f" stroke-width="1.5"/><path d="M22 60 Q28 68 34 66" stroke="url(#goldFiligree)" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M78 60 Q72 68 66 66" stroke="url(#goldFiligree)" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M50 84 L50 94 M42 94 L58 94" stroke="url(#goldFiligree)" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="50" r="24" fill="url(#phoenixPearlGlow)"/><ellipse cx="44" cy="42" rx="7" ry="4" fill="#ffffff" opacity="0.75" transform="rotate(-30 44 42)"/><polygon points="50,22 52,28 58,30 52,32 50,38 48,32 42,30 48,28" fill="#ffeaa7"/><circle cx="34" cy="36" r="2" fill="#fdcb6e"/><circle cx="66" cy="38" r="2.5" fill="#fdcb6e"/></svg>`
     },
     {
         id: 9,
-        name: 'Печать Вулкана',
-        description: '+80% к силе клика',
+        get name() { return getArtifactName(9); },
+        get description() { return getArtifactDesc(9); },
         cost: 5500,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="volcanoStone" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3d3d3d"/><stop offset="50%" stop-color="#1e1e1e"/><stop offset="100%" stop-color="#0a0a0a"/></linearGradient><linearGradient id="magmaFlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff9f43"/><stop offset="50%" stop-color="#ee5253"/><stop offset="100%" stop-color="#ff3838"/></linearGradient></defs><polygon points="30,12 70,12 88,30 88,70 70,88 30,88 12,70 12,30" fill="url(#volcanoStone)" stroke="#c0392b" stroke-width="2.5"/><polygon points="33,18 67,18 82,33 82,67 67,82 33,82 18,67 18,33" fill="#151515" stroke="#4a1c17" stroke-width="1.5"/><path d="M22 35 L38 45 L34 56 L46 64 L50 78" stroke="url(#magmaFlow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M78 35 L62 45 L66 58 L54 65 L50 78" stroke="url(#magmaFlow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M50 20 L50 36 M38 45 L50 48 L62 45" stroke="url(#magmaFlow)" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="50" cy="50" r="14" fill="#2d0c0a" stroke="#ff7675" stroke-width="1.8"/><path d="M50 40 L57 56 L43 56 Z" fill="url(#magmaFlow)"/><circle cx="50" cy="50" r="3.5" fill="#fff"/></svg>`
     },
     {
         id: 10,
-        name: 'Чаша Вечного Огня',
-        description: '+120% к пассивному доходу',
+        get name() { return getArtifactName(10); },
+        get description() { return getArtifactDesc(10); },
         cost: 9000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="chaliceGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#fdcb6e"/><stop offset="100%" stop-color="#e17055"/></linearGradient><linearGradient id="fireCore" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#e74c3c"/><stop offset="40%" stop-color="#ff7675"/><stop offset="80%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><path d="M50 10 Q32 30 42 50 Q28 42 36 28 Q44 20 50 10 Z" fill="#ff7675" opacity="0.6"/><path d="M50 10 Q68 30 58 50 Q72 42 64 28 Q56 20 50 10 Z" fill="#ff7675" opacity="0.6"/><path d="M50 14 Q38 32 44 48 Q50 54 56 48 Q62 32 50 14 Z" fill="url(#fireCore)"/><path d="M50 24 Q44 36 48 45 Q50 48 52 45 Q56 36 50 24 Z" fill="#ffffff"/><path d="M25 46 C25 65 38 72 46 73 L46 84 L36 88 L36 92 L64 92 L64 88 L54 84 L54 73 C62 72 75 65 75 46 Z" fill="url(#chaliceGold)" stroke="#d35400" stroke-width="1.8"/><ellipse cx="50" cy="46" rx="25" ry="5" fill="#f39c12" stroke="#b7791f" stroke-width="1.5"/><circle cx="50" cy="62" r="4.5" fill="#d63031" stroke="#ffeaa7" stroke-width="1"/><circle cx="38" cy="58" r="3" fill="#e74c3c"/><circle cx="62" cy="58" r="3" fill="#e74c3c"/><path d="M25 50 Q14 54 18 64 Q22 70 28 66" fill="none" stroke="url(#chaliceGold)" stroke-width="2.5" stroke-linecap="round"/><path d="M75 50 Q86 54 82 64 Q78 70 72 66" fill="none" stroke="url(#chaliceGold)" stroke-width="2.5" stroke-linecap="round"/></svg>`
     },
     {
         id: 11,
-        name: 'Перо Возрождения',
-        description: '+3 ч офлайн-времени и +10% золота после ритуала',
+        get name() { return getArtifactName(11); },
+        get description() { return getArtifactDesc(11); },
         cost: 15000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="featherPlume" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff200"/><stop offset="35%" stop-color="#ff9f43"/><stop offset="70%" stop-color="#ee5253"/><stop offset="100%" stop-color="#5f27cd"/></linearGradient></defs><path d="M78 14 C70 20 62 18 52 24 C40 32 30 46 26 62 C22 75 25 86 24 90 C26 86 32 82 40 80 C56 75 68 62 74 46 C78 35 84 24 78 14 Z" fill="url(#featherPlume)"/><path d="M52 24 C45 32 38 42 34 50 M44 38 C38 48 32 58 29 66 M58 48 C50 60 42 70 36 78" stroke="#ffeaa7" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M78 14 Q52 46 24 90" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="68" cy="20" r="2.5" fill="#f1c40f"/><circle cx="82" cy="35" r="2" fill="#ff7675"/><circle cx="60" cy="12" r="1.5" fill="#feca57"/><polygon points="38,40 40,43 43,44 40,45 38,48 36,45 33,44 36,43" fill="#ffffff" opacity="0.9"/></svg>`
     },
     // --- Titans Chronicle Set ---
     {
         id: 12,
-        name: 'Хронометр Вечности',
-        description: '+4 ч офлайн-времени и -20% времени экспедиций',
+        get name() { return getArtifactName(12); },
+        get description() { return getArtifactDesc(12); },
         cost: 25000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="astroTitan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dfe6e9"/><stop offset="50%" stop-color="#74b9ff"/><stop offset="100%" stop-color="#0984e3"/></linearGradient><radialGradient id="chronoCore" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#00cec9"/><stop offset="80%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2d3436"/></radialGradient></defs><circle cx="50" cy="50" r="40" fill="none" stroke="url(#astroTitan)" stroke-width="3" stroke-dasharray="8 4"/><ellipse cx="50" cy="50" rx="32" ry="18" fill="none" stroke="#81ecec" stroke-width="2.5" transform="rotate(35 50 50)"/><ellipse cx="50" cy="50" rx="32" ry="18" fill="none" stroke="#a29bfe" stroke-width="2.5" transform="rotate(-35 50 50)"/><circle cx="50" cy="10" r="3" fill="#00cec9"/><circle cx="90" cy="50" r="3" fill="#00cec9"/><circle cx="50" cy="90" r="3" fill="#00cec9"/><circle cx="10" cy="50" r="3" fill="#00cec9"/><circle cx="50" cy="50" r="16" fill="url(#chronoCore)" stroke="#dfe6e9" stroke-width="1.8"/><line x1="50" y1="50" x2="50" y2="38" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="50" x2="60" y2="54" stroke="#81ecec" stroke-width="2" stroke-linecap="round"/><circle cx="50" cy="50" r="3" fill="#ffffff"/></svg>`
     },
     {
         id: 13,
-        name: 'Скрижаль Созидания',
-        description: '+200% к пассивному доходу',
+        get name() { return getArtifactName(13); },
+        get description() { return getArtifactDesc(13); },
         cost: 45000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="monolithGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2c3e50"/><stop offset="60%" stop-color="#1e272e"/><stop offset="100%" stop-color="#0f141d"/></linearGradient><linearGradient id="glyphGlow" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#00cec9"/><stop offset="100%" stop-color="#6c5ce7"/></linearGradient></defs><rect x="22" y="12" width="56" height="76" rx="6" fill="url(#monolithGrad)" stroke="#6c5ce7" stroke-width="2.5"/><rect x="26" y="16" width="48" height="68" rx="4" fill="#121824" stroke="#00cec9" stroke-width="1" stroke-dasharray="6 3"/><circle cx="50" cy="30" r="7" fill="none" stroke="url(#glyphGlow)" stroke-width="2"/><line x1="50" y1="20" x2="50" y2="40" stroke="url(#glyphGlow)" stroke-width="1.8"/><line x1="40" y1="30" x2="60" y2="30" stroke="url(#glyphGlow)" stroke-width="1.8"/><path d="M36 50 L50 44 L64 50 L50 56 Z" fill="none" stroke="url(#glyphGlow)" stroke-width="2"/><circle cx="50" cy="50" r="2" fill="#fff"/><line x1="34" y1="64" x2="66" y2="64" stroke="url(#glyphGlow)" stroke-width="2.5" stroke-linecap="round"/><line x1="38" y1="72" x2="62" y2="72" stroke="url(#glyphGlow)" stroke-width="2.5" stroke-linecap="round"/><polygon points="50,14 52,18 56,20 52,22 50,26 48,22 44,20 48,18" fill="#81ecec"/></svg>`
     },
     {
         id: 14,
-        name: 'Корона Пустоты',
-        description: '+250% к силе клика',
+        get name() { return getArtifactName(14); },
+        get description() { return getArtifactDesc(14); },
         cost: 75000,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="voidMetal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4834d4"/><stop offset="50%" stop-color="#24135f"/><stop offset="100%" stop-color="#130838"/></linearGradient><linearGradient id="crystalGlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00d2d3"/><stop offset="50%" stop-color="#54a0ff"/><stop offset="100%" stop-color="#5f27cd"/></linearGradient></defs><path d="M15 72 Q50 86 85 72 L82 66 Q50 78 18 66 Z" fill="url(#voidMetal)" stroke="#a29bfe" stroke-width="1.8"/><polygon points="50,16 57,66 43,66" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="28,30 36,68 22,68" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="72,30 78,68 64,68" fill="url(#voidMetal)" stroke="#6c5ce7" stroke-width="1.8"/><polygon points="50,22 58,40 50,54 42,40" fill="url(#crystalGlow)" stroke="#ffffff" stroke-width="1.2"/><line x1="50" y1="22" x2="50" y2="54" stroke="#ffffff" stroke-width="1" opacity="0.8"/><polygon points="28,34 34,46 28,56 22,46" fill="url(#crystalGlow)" stroke="#81ecec" stroke-width="1"/><polygon points="72,34 78,46 72,56 66,46" fill="url(#crystalGlow)" stroke="#81ecec" stroke-width="1"/><circle cx="50" cy="74" r="3.5" fill="#00d2d3"/></svg>`
     },
     {
         id: 15,
-        name: 'Сердце Титана',
-        description: '+300% ко всему доходу золота',
+        get name() { return getArtifactName(15); },
+        get description() { return getArtifactDesc(15); },
         cost: 120000,
         svg: `<svg viewBox="0 0 100 100"><defs><radialGradient id="titanHeart" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#81ecec"/><stop offset="60%" stop-color="#0984e3"/><stop offset="90%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2c2c54"/></radialGradient><linearGradient id="orbitRings" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="url(#orbitRings)" stroke-width="2.5" transform="rotate(-30 50 50)"/><ellipse cx="50" cy="50" rx="44" ry="14" fill="none" stroke="#a29bfe" stroke-width="2" stroke-dasharray="6 3" transform="rotate(45 50 50)"/><circle cx="18" cy="32" r="4" fill="#00d2d3" stroke="#fff" stroke-width="1"/><circle cx="82" cy="68" r="4" fill="#ffeaa7" stroke="#fff" stroke-width="1"/><circle cx="78" cy="26" r="3" fill="#a29bfe"/><polygon points="50,15 75,50 50,85 25,50" fill="url(#titanHeart)" stroke="#ffffff" stroke-width="2"/><polygon points="50,26 67,50 50,74 33,50" fill="#ffffff" opacity="0.4"/><polygon points="50,35 60,50 50,65 40,50" fill="#ffffff"/><line x1="50" y1="6" x2="50" y2="94" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/><line x1="6" y1="50" x2="94" y2="50" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/></svg>`
     },
     // --- Moon Witch Set ---
     {
         id: 16,
-        name: 'Лунный Серп',
-        description: '+25% к золоту за городские заказы',
+        get name() { return getArtifactName(16); },
+        get description() { return getArtifactDesc(16); },
         cost: 600,
         svg: `<svg viewBox="0 0 100 100"><defs><linearGradient id="silverBlade" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dfe6e9"/><stop offset="50%" stop-color="#b2bec3"/><stop offset="100%" stop-color="#636e72"/></linearGradient></defs><path d="M70 20 C40 20 25 45 35 75 C20 55 30 30 65 15 Z" fill="url(#silverBlade)" stroke="#a29bfe" stroke-width="2"/><circle cx="55" cy="45" r="5" fill="#f1c40f"/><circle cx="68" cy="65" r="3" fill="#ffeaa7"/><path d="M35 75 L25 85 L20 80 L30 70 Z" fill="#2d3436" stroke="#d63031" stroke-width="1.5"/></svg>`
     },
     {
         id: 17,
-        name: 'Звёздная Мантия',
-        description: '+75% к пассивному доходу золота',
+        get name() { return getArtifactName(17); },
+        get description() { return getArtifactDesc(17); },
         cost: 1100,
         svg: `<svg viewBox="0 0 100 100"><path d="M50 15 L80 85 L20 85 Z" fill="#2c1654" stroke="#a29bfe" stroke-width="2.5"/><circle cx="50" cy="40" r="3" fill="#fff"/><circle cx="40" cy="60" r="2" fill="#ffeaa7"/><circle cx="62" cy="55" r="2.5" fill="#74b9ff"/><path d="M50 15 Q30 50 35 85 M50 15 Q70 50 65 85" stroke="#a29bfe" stroke-width="1.5" fill="none"/></svg>`
     },
     {
         id: 18,
-        name: 'Амулет Полуночи',
-        description: '+50% к шансу удвоения зелья при варке',
+        get name() { return getArtifactName(18); },
+        get description() { return getArtifactDesc(18); },
         cost: 1800,
         svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="28" fill="#1e1035" stroke="#a29bfe" stroke-width="4"/><path d="M50 25 C40 25 35 35 40 50 C45 65 55 70 65 65 C50 65 42 55 45 42 C48 30 58 28 50 25 Z" fill="#ffeaa7"/><circle cx="60" cy="35" r="2" fill="#fff"/></svg>`
     },
     {
         id: 19,
-        name: 'Фолиант Приливов',
-        description: '+1.5 ч офлайн-времени и +10% к Звездной Пыли',
+        get name() { return getArtifactName(19); },
+        get description() { return getArtifactDesc(19); },
         cost: 2600,
         svg: `<svg viewBox="0 0 100 100"><rect x="25" y="18" width="50" height="64" rx="4" fill="#341f97" stroke="#54a0ff" stroke-width="2"/><path d="M25 82 Q50 78 75 82" stroke="#dfe6e9" stroke-width="3"/><path d="M40 35 Q50 45 60 35 Q50 55 40 35 Z" fill="#54a0ff" opacity="0.7"/><circle cx="50" cy="60" r="4" fill="#ffeaa7"/></svg>`
     }
@@ -1497,184 +1505,181 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
 export const AVAILABLE_COLLECTIONS: Collection[] = [
     {
         id: 'archmage_set',
-        name: 'Наследие Архимага',
-        description: 'Соберите облачение великого Архимага, чтобы подчинить тайные потоки магии и призвать Астрального Дракона.',
+        get name() { return getCollectionName('archmage_set'); },
+        get description() { return getCollectionDesc('archmage_set'); },
         themeColor: '#9b59b6',
         requiredArtifactIds: [3, 4, 5, 6, 7],
         rewardPetId: 'pet_astral_dragon',
-        perks: [
-            { iconColor: '#f1c40f', text: '<strong>+150%</strong> к пассивному доходу золота' },
-            { iconColor: '#74b9ff', text: '<strong>+100%</strong> к силе магического клика' },
-            { iconColor: '#e056fd', text: 'Уникальный спутник и экспедиции за редкими сокровищами' }
-        ]
+        get perks() {
+            const raw = getCollectionPerks('archmage_set');
+            const colors = ['#f1c40f', '#74b9ff', '#e056fd'];
+            return raw.map((text, i) => ({ iconColor: colors[i] || '#f1c40f', text }));
+        }
     },
     {
         id: 'moon_witch_set',
-        name: 'Круг Лунной Ведьмы',
-        description: 'Тайные реликвии ночного шабаша. Усиливают заказы, варку зелий и призывают грациозную Лунную Пантеру.',
+        get name() { return getCollectionName('moon_witch_set'); },
+        get description() { return getCollectionDesc('moon_witch_set'); },
         themeColor: '#a29bfe',
         requiredArtifactIds: [16, 17, 18, 19],
         rewardPetId: 'pet_moon_cat',
-        perks: [
-            { iconColor: '#a29bfe', text: '<strong>+100%</strong> к пассивному доходу золота' },
-            { iconColor: '#2ecc71', text: '<strong>+30%</strong> к шансу удвоения зелья при варке' },
-            { iconColor: '#f1c40f', text: '<strong>+25%</strong> к шансу получить кристаллы за заказы' },
-            { iconColor: '#ffeaa7', text: 'Лунная Пантера приносит ночные самоцветы и редкие эссенции' }
-        ]
+        get perks() {
+            const raw = getCollectionPerks('moon_witch_set');
+            const colors = ['#a29bfe', '#2ecc71', '#f1c40f', '#ffeaa7'];
+            return raw.map((text, i) => ({ iconColor: colors[i] || '#a29bfe', text }));
+        }
     },
     {
         id: 'phoenix_set',
-        name: 'Пламя Феникса',
-        description: 'Древние реликвии из сердца огнедышащего вулкана. Усиливают заказы, алхимию и даруют покровительство Солнечного Феникса.',
+        get name() { return getCollectionName('phoenix_set'); },
+        get description() { return getCollectionDesc('phoenix_set'); },
         themeColor: '#e17055',
         requiredArtifactIds: [8, 9, 10, 11],
         rewardPetId: 'pet_phoenix',
-        perks: [
-            { iconColor: '#ff7675', text: '<strong>+250%</strong> к пассивному доходу золота' },
-            { iconColor: '#f39c12', text: '<strong>+150%</strong> к силе магического клика' },
-            { iconColor: '#fdcb6e', text: '<strong>+30%</strong> к золоту за все городские заказы' },
-            { iconColor: '#e17055', text: 'Солнечный Феникс приносит Астральные сундуки и редкие кристаллы' }
-        ]
+        get perks() {
+            const raw = getCollectionPerks('phoenix_set');
+            const colors = ['#ff7675', '#f39c12', '#fdcb6e', '#e17055'];
+            return raw.map((text, i) => ({ iconColor: colors[i] || '#ff7675', text }));
+        }
     },
     {
         id: 'titan_set',
-        name: 'Хроники Титанов',
-        description: 'Космические печати первых творцов вселенной. Искажают законы времени и открывают путь к Эфирному Грифону-Титану.',
+        get name() { return getCollectionName('titan_set'); },
+        get description() { return getCollectionDesc('titan_set'); },
         themeColor: '#00cec9',
         requiredArtifactIds: [12, 13, 14, 15],
         rewardPetId: 'pet_void_titan',
-        perks: [
-            { iconColor: '#00cec9', text: '<strong>+400%</strong> к пассивному доходу золота' },
-            { iconColor: '#6c5ce7', text: '<strong>+300%</strong> к силе магического клика' },
-            { iconColor: '#a29bfe', text: '<strong>+15%</strong> больше Звёздной Пыли при ритуале перерождения' },
-            { iconColor: '#81ecec', text: 'Эфирный Грифон гарантирует Астральный сундук и ценные самоцветы' }
-        ]
+        get perks() {
+            const raw = getCollectionPerks('titan_set');
+            const colors = ['#00cec9', '#6c5ce7', '#a29bfe', '#81ecec'];
+            return raw.map((text, i) => ({ iconColor: colors[i] || '#00cec9', text }));
+        }
     }
 ];
 
 export const AVAILABLE_PETS: Pet[] = [
     {
         id: 'pet_rat',
-        name: 'Лавочная Крыса',
+        get name() { return getPetName('pet_rat'); },
+        get description() { return getPetDesc('pet_rat'); },
         rarity: 'common',
         expeditionHours: 1,
-        description: 'Шустрый помощник, вынюхивает базовые травы и монетки (1 час).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><ellipse cx="20" cy="22" rx="12" ry="9" fill="#7f8c8d"/><circle cx="28" cy="17" r="3.5" fill="#bdc3c7"/><ellipse cx="14" cy="14" rx="4" ry="5" fill="#ffb8b8"/><circle cx="26" cy="19" r="1.5" fill="#2d3436"/><path d="M8 22 Q4 20 2 26" stroke="#e17055" stroke-width="1.5" fill="none"/></svg>`
     },
     {
         id: 'pet_slime',
-        name: 'Слайм',
+        get name() { return getPetName('pet_slime'); },
+        get description() { return getPetDesc('pet_slime'); },
         rarity: 'common',
         expeditionHours: 1,
-        description: 'Приносит немного базовых ингредиентов (1 час).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M20 10 Q35 15 35 30 Q35 35 20 35 Q5 35 5 30 Q5 15 20 10Z" fill="#55efc4" opacity="0.8"/><circle cx="15" cy="22" r="3" fill="#2d3436"/><circle cx="25" cy="22" r="3" fill="#2d3436"/></svg>`
     },
     {
         id: 'pet_bat',
-        name: 'Ночной Нетопырь',
+        get name() { return getPetName('pet_bat'); },
+        get description() { return getPetDesc('pet_bat'); },
         rarity: 'common',
         expeditionHours: 2,
-        description: 'Бесшумный ночной летун. Выискивает пещерные грибы, тёмный мох и монетки (2 часа).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="batWingGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4834d4"/><stop offset="100%" stop-color="#19102c"/></radialGradient></defs><path d="M20 22 C14 12 4 15 2 24 C8 24 13 28 16 32 C18 28 19 24 20 22 Z" fill="url(#batWingGrad)"/><path d="M20 22 C26 12 36 15 38 24 C32 24 27 28 24 32 C22 28 21 24 20 22 Z" fill="url(#batWingGrad)"/><ellipse cx="20" cy="24" rx="6" ry="8" fill="#2c2c54"/><polygon points="16,18 14,8 19,16" fill="#474787"/><polygon points="24,18 26,8 21,16" fill="#474787"/><circle cx="18" cy="22" r="1.5" fill="#2ed573"/><circle cx="22" cy="22" r="1.5" fill="#2ed573"/><polygon points="18,27 19,25 20,27" fill="#fff"/><polygon points="20,27 21,25 22,27" fill="#fff"/></svg>`
     },
     {
         id: 'pet_frog',
-        name: 'Болотная Квакуша',
+        get name() { return getPetName('pet_frog'); },
+        get description() { return getPetDesc('pet_frog'); },
         rarity: 'common',
         expeditionHours: 2,
-        description: 'Знахарка топких болот, приносит лечебные травы и влажный мох (2 часа).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="frogGrad" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#2ed573"/><stop offset="70%" stop-color="#26af5f"/><stop offset="100%" stop-color="#145a32"/></radialGradient></defs><ellipse cx="20" cy="25" rx="13" ry="10" fill="url(#frogGrad)"/><circle cx="13" cy="16" r="5.5" fill="#2ed573"/><circle cx="27" cy="16" r="5.5" fill="#2ed573"/><circle cx="13" cy="16" r="3.5" fill="#ffd32a"/><circle cx="27" cy="16" r="3.5" fill="#ffd32a"/><circle cx="13" cy="16" r="1.8" fill="#1e272e"/><circle cx="27" cy="16" r="1.8" fill="#1e272e"/><path d="M15 26 Q20 30 25 26" stroke="#145a32" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="10" cy="25" r="2" fill="#ff7675" opacity="0.6"/><circle cx="30" cy="25" r="2" fill="#ff7675" opacity="0.6"/><polygon points="18,11 20,7 22,11" fill="#f1c40f"/></svg>`
     },
     {
         id: 'pet_spirit',
-        name: 'Лесной Дух',
+        get name() { return getPetName('pet_spirit'); },
+        get description() { return getPetDesc('pet_spirit'); },
         rarity: 'rare',
         expeditionHours: 3,
-        description: 'Может найти редкие лесные травы и эфирные капли (3 часа).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><ellipse cx="20" cy="20" rx="10" ry="15" fill="#74b9ff" opacity="0.7"/><circle cx="16" cy="18" r="2" fill="white"/><circle cx="24" cy="18" r="2" fill="white"/><path d="M20 25 Q20 35 10 38" stroke="#74b9ff" stroke-width="2" fill="none"/></svg>`
     },
     {
         id: 'pet_owl',
-        name: 'Астральная Сова',
+        get name() { return getPetName('pet_owl'); },
+        get description() { return getPetDesc('pet_owl'); },
         rarity: 'rare',
         expeditionHours: 4,
-        description: 'Мудрая вестница ночи, находит редкие свитки и тайные травы (4 часа).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="owlGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#686de0"/><stop offset="60%" stop-color="#4834d4"/><stop offset="100%" stop-color="#130f40"/></radialGradient></defs><ellipse cx="20" cy="23" rx="11" ry="13" fill="url(#owlGrad)"/><path d="M9 16 Q6 28 13 32 Q10 24 9 16 Z" fill="#30336b"/><path d="M31 16 Q34 28 27 32 Q30 24 31 16 Z" fill="#30336b"/><circle cx="15" cy="18" r="5" fill="#130f40" stroke="#f0932b" stroke-width="1.4"/><circle cx="25" cy="18" r="5" fill="#130f40" stroke="#f0932b" stroke-width="1.4"/><circle cx="15" cy="18" r="2.5" fill="#ffbe76"/><circle cx="25" cy="18" r="2.5" fill="#ffbe76"/><circle cx="15" cy="18" r="1.2" fill="#130f40"/><circle cx="25" cy="18" r="1.2" fill="#130f40"/><polygon points="18,22 22,22 20,27" fill="#f0932b"/><polygon points="12,13 14,8 16,13" fill="#686de0"/><polygon points="28,13 26,8 24,13" fill="#686de0"/></svg>`
     },
     {
         id: 'pet_fox',
-        name: 'Огненный Лис',
+        get name() { return getPetName('pet_fox'); },
+        get description() { return getPetDesc('pet_fox'); },
         rarity: 'rare',
         expeditionHours: 5,
-        description: 'Шустрый пламенный зверёк, вынюхивает янтарь, серу и самоцветы (5 часов).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="foxGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffbe76"/><stop offset="40%" stop-color="#f0932b"/><stop offset="100%" stop-color="#eb4d4b"/></radialGradient></defs><path d="M26 28 Q38 28 36 14 Q32 20 26 22 Z" fill="url(#foxGrad)"/><circle cx="36" cy="15" r="3" fill="#ffffff"/><polygon points="12,18 10,7 18,14" fill="#eb4d4b"/><polygon points="28,18 30,7 22,14" fill="#eb4d4b"/><polygon points="12,18 11,10 16,14" fill="#fff"/><polygon points="28,18 29,10 24,14" fill="#fff"/><polygon points="10,17 30,17 20,31" fill="url(#foxGrad)"/><polygon points="14,24 26,24 20,31" fill="#ffffff"/><circle cx="16" cy="20" r="1.8" fill="#2c3e50"/><circle cx="24" cy="20" r="1.8" fill="#2c3e50"/><polygon points="19,29 21,29 20,31" fill="#1e272e"/></svg>`
     },
     {
         id: 'pet_gryphon',
-        name: 'Мини-Грифон',
+        get name() { return getPetName('pet_gryphon'); },
+        get description() { return getPetDesc('pet_gryphon'); },
         rarity: 'epic',
         expeditionHours: 6,
-        description: 'Приносит ценные артефакты и сокровища с гор (6 часов).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M10 20 L20 10 L30 20 L20 30 Z" fill="#f1c40f"/><circle cx="15" cy="18" r="2" fill="black"/><path d="M20 20 L35 10 L30 25 Z" fill="#e67e22"/></svg>`
     },
     {
         id: 'pet_golem',
-        name: 'Хрустальный Голем',
+        get name() { return getPetName('pet_golem'); },
+        get description() { return getPetDesc('pet_golem'); },
         rarity: 'epic',
         expeditionHours: 8,
-        description: 'Несокрушимый страж недр, откалывает кристаллы и приносит ларец чародея (8 часов).',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><linearGradient id="golemRock" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a4b0be"/><stop offset="50%" stop-color="#57606f"/><stop offset="100%" stop-color="#2f3542"/></linearGradient><filter id="golemGlow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points="6,24 14,14 26,14 34,24 28,34 12,34" fill="url(#golemRock)" stroke="#2f3542" stroke-width="1.5"/><polygon points="15,14 20,8 25,14" fill="#747d8c" stroke="#2f3542" stroke-width="1"/><circle cx="16" cy="20" r="2.2" fill="#00d2d3" filter="url(#golemGlow)"/><circle cx="24" cy="20" r="2.2" fill="#00d2d3" filter="url(#golemGlow)"/><polygon points="20,24 23,28 20,32 17,28" fill="#00d2d3" filter="url(#golemGlow)"/></svg>`
     },
     {
         id: 'pet_dragon',
-        name: 'Дракончик',
+        get name() { return getPetName('pet_dragon'); },
+        get description() { return getPetDesc('pet_dragon'); },
         rarity: 'legendary',
         expeditionHours: 12,
-        description: 'Легендарные сокровища и самоцветы (12 часов)!',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="#d63031"/><circle cx="15" cy="20" r="2" fill="#f1c40f"/><circle cx="25" cy="20" r="2" fill="#f1c40f"/><path d="M5 25 L10 10 L15 25 Z" fill="#ff7675"/><path d="M35 25 L30 10 L25 25 Z" fill="#ff7675"/></svg>`
     },
     {
         id: 'pet_manticore',
-        name: 'Крылатая Мантикора',
+        get name() { return getPetName('pet_manticore'); },
+        get description() { return getPetDesc('pet_manticore'); },
         rarity: 'legendary',
         expeditionHours: 14,
-        description: 'Грозная владычица пустошей, приносит великие астральные сокровища и россыпи кристаллов (14 часов)!',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="manticoreGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff7675"/><stop offset="60%" stop-color="#d63031"/><stop offset="100%" stop-color="#540808"/></radialGradient><filter id="manticoreGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M20 20 C10 8 2 14 4 26 C10 24 15 22 20 24 Z" fill="#2d3436" stroke="#d63031" stroke-width="1"/><path d="M20 20 C30 8 38 14 36 26 C30 24 25 22 20 24 Z" fill="#2d3436" stroke="#d63031" stroke-width="1"/><path d="M20 30 Q34 38 34 22 Q34 16 30 14" fill="none" stroke="#e17055" stroke-width="2.5" stroke-linecap="round"/><polygon points="30,12 33,16 28,15" fill="#f1c40f" filter="url(#manticoreGlow)"/><circle cx="20" cy="20" r="9" fill="#e67e22"/><ellipse cx="20" cy="22" rx="7" ry="9" fill="url(#manticoreGrad)"/><circle cx="20" cy="16" r="6" fill="#c0392b"/><polygon points="16,13 14,6 18,10" fill="#f1c40f"/><polygon points="24,13 26,6 22,10" fill="#f1c40f"/><circle cx="18" cy="16" r="1.5" fill="#00d2d3"/><circle cx="22" cy="16" r="1.5" fill="#00d2d3"/></svg>`
     },
     {
         id: 'pet_moon_cat',
-        name: 'Лунная Пантера',
+        get name() { return getPetName('pet_moon_cat'); },
+        get description() { return getPetDesc('pet_moon_cat'); },
         rarity: 'legendary',
         isCollectionExclusive: true,
         expeditionHours: 8,
-        description: 'Мистический хранитель Лунного Круга. Приносит ночные самоцветы и редкие эссенции.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="moonCatGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a29bfe"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1035"/></radialGradient></defs><ellipse cx="20" cy="22" rx="10" ry="12" fill="url(#moonCatGrad)"/><circle cx="20" cy="12" r="7" fill="#2d134d"/><polygon points="14,10 13,3 18,7" fill="#6c5ce7"/><polygon points="26,10 27,3 22,7" fill="#6c5ce7"/><ellipse cx="17" cy="12" rx="1.5" ry="2.2" fill="#ffeaa7"/><ellipse cx="23" cy="12" rx="1.5" ry="2.2" fill="#ffeaa7"/><path d="M20 7 Q23 9 21 12" stroke="#f1c40f" stroke-width="1.2" fill="none"/></svg>`
     },
     {
         id: 'pet_astral_dragon',
-        name: 'Астральный Дракончик',
+        get name() { return getPetName('pet_astral_dragon'); },
+        get description() { return getPetDesc('pet_astral_dragon'); },
         rarity: 'legendary',
         isCollectionExclusive: true,
         expeditionHours: 12,
-        description: 'Уникальный питомец Сета Архимага. Находит редчайшие материалы из пустоты.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="astralGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#9b59b6"/><stop offset="100%" stop-color="#2c3e50"/></radialGradient></defs><path d="M5 25 Q20 5 35 25 Q20 35 5 25Z" fill="url(#astralGrad)"/><circle cx="15" cy="20" r="2" fill="#00cec9"/><circle cx="25" cy="20" r="2" fill="#00cec9"/><path d="M5 25 L10 10 L15 25 Z" fill="#6c5ce7"/><path d="M35 25 L30 10 L25 25 Z" fill="#6c5ce7"/></svg>`
     },
     {
         id: 'pet_phoenix',
-        name: 'Солнечный Феникс',
+        get name() { return getPetName('pet_phoenix'); },
+        get description() { return getPetDesc('pet_phoenix'); },
         rarity: 'legendary',
         isCollectionExclusive: true,
         expeditionHours: 12,
-        description: 'Легендарный хранитель пламени. Экспедиция приносит редчайшие астральные сундуки и кристаллы.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="phoenixBodyGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#e17055"/><stop offset="100%" stop-color="#d63031"/></radialGradient></defs><path d="M20 28 Q15 38 8 36 Q18 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q25 38 32 36 Q22 32 20 28Z" fill="#e74c3c"/><path d="M20 28 Q20 40 20 40 Q20 32 20 28Z" fill="#f1c40f"/><path d="M20 18 C14 8 4 12 6 22 C10 24 16 22 20 24 Z" fill="#ff7675"/><path d="M20 18 C26 8 36 12 34 22 C30 24 24 22 20 24 Z" fill="#ff7675"/><ellipse cx="20" cy="20" rx="6" ry="9" fill="url(#phoenixBodyGrad)"/><circle cx="20" cy="11" r="5" fill="#f1c40f"/><path d="M20 6 L18 10 L22 10 Z" fill="#d63031"/><path d="M16 8 L18 11 L16 12 Z" fill="#e67e22"/><path d="M24 8 L22 11 L24 12 Z" fill="#e67e22"/><circle cx="18" cy="11" r="1.2" fill="#2d3436"/><circle cx="22" cy="11" r="1.2" fill="#2d3436"/><polygon points="19,13 21,13 20,16" fill="#d35400"/></svg>`
     },
     {
         id: 'pet_void_titan',
-        name: 'Эфирный Грифон',
+        get name() { return getPetName('pet_void_titan'); },
+        get description() { return getPetDesc('pet_void_titan'); },
         rarity: 'legendary',
         isCollectionExclusive: true,
         expeditionHours: 16,
-        description: 'Мифический страж вечности и пустоты. Экспедиция гарантирует высший астральный сундук и самоцветы.',
         icon: `<svg viewBox="0 0 40 40" width="40" height="40"><defs><radialGradient id="voidTitanGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#81ecec"/><stop offset="60%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#1e1347"/></radialGradient></defs><path d="M20 18 C12 6 3 10 5 22 C11 22 16 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><path d="M20 18 C28 6 37 10 35 22 C29 22 24 20 20 22 Z" fill="#6c5ce7" stroke="#81ecec" stroke-width="0.8"/><ellipse cx="20" cy="22" rx="7" ry="10" fill="url(#voidTitanGrad)"/><path d="M15 28 L14 36 M25 28 L26 36" stroke="#00cec9" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="12" r="6" fill="#4834d4"/><path d="M15 10 L12 4 L17 8 Z" fill="#00d2d3"/><path d="M25 10 L28 4 L23 8 Z" fill="#00d2d3"/><polygon points="18,14 22,14 20,18" fill="#ffeaa7"/><circle cx="17" cy="11" r="1.5" fill="#00ffff"/><circle cx="23" cy="11" r="1.5" fill="#00ffff"/><circle cx="20" cy="22" r="2" fill="#fff"/></svg>`
     }
 ];

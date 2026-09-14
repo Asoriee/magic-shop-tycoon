@@ -13,6 +13,7 @@
     import { playCoinSound, playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -122,20 +123,26 @@
         saveGame();
     }
 
-    const typeLabels: Record<QuestType, string> = {
-        'clicks': 'Сварить зелий кликом',
-        'buy_upgrades': 'Купить улучшений в лавке',
-        'send_expeditions': 'Отправить фамильяров в поход',
-        'brew_potions': 'Сварить зелий в алхимии',
-        'complete_orders': 'Выполнить заказы жителей',
-        'watch_ads': 'Посмотреть видения в шаре'
-    };
+    function getTypeLabel(type: QuestType): string {
+        switch (type) {
+            case 'clicks': return $t('quests.typeClicksShort') || 'Сварить зелий кликом';
+            case 'buy_upgrades': return $t('quests.typeUpgradesShort') || 'Купить улучшений в лавке';
+            case 'send_expeditions': return $t('quests.typeExpeditionsShort') || 'Отправить фамильяров в поход';
+            case 'brew_potions': return $t('quests.typeBrewShort') || 'Сварить зелий в алхимии';
+            case 'complete_orders': return $t('quests.typeOrdersShort') || 'Выполнить заказы жителей';
+            case 'watch_ads': return $t('quests.typeAdsShort') || 'Посмотреть видения в шаре';
+            default: return $t('quests.title') || 'Задание';
+        }
+    }
 
-    const difficultyLabels: Record<QuestDifficulty, string> = {
-        'easy': 'Легкий',
-        'medium': 'Средний',
-        'hard': 'Сложный'
-    };
+    function getDifficultyLabel(diff: QuestDifficulty): string {
+        switch (diff) {
+            case 'easy': return $t('quests.diffEasy') || 'Легкий';
+            case 'medium': return $t('quests.diffMedium') || 'Средний';
+            case 'hard': return $t('quests.diffHard') || 'Сложный';
+            default: return '';
+        }
+    }
 
     $: completedCount = $gameStore.quests.filter(q => q.isClaimed).length;
     $: totalQuests = $gameStore.quests.length;
@@ -159,9 +166,9 @@
                             <line x1="13" y1="18" x2="19" y2="18" stroke="#d35400" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
                     </div>
-                    <h2 class="tab-title">Ежедневные Контракты</h2>
+                    <h2 class="tab-title">{$t('quests.title')}</h2>
                 </div>
-                <p class="header-sub">Выполняйте поручения Гильдии для получения Золота и Кристаллов</p>
+                <p class="header-sub">{$t('quests.subtitle')}</p>
 
                 <div class="balance-row">
                     <div class="balance-chip gold">
@@ -186,8 +193,8 @@
                     <path d="M12 6 L12 18 M8 10 L16 10" stroke="#f1c40f" stroke-width="1.5"/>
                 </svg>
                 <div class="banner-text">
-                    <span class="banner-title">Контракты Гильдии Искателей</span>
-                    <span class="banner-sub">Обновление заданий через: <strong class="timer-text">{timeToMidnight}</strong></span>
+                    <span class="banner-title">{$t('quests.guildContracts')}</span>
+                    <span class="banner-sub">{$t('quests.resetIn')} <strong class="timer-text">{timeToMidnight}</strong></span>
                 </div>
             </div>
             <div class="completed-summary">
@@ -206,14 +213,14 @@
             </div>
             <div class="mastery-details">
                 <div class="mastery-top">
-                    <span class="mastery-name">Ларец Мастера Дня</span>
+                    <span class="mastery-name">{$t('quests.masterChest')}</span>
                     <span class="mastery-counter">{completedCount} / {totalQuests}</span>
                 </div>
                 <div class="mastery-sub">
                     {#if $gameStore.dailyBonusClaimed}
-                        Награда дня успешно получена! Новые контракты завтра.
+                        {$t('quests.masterChestClaimed')}
                     {:else}
-                        Выполните все {totalQuests} контрактов дня и получите супер-приз!
+                        {$t('quests.masterChestDesc', { total: totalQuests })}
                     {/if}
                 </div>
             </div>
@@ -223,22 +230,22 @@
                         <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
                             <polyline points="3,8 6,11 13,4" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span>Получено</span>
+                        <span>{$t('common.claimed')}</span>
                     </div>
                 {:else if isAllClaimed}
                     <button class="mastery-claim-btn" on:click={claimDailyMastery}>
                         <ResourceIcon type="crystals" size={14} />
-                        <span>Забрать (+15 крист.)</span>
+                        <span>{$t('quests.claim')} (+15 {$t('common.crystals')})</span>
                     </button>
                 {:else}
                     <div class="mastery-reward-tag">
-                        <span class="m-loot" title="Кристаллы">
+                        <span class="m-loot" title={$t('common.crystals')}>
                             <ResourceIcon type="crystals" size={12} />
                             +15
                         </span>
-                        <span class="m-loot" title="Магический сундук">
+                        <span class="m-loot" title={$t('chests.wooden')}>
                             <ResourceIcon type="vip" size={12} />
-                            Сундук
+                            {$t('chests.wooden')}
                         </span>
                     </div>
                 {/if}
@@ -288,22 +295,22 @@
                     <div class="quest-main-col">
                         <div class="quest-header-row">
                             <div class="title-with-diff">
-                                <span class="diff-badge diff-{quest.difficulty || 'medium'}">{difficultyLabels[quest.difficulty || 'medium']}</span>
-                                <span class="quest-title">{typeLabels[quest.type] || 'Задание'}: {quest.target}</span>
+                                <span class="diff-badge diff-{quest.difficulty || 'medium'}">{getDifficultyLabel(quest.difficulty || 'medium')}</span>
+                                <span class="quest-title">{getTypeLabel(quest.type)}: {quest.target}</span>
                             </div>
                             {#if quest.rewardType === 'gold'}
                                 {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 150)}
-                                <div class="reward-pill gold-pill" title="Золото от дохода лавки">
+                                <div class="reward-pill gold-pill" title={$t('common.gold')}>
                                     <ResourceIcon type="gold" size={14} />
                                     <span>+{formatNumber(dynGold || 3000)}</span>
                                 </div>
                             {:else if quest.rewardType === 'crystals'}
-                                <div class="reward-pill crystal-pill" title="Алмазы">
+                                <div class="reward-pill crystal-pill" title={$t('common.crystals')}>
                                     <ResourceIcon type="crystals" size={13} />
                                     <span>+{quest.rewardAmount || 10}</span>
                                 </div>
                             {:else}
-                                <div class="reward-pill crystal-pill" title="Самоцветы">
+                                <div class="reward-pill crystal-pill" title={$t('common.crystals')}>
                                     <ResourceIcon type="crystals" size={13} />
                                     <span>+{quest.rewardAmount || 5}</span>
                                 </div>
@@ -329,7 +336,7 @@
                                 <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
                                     <polyline points="3,8 6,11 13,4" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                <span>Сдано</span>
+                                <span>{$t('quests.claimed')}</span>
                             </div>
                         {:else if quest.isCompleted}
                             <button 
@@ -341,11 +348,11 @@
                                 <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
                                     <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5"/>
                                 </svg>
-                                <span>Забрать</span>
+                                <span>{$t('quests.claim')}</span>
                             </button>
                         {:else}
                             <div class="in-progress-pill">
-                                В процессе
+                                {$t('quests.inProgress')}
                             </div>
                         {/if}
                     </div>
@@ -354,7 +361,7 @@
 
             {#if $gameStore.quests.length === 0}
                 <div class="empty-quests-card">
-                    <p>Все контракты выполнены! Возвращайтесь завтра за новыми поручениями.</p>
+                    <p>{$t('quests.empty')}</p>
                 </div>
             {/if}
         </div>

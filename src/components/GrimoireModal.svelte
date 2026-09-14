@@ -18,6 +18,7 @@
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -92,7 +93,7 @@
 
         <!-- Master Header -->
         <div class="master-header">
-            <button class="close-btn" on:click={close} title="Закрыть" aria-label="Закрыть">
+            <button class="close-btn" on:click={close} title={$t('common.close')} aria-label={$t('common.close')}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -154,27 +155,27 @@
                 </div>
 
                 <div class="header-titles">
-                    <h2 class="title-text">ВЕЛИКИЙ ГРИМУАР</h2>
-                    <span class="subtitle-text">Инвентарь, тайная алхимия, обитель фамильяров и реликвии</span>
+                    <h2 class="title-text">{$t('grimoire.title')}</h2>
+                    <span class="subtitle-text">{$t('grimoire.subtitle')}</span>
                 </div>
             </div>
 
             <!-- Currency Badges Row -->
             <div class="currencies-panel">
                 <!-- Gold -->
-                <div class="curr-chip gold-chip" title="Золото">
+                <div class="curr-chip gold-chip" title={$t('common.gold')}>
                     <ResourceIcon type="gold" size={16} class="chip-svg" />
                     <span class="curr-val">{formatNumber($gameStore.gold)}</span>
                 </div>
 
                 <!-- Crystals -->
-                <div class="curr-chip crystal-chip" title="Кристаллы">
+                <div class="curr-chip crystal-chip" title={$t('common.crystals')}>
                     <ResourceIcon type="crystals" size={16} class="chip-svg" />
                     <span class="curr-val">{formatNumber($crystals)}</span>
                 </div>
 
                 <!-- Stardust -->
-                <div class="curr-chip stardust-chip" title="Звёздная пыль">
+                <div class="curr-chip stardust-chip" title={$t('common.stardust')}>
                     <ResourceIcon type="stardust" size={16} class="chip-svg" />
                     <span class="curr-val">{formatNumber($gameStore.stardust)}</span>
                 </div>
@@ -182,7 +183,7 @@
         </div>
 
         <!-- Master Tabs Bar -->
-        <nav class="master-tabs" aria-label="Разделы Гримуара">
+        <nav class="master-tabs" aria-label={$t('grimoire.title')}>
             <!-- Tab 1: Inventory -->
             <button 
                 class="tab-btn" 
@@ -198,8 +199,8 @@
                         <circle cx="12" cy="13" r="2" fill="#ffd700" stroke="#b7791f" stroke-width="1"/>
                     </svg>
                 </div>
-                <span class="tab-label">Инвентарь</span>
-                <span class="tab-badge info-badge" title="Всего предметов">{$totalInventoryCount}</span>
+                <span class="tab-label">{$t('grimoire.inventoryTab')}</span>
+                <span class="tab-badge info-badge" title={$t('grimoire.inventoryTab')}>{$totalInventoryCount}</span>
             </button>
 
             <!-- Tab 2: Alchemy -->
@@ -217,15 +218,15 @@
                         <circle cx="10" cy="15" r="0.8" fill="#fdcb6e"/>
                     </svg>
                 </div>
-                <span class="tab-label">Алхимия</span>
+                <span class="tab-label">{$t('grimoire.alchemyTab')}</span>
                 {#if ($gameStore.cauldronOverheatUntil || 0) > nowTime}
-                    <span class="tab-badge danger-badge pulse" title="Котёл остывает!">
+                    <span class="tab-badge danger-badge pulse" title={$t('alchemy.coolingDown')}>
                         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4">
                             <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
                         </svg>
                     </span>
                 {:else if $failedBrewAttempts > 0}
-                    <span class="tab-badge warning-badge" title="Осталось попыток: {$brewAttemptsLeft} из {$maxBrewAttempts}">
+                    <span class="tab-badge warning-badge" title="{$brewAttemptsLeft} / {$maxBrewAttempts}">
                         {$brewAttemptsLeft}
                     </span>
                 {/if}
@@ -243,9 +244,9 @@
                         <path d="M12 3C8 3 4.5 5.5 3 9c-1.5 3.5 0 8 3 10.5 1.5 1.2 3.5 1.5 5 1 .5 1.5 1.8 2.5 3.5 2.5 2 0 3.5-1.5 3.5-3.5 0-.5-.1-1-.3-1.5 2.8-1 4.8-3.5 5.3-6.5C24 6 18 3 12 3zm-2 9c-.8 0-1.5-.7-1.5-1.5S9.2 9 10 9s1.5.7 1.5 1.5S10.8 12 10 12zm6 0c-.8 0-1.5-.7-1.5-1.5S15.2 9 16 9s1.5.7 1.5 1.5S16.8 12 16 12z"/>
                     </svg>
                 </div>
-                <span class="tab-label">Фамильяры</span>
+                <span class="tab-label">{$t('grimoire.familiarsTab')}</span>
                 {#if $finishedExpeditionsCount > 0}
-                    <span class="tab-badge success-badge pulse" title="Добыча готова!">
+                    <span class="tab-badge success-badge pulse" title={$t('familiars.readyToClaim')}>
                         {$finishedExpeditionsCount}
                     </span>
                 {/if}
@@ -264,7 +265,7 @@
                         <path d="M12 7l1.5 3.5L17 11l-2.7 2.4.8 3.6-3.1-1.8-3.1 1.8.8-3.6L7 11l3.5-.5L12 7z" fill="#f1c40f" stroke="#d63031" stroke-width="0.5"/>
                     </svg>
                 </div>
-                <span class="tab-label">Коллекции</span>
+                <span class="tab-label">{$t('grimoire.collectionsTab')}</span>
                 <span class="tab-badge" class:success-badge={$archmageProgress.isCompleted} class:neutral-badge={!$archmageProgress.isCompleted}>
                     {$archmageProgress.owned}/{$archmageProgress.total}
                 </span>

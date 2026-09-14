@@ -16,6 +16,7 @@
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -84,7 +85,7 @@
 
         <!-- Master Header -->
         <div class="master-header">
-            <button class="close-btn" on:click={close} aria-label="Закрыть">✕</button>
+            <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
 
             <div class="header-main">
                 <div class="master-icon-wrap">
@@ -119,36 +120,36 @@
                 </div>
 
                 <div class="header-titles">
-                    <h2 class="title-text">ВЕЛИКИЙ АРКАНУМ</h2>
-                    <span class="subtitle-text">Сокровищница кристаллов, хрономантия, тайные знания и ритуал перерождения</span>
+                    <h2 class="title-text">{$t('premium.title')}</h2>
+                    <span class="subtitle-text">{$t('premium.subtitle')}</span>
                 </div>
             </div>
 
             <!-- Unified Multi-Currency Bar -->
             <div class="currencies-panel">
                 <!-- Gold -->
-                <div class="curr-chip gold-chip" title="Золото">
+                <div class="curr-chip gold-chip" title={$t('common.gold')}>
                     <ResourceIcon type="gold" size={16} />
                     <span class="curr-val">{formatNumber($gameStore?.gold || 0)}</span>
                 </div>
 
                 <!-- Crystals -->
-                <div class="curr-chip crystal-chip" title="Кристаллы">
+                <div class="curr-chip crystal-chip" title={$t('common.crystals')}>
                     <ResourceIcon type="crystals" size={16} />
                     <span class="curr-val">{formatNumber($crystals || 0)}</span>
                 </div>
 
                 <!-- Stardust -->
-                <div class="curr-chip stardust-chip" title="Звёздная Пыль">
+                <div class="curr-chip stardust-chip" title={$t('common.stardust')}>
                     <ResourceIcon type="stardust" size={16} />
                     <span class="curr-val">{formatNumber($gameStore?.stardust || 0)}</span>
                 </div>
 
                 <!-- VIP status indicator -->
                 {#if $isVip}
-                    <div class="vip-status-chip" title="ВИП-статус активен ({$vipDaysLeft} дн.)">
+                    <div class="vip-status-chip" title="VIP: {$vipDaysLeft}">
                         <ResourceIcon type="vip" size={14} />
-                        <span>ВИП {$vipDaysLeft}д</span>
+                        <span>{$t('common.vip')} {$vipDaysLeft}{$t('common.day')}</span>
                     </div>
                 {/if}
             </div>
@@ -173,11 +174,11 @@
                         <circle cx="12" cy="15" r="2" fill="#f1c40f"/>
                     </svg>
                 </div>
-                <span class="tab-label">Сокровищница</span>
+                <span class="tab-label">{$t('premium.tabTreasury')}</span>
                 {#if $isVipDailyRewardAvailable}
-                    <span class="tab-badge badge-ready">+10 ВИП</span>
+                    <span class="tab-badge badge-ready">+10 {$t('common.vip')}</span>
                 {:else if isDragonGiftReady}
-                    <span class="tab-badge badge-free">ДАР</span>
+                    <span class="tab-badge badge-free">{$t('premium.giftTag')}</span>
                 {/if}
             </button>
 
@@ -199,9 +200,9 @@
                         <circle cx="12" cy="12" r="1.5" fill="#f1c40f"/>
                     </svg>
                 </div>
-                <span class="tab-label">Хрономантия</span>
+                <span class="tab-label">{$t('premium.tabChronomancy')}</span>
                 {#if isFreeSkipReady}
-                    <span class="tab-badge badge-ready">1Ч БЕСП</span>
+                    <span class="tab-badge badge-ready">{$t('premium.freeHour')}</span>
                 {/if}
             </button>
 
@@ -220,7 +221,7 @@
                         <polygon points="12,5 14,10 19,12 14,14 12,19 10,14 5,12 10,10" fill="#a29bfe"/>
                     </svg>
                 </div>
-                <span class="tab-label">Тайные Знания</span>
+                <span class="tab-label">{$t('premium.tabSecret')}</span>
             </button>
 
             <!-- 4. Rebirth / Prestige -->
@@ -239,7 +240,7 @@
                         <circle cx="12" cy="12" r="2" fill="#e74c3c"/>
                     </svg>
                 </div>
-                <span class="tab-label">Тёмный Ритуал</span>
+                <span class="tab-label">{$t('premium.tabRitual')}</span>
                 {#if earnedStardust > 0}
                     <span class="tab-badge badge-rebirth">
                         +{formatNumber(earnedStardust)}

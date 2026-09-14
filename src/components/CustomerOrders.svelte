@@ -14,6 +14,7 @@
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playCoinSound, playSuccessSound } from '../audio';
+    import { t, currentLang, getCustomerName } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isEmbedded = false;
@@ -227,9 +228,9 @@
                         <line x1="13" y1="18" x2="19" y2="18" stroke="#d35400" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <h2 class="tab-title">Доска Заказов</h2>
+                <h2 class="tab-title">{$t('orders.title')}</h2>
             </div>
-            <p class="header-sub">Выполняйте заказы героев и жителей города</p>
+            <p class="header-sub">{$t('orders.title')}</p>
         </div>
     {/if}
 
@@ -243,25 +244,25 @@
                 <path d="M12 4 L12 8 M9 6 L15 6" stroke="#f1c40f" stroke-width="1.5"/>
             </svg>
             <div class="caravan-text">
-                <span class="caravan-title">Торговый Караван</span>
+                <span class="caravan-title">{$t('city.tabOrders')}</span>
                 <span class="caravan-sub">
                     {#if $gameStore.activeOrders.length >= 4}
-                        Лавка заполнена клиентами (4/4)
+                        4 / 4 ({$t('common.maxLevel')})
                     {:else}
                         {@const mins = Math.floor(secondsToNext / 60)}
                         {@const secs = secondsToNext % 60}
-                        Новый путник через: {mins > 0 ? `${mins} мин ${secs.toString().padStart(2,'0')} сек` : `${secs} сек`}
+                        {$t('orders.refreshTimer', { time: `${mins}:${secs.toString().padStart(2, '0')}` })}
                     {/if}
                 </span>
             </div>
         </div>
         <div class="caravan-actions">
             {#if $gameStore.activeOrders.length < 4}
-                <button type="button" class="summon-mini-btn" on:click={summonCaravanAd} title="Призвать путника за просмотр рекламы">
+                <button type="button" class="summon-mini-btn" on:click={summonCaravanAd} title="{$t('common.watchAd')}">
                     <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
                         <polygon points="5,3 19,12 5,21"/>
                     </svg>
-                    <span>+1 Путник</span>
+                    <span>+1 {$t('city.tabOrders')}</span>
                 </button>
             {/if}
             <div class="orders-count-badge">
@@ -275,13 +276,14 @@
         {#each $gameStore.activeOrders as order (order.id)}
             {@const canFulfill = checkCanFulfill(order)}
             {@const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0)}
+            {@const localizedCustName = getCustomerName(order.name, $currentLang)}
             <div class="order-card" class:vip={order.isVip} id="order-{order.id}">
                 <button 
                     type="button" 
                     class="dismiss-btn" 
                     on:click|stopPropagation={() => dismissOrder(order)} 
-                    title="Отказать заказчику"
-                    aria-label="Отказать"
+                    title="{$t('orders.dismiss')}"
+                    aria-label="{$t('orders.dismiss')}"
                 >
                     &times;
                 </button>
@@ -310,24 +312,21 @@
 
                     <div class="customer-info">
                         <div class="name-line">
-                            <span class="customer-name">{order.name}</span>
+                            <span class="customer-name">{localizedCustName}</span>
                             {#if order.isVip}
-                                <span class="order-badge vip-badge">КОРОЛЕВСКИЙ ВИП</span>
+                                <span class="order-badge vip-badge">{$t('orders.vipOrder').toUpperCase()}</span>
                             {:else if order.orderType === 'potion' || order.requirements.some(r => r.type === 'potion')}
-                                <span class="order-badge potion-badge">АЛХИМИЯ</span>
+                                <span class="order-badge potion-badge">{$t('alchemy.title').toUpperCase()}</span>
                             {:else}
-                                <span class="order-badge common-badge">ГОРОЖАНИН</span>
+                                <span class="order-badge common-badge">{$t('city.tabOrders').toUpperCase()}</span>
                             {/if}
                         </div>
-                        <span class="order-type-hint">
-                            {order.requirements.some(r => r.type === 'potion') ? 'Заказ на готовое зелье' : 'Запрос редких ингредиентов'}
-                        </span>
                     </div>
                 </div>
                 
                 <!-- Requirements List -->
                 <div class="requirements-box">
-                    <span class="req-label">Требуется:</span>
+                    <span class="req-label">{$t('orders.requires')}</span>
                     <div class="requirements-list">
                         {#each order.requirements as req}
                             {@const item = getRequirementItem(req.type, req.id)}
@@ -349,26 +348,26 @@
                 
                 <!-- Rewards Row -->
                 <div class="rewards-row">
-                    <div class="reward-chip gold" title="Награда золотом">
+                    <div class="reward-chip gold" title="{$t('common.gold')}">
                         <ResourceIcon type="gold" size={14} />
                         <span>+{formatNumber(dynGold)}</span>
                     </div>
 
                     {#if order.rewardCrystals && order.rewardCrystals > 0}
-                        <div class="reward-chip crystals" title="Награда самоцветами">
+                        <div class="reward-chip crystals" title="{$t('common.crystals')}">
                             <ResourceIcon type="crystals" size={14} />
                             <span>+{formatNumber(order.rewardCrystals)}</span>
                         </div>
                     {/if}
 
                     {#if order.rewardChest}
-                        <div class="reward-chip chest chest-{order.rewardChest}" title="Награда: {order.rewardChest === 'astral' ? 'Астральный ларец' : (order.rewardChest === 'magical' ? 'Волшебный ларец' : 'Деревянный ларец')}">
+                        <div class="reward-chip chest chest-{order.rewardChest}" title="{$t('chests.' + order.rewardChest)}">
                             <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
                                 <rect x="2" y="7" width="16" height="10" rx="2" fill={order.rewardChest === 'astral' ? '#a29bfe' : (order.rewardChest === 'magical' ? '#e056fd' : '#d35400')} stroke="#ffeaa7" stroke-width="1.2"/>
                                 <path d="M2 7 Q10 2 18 7" fill={order.rewardChest === 'astral' ? '#6c5ce7' : (order.rewardChest === 'magical' ? '#8e44ad' : '#b85900')} stroke="#ffeaa7" stroke-width="1.2"/>
                                 <circle cx="10" cy="11" r="1.5" fill="#ffeaa7"/>
                             </svg>
-                            <span>+{order.rewardChest === 'astral' ? 'Астральный' : (order.rewardChest === 'magical' ? 'Волшебный' : 'Деревянный')} ларец</span>
+                            <span>+{$t('chests.' + order.rewardChest)}</span>
                         </div>
                     {/if}
                 </div>
@@ -385,14 +384,14 @@
                         <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
                             <polygon points="4,2 14,8 4,14"/>
                         </svg>
-                        <span>Выполнить ВИП (Реклама)</span>
+                        <span>{$t('orders.fulfill')} ({$t('common.watchAd')})</span>
                     {:else if canFulfill}
                         <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
                             <polyline points="3,8 7,12 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span>Сдать заказ</span>
+                        <span>{$t('orders.fulfill')}</span>
                     {:else}
-                        <span>Не хватает ресурсов</span>
+                        <span>{$t('alchemy.needIngredients')}</span>
                     {/if}
                 </button>
             </div>
@@ -400,8 +399,6 @@
     </div>
 
     {#if $gameStore.activeOrders.length === 0}
-        {@const mins = Math.floor(secondsToNext / 60)}
-        {@const secs = secondsToNext % 60}
         <div class="empty-orders-card">
             <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
                 <path d="M8 28 L40 28 L36 14 L12 14 Z" fill="#6c5ce7" opacity="0.3" stroke="#a29bfe" stroke-width="2"/>
@@ -409,16 +406,14 @@
                 <circle cx="34" cy="34" r="5" fill="#2d3436" stroke="#f1c40f" stroke-width="2"/>
                 <path d="M24 6 L24 14 M18 10 L30 10" stroke="#f1c40f" stroke-width="2"/>
             </svg>
-            <h4>Все заказы выполнены!</h4>
-            <p>Ожидайте прибытия следующего каравана или подготовьте зелья в алхимии.</p>
-
-            <div class="empty-countdown-badge">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f1c40f" stroke-width="2">
-                    <circle cx="12" cy="12" r="9"/>
+            <p class="empty-title">{$t('orders.emptyState')}</p>
+            <div class="empty-timer-box">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
                     <polyline points="12 6 12 12 16 14"/>
                 </svg>
                 <span>
-                    Следующий путник через: <strong>{mins > 0 ? `${mins} мин ${secs.toString().padStart(2, '0')} сек` : `${secs} сек`}</strong>
+                    {$t('orders.refreshTimer', { time: mins > 0 ? `${mins} ${$t('common.min')} ${secs} ${$t('common.sec')}` : `${secs} ${$t('common.sec')}` })}
                 </span>
             </div>
 
@@ -428,7 +423,7 @@
                     <polygon points="16,10 21,7 21,17 16,14" fill="#1e1035"/>
                     <polygon points="8,9 13,12 8,15" fill="#ffeaa7"/>
                 </svg>
-                <span>Призвать путника сейчас (Реклама)</span>
+                <span>{$t('orders.title')} ({$t('common.watchAd')})</span>
             </button>
         </div>
     {/if}
@@ -850,12 +845,6 @@
         gap: 8px;
     }
 
-    .empty-orders-card h4 {
-        margin: 4px 0 0 0;
-        color: #ffeaa7;
-        font-size: 1.1rem;
-    }
-
     .empty-orders-card p {
         margin: 0;
         color: rgba(255, 255, 255, 0.6);
@@ -888,23 +877,6 @@
         background: linear-gradient(135deg, rgba(241, 196, 15, 0.38) 0%, rgba(243, 156, 18, 0.22) 100%);
         transform: translateY(-1px);
         border-color: #f1c40f;
-    }
-
-    .empty-countdown-badge {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 6px;
-        padding: 6px 14px;
-        background: rgba(241, 196, 15, 0.1);
-        border: 1px solid rgba(241, 196, 15, 0.3);
-        border-radius: 12px;
-        color: #ffeaa7;
-        font-size: 0.85rem;
-    }
-
-    .empty-countdown-badge strong {
-        color: #fff;
     }
 
     .summon-ad-btn {

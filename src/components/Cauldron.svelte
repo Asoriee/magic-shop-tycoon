@@ -4,6 +4,7 @@
     import { gameStore, currentClickPower, critChance, heatBonusLevel, crystals, formatNumber } from '../store';
     import { playCauldronBubble, playOverheatSizzle } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
     
     let cauldronGroup: SVGGElement;
 
@@ -120,11 +121,11 @@
             </svg>
             <span class="heat-text" class:hot={heat >= 85}>
                 {#if heat >= 85}
-                    ПЛАМЯ x{comboMultiplier.toFixed(1)}!
+                    {$t('cauldron.overheat')} x{comboMultiplier.toFixed(1)}!
                 {:else if heat >= 30}
-                    ЖАР x{comboMultiplier.toFixed(1)}
+                    {$t('cauldron.combo')} x{comboMultiplier.toFixed(1)}
                 {:else}
-                    Разогрев x{comboMultiplier.toFixed(1)}
+                    {$t('cauldron.tapToStir')} x{comboMultiplier.toFixed(1)}
                 {/if}
             </span>
         </div>
@@ -260,7 +261,7 @@
                 +1
             </span>
         {:else if effect.isCrit}
-            <span class="crit-text">КРИТ! +{formatNumber(effect.value)}</span>
+            <span class="crit-text">{$t('common.bonus')}! +{formatNumber(effect.value)}</span>
         {:else if effect.isCombo}
             <span class="combo-text">+{formatNumber(effect.value)}</span>
         {:else}

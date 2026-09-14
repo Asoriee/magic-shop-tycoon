@@ -14,6 +14,7 @@ import {
 } from './store';
 
 import { setAdAudioMute } from './audio';
+import { detectInitialLanguage, setLanguage, translate } from './i18n';
 
 declare global {
     interface Window {
@@ -52,6 +53,12 @@ export async function initYandexSdk() {
                 console.warn('Player API not available', e);
             }
         }
+
+        // Initialize language via Yandex Games SDK environment with URL and local fallback
+        const ysdkLang = ysdk?.environment?.i18n?.lang || null;
+        const initialLang = detectInitialLanguage(ysdkLang);
+        setLanguage(initialLang);
+        console.log('Language initialized:', initialLang, '(SDK environment:', ysdkLang, ')');
     } catch (error) {
         console.error('Failed to init Yandex SDK', error);
     }
@@ -506,18 +513,21 @@ export async function submitLeaderboardScore(score: number): Promise<void> {
 }
 
 export async function getLeaderboardEntries(topCount: number = 10): Promise<{ entries: LeaderboardEntry[]; userEntry: LeaderboardEntry | null }> {
+    const youLabel = translate('leaderboard.you');
+    const anonLabel = translate('leaderboard.anonymousMage');
+
     if (!ysdk) {
         // Mock fallback for local testing & preview
         const savedScore = parseInt(localStorage.getItem('localLeaderboardScore') || '0', 10);
         const mockEntries: LeaderboardEntry[] = [
-            { rank: 1, name: 'Архимаг Мерлин', score: Math.max(125000, savedScore + 5000) },
-            { rank: 2, name: 'Магистр Вайт', score: Math.max(84000, savedScore + 2000) },
-            { rank: 3, name: 'Алхимик Ника', score: Math.max(52000, savedScore + 500) },
-            { rank: 4, name: 'Вы (Игрок)', score: savedScore, isUser: true },
-            { rank: 5, name: 'Хранитель Огня', score: Math.max(15000, Math.floor(savedScore * 0.8)) },
-            { rank: 6, name: 'Травник Луны', score: 9800 },
-            { rank: 7, name: 'Рунный Мастер', score: 6400 },
-            { rank: 8, name: 'Искатель Звезд', score: 3200 },
+            { rank: 1, name: 'Archmage Merlin', score: Math.max(125000, savedScore + 5000) },
+            { rank: 2, name: 'Master White', score: Math.max(84000, savedScore + 2000) },
+            { rank: 3, name: 'Alchemist Nika', score: Math.max(52000, savedScore + 500) },
+            { rank: 4, name: youLabel, score: savedScore, isUser: true },
+            { rank: 5, name: 'Flame Keeper', score: Math.max(15000, Math.floor(savedScore * 0.8)) },
+            { rank: 6, name: 'Moon Herbalist', score: 9800 },
+            { rank: 7, name: 'Rune Master', score: 6400 },
+            { rank: 8, name: 'Star Seeker', score: 3200 },
         ].sort((a, b) => b.score - a.score).map((entry, idx) => ({ ...entry, rank: idx + 1 }));
 
         const user = mockEntries.find(e => e.isUser) || null;
@@ -536,7 +546,7 @@ export async function getLeaderboardEntries(topCount: number = 10): Promise<{ en
 
         const entries: LeaderboardEntry[] = (res.entries || []).map((e: any) => ({
             rank: e.rank,
-            name: e.player?.publicName || 'Неизвестный маг',
+            name: e.player?.publicName || anonLabel,
             score: e.score,
             isUser: e.player?.uniqueID === player?.getUniqueID?.(),
             avatarUrl: e.player?.getAvatarSrc?.('small') || ''
@@ -546,7 +556,7 @@ export async function getLeaderboardEntries(topCount: number = 10): Promise<{ en
         if (res.userRank && res.userRank > 0) {
             userEntry = entries.find(e => e.isUser) || {
                 rank: res.userRank,
-                name: player?.getPublicName?.() || 'Вы',
+                name: player?.getPublicName?.() || youLabel,
                 score: res.score || 0,
                 isUser: true
             };

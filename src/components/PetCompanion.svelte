@@ -152,7 +152,7 @@
         on:click={handlePetClick} 
         role="button" 
         tabindex="0"
-        title="{activePet.name} (нажмите, чтобы погладить)"
+        title={activePet.name}
     >
         <svg width="140" height="140" viewBox="0 0 140 140">
             <g bind:this={petNode} class="pet-group">

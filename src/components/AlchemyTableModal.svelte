@@ -10,6 +10,7 @@
         buyRecipeHint, unlockRecipeHintFree,
         type Rarity, type AlchemyRecipe, formatNumber,
     } from '../store';
+    import { t } from '../i18n';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
     import { playSuccessSound, playOverheatSizzle, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -263,7 +264,12 @@
     function getPotion(id: string) { return AVAILABLE_POTIONS.find(p => p.id === id); }
 
     const RC: Record<Rarity, string> = { common:'#b2bec3', rare:'#74b9ff', epic:'#a29bfe', legendary:'#f1c40f' };
-    const RL: Record<Rarity, string> = { common:'Обычный', rare:'Редкий', epic:'Эпический', legendary:'Легендарный' };
+    $: RL = { 
+        common: $t('rarity.common') || 'Обычный', 
+        rare: $t('rarity.rare') || 'Редкий', 
+        epic: $t('rarity.epic') || 'Эпический', 
+        legendary: $t('rarity.legendary') || 'Легендарный' 
+    };
 </script>
 
 {#if isOpen}
@@ -290,8 +296,8 @@
                 </svg>
             </div>
             <div class="header-text">
-                <h2>Алхимический Стол</h2>
-                <p class="header-sub">Комбинируйте ингредиенты</p>
+                <h2>{$t('alchemy.title')}</h2>
+                <p class="header-sub">{$t('alchemy.subtitle')}</p>
             </div>
             <button class="close-btn" on:click={close}>✕</button>
         </div>
@@ -299,7 +305,7 @@
         <div class="balance-row">
             <div class="balance-chip crystal">
                 <ResourceIcon type="crystals" size={14} />
-                <span>{formatNumber($crystals)} кристаллов</span>
+                <span>{formatNumber($crystals)} {$t('common.crystals')}</span>
             </div>
         </div>
     {/if}
@@ -317,19 +323,19 @@
                             <path d="M12 7C10 9.5 9 11.5 9 13.5C9 15.2 10.3 16.5 12 16.5C13.7 16.5 15 15.2 15 13.5C15 11.5 14 9.5 12 7Z" fill="#ffa502"/>
                         </svg>
                         <div class="overheat-text-col">
-                            <span class="overheat-title">Котёл перегрет и остывает!</span>
-                            <span class="overheat-timer">Осталось: <strong>{mins > 0 ? `${mins} мин ${secs.toString().padStart(2, '0')} сек` : `${secs} сек`}</strong></span>
+                            <span class="overheat-title">{$t('alchemy.overheated')}</span>
+                            <span class="overheat-timer">{$t('alchemy.timeLeft')} <strong>{mins > 0 ? `${mins} ${$t('common.min')} ${secs.toString().padStart(2, '0')} ${$t('common.sec')}` : `${secs} ${$t('common.sec')}`}</strong></span>
                         </div>
                     </div>
                     <div class="overheat-actions">
-                        <button class="cooldown-ad-btn" on:click={handleCoolDownAd} title="Мгновенно остудить котёл за просмотр рекламы">
+                        <button class="cooldown-ad-btn" on:click={handleCoolDownAd} title="Cool down">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#74b9ff" stroke-width="2.2">
                                 <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
                             </svg>
-                            <span>Остудить</span>
-                            <span class="ad-pill">РЕК</span>
+                            <span>{$t('alchemy.cooldown')}</span>
+                            <span class="ad-pill">{$t('alchemy.adTag')}</span>
                         </button>
-                        <button class="cooldown-crystal-btn" on:click={() => handleCoolDownCrystals(8)} title="Остудить за 8 кристаллов">
+                        <button class="cooldown-crystal-btn" on:click={() => handleCoolDownCrystals(8)} title="Cool down with crystals">
                             <ResourceIcon type="crystals" size={12} />
                             <span>8</span>
                         </button>
@@ -344,7 +350,7 @@
                         <div class="danger-info-col">
                             <div class="danger-title-row">
                                 <span class="danger-label" class:danger-critical={isDangerouslyClose}>
-                                    До перегрева: {$brewAttemptsLeft} {getAttemptsWord($brewAttemptsLeft)} (из {$maxBrewAttempts})
+                                    {$brewAttemptsLeft <= 1 ? $t('alchemy.brewLastChance') : `${$brewAttemptsLeft} / ${$maxBrewAttempts}`}
                                 </span>
                                 <div class="pips">
                                     {#each Array.from({ length: $maxBrewAttempts }, (_, i) => i + 1) as p}
@@ -359,14 +365,14 @@
                     </div>
 
                     <div class="danger-actions">
-                        <button class="cooldown-btn" on:click={handleCoolDownAd} title="Остудить котёл ледяной магией за рекламу">
+                        <button class="cooldown-btn" on:click={handleCoolDownAd} title="Cool down">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#74b9ff" stroke-width="2.2">
                                 <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/>
                             </svg>
-                            <span>Остудить</span>
-                            <span class="ad-pill">РЕК</span>
+                            <span>{$t('alchemy.cooldown')}</span>
+                            <span class="ad-pill">{$t('alchemy.adTag')}</span>
                         </button>
-                        <button class="cooldown-crystal-btn" on:click={() => handleCoolDownCrystals(4)} title="Остудить за 4 кристалла">
+                        <button class="cooldown-crystal-btn" on:click={() => handleCoolDownCrystals(4)} title="Cool down">
                             <ResourceIcon type="crystals" size={12} />
                             <span>4</span>
                         </button>
@@ -374,15 +380,15 @@
                 </div>
             {/if}
 
-            <div class="mastery-chip" title="Варите зелья, чтобы повышать шанс удвоения!">
+            <div class="mastery-chip" title="Mastery">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="#f1c40f">
                     <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
                 </svg>
-                <span>Мастерство: Ур. {masteryLevel} (+{doubleChancePercent}% шанс х2)</span>
+                <span>{$t('alchemy.masteryChip', { lvl: masteryLevel, pct: doubleChancePercent })}</span>
                 {#if brewsToNextLevel > 0}
-                    <span class="mastery-sub">({brewsToNextLevel} до след. ур.)</span>
+                    <span class="mastery-sub">{$t('alchemy.brewsToNext', { count: brewsToNextLevel })}</span>
                 {:else}
-                    <span class="mastery-sub">(МАКС)</span>
+                    <span class="mastery-sub">{$t('alchemy.maxLevel')}</span>
                 {/if}
             </div>
 
@@ -450,43 +456,43 @@
                         <line x1="12" y1="8" x2="12" y2="12"/>
                         <line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>
-                    Остывание котла…
+                    {$t('alchemy.coolingDown')}
                 {:else if isBrewing}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon">
                         <circle cx="12" cy="12" r="10" stroke-dasharray="16 16"/>
                     </svg>
-                    Варится…
+                    {$t('alchemy.brewing')}
                 {:else if isDangerouslyClose}
                     <svg viewBox="0 0 16 16" width="18" height="18" fill="#fff">
                         <path d="M8 1c-.5 2-3 4-3 7 0 2.5 2 4 3 4s3-1.5 3-4c0-3-2.5-5-3-7z"/>
                     </svg>
-                    Сварить (Осталась 1 попытка!)
+                    {$t('alchemy.brewLastChance')}
                 {:else}
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
                     </svg>
-                    Сварить зелье
+                    {$t('alchemy.brewButton')}
                 {/if}
             </button>
 
             <div class="picker-wrap">
                 <div class="picker-header-row">
-                    <p class="picker-label">Ваш инвентарь ингредиентов:</p>
+                    <p class="picker-label">{$t('alchemy.inventoryLabel')}</p>
                     {#if slots.some(s => s !== null)}
-                        <button type="button" class="clear-all-btn" on:click={clearAllSlots}>Очистить</button>
+                        <button type="button" class="clear-all-btn" on:click={clearAllSlots}>{$t('alchemy.clearAll')}</button>
                     {/if}
                 </div>
 
                 <div class="rarity-filter-tabs">
-                    <button type="button" class="rf-tab" class:active={selectedRarity === 'all'} on:click={() => selectedRarity = 'all'}>Все</button>
-                    <button type="button" class="rf-tab common" class:active={selectedRarity === 'common'} on:click={() => selectedRarity = 'common'}>Обыч.</button>
-                    <button type="button" class="rf-tab rare" class:active={selectedRarity === 'rare'} on:click={() => selectedRarity = 'rare'}>Редкие</button>
-                    <button type="button" class="rf-tab epic" class:active={selectedRarity === 'epic'} on:click={() => selectedRarity = 'epic'}>Эпик</button>
-                    <button type="button" class="rf-tab legendary" class:active={selectedRarity === 'legendary'} on:click={() => selectedRarity = 'legendary'}>Легенд.</button>
+                    <button type="button" class="rf-tab" class:active={selectedRarity === 'all'} on:click={() => selectedRarity = 'all'}>{$t('rarity.all')}</button>
+                    <button type="button" class="rf-tab common" class:active={selectedRarity === 'common'} on:click={() => selectedRarity = 'common'}>{$t('rarity.common')}</button>
+                    <button type="button" class="rf-tab rare" class:active={selectedRarity === 'rare'} on:click={() => selectedRarity = 'rare'}>{$t('rarity.rare')}</button>
+                    <button type="button" class="rf-tab epic" class:active={selectedRarity === 'epic'} on:click={() => selectedRarity = 'epic'}>{$t('rarity.epic')}</button>
+                    <button type="button" class="rf-tab legendary" class:active={selectedRarity === 'legendary'} on:click={() => selectedRarity = 'legendary'}>{$t('rarity.legendary')}</button>
                 </div>
 
                 {#if filteredIngredients.length === 0}
-                    <p class="no-ings">Нет ингредиентов в этой категории.</p>
+                    <p class="no-ings">{$t('alchemy.noIngs')}</p>
                 {:else}
                     <div class="picker-grid">
                         {#each filteredIngredients as ing}
@@ -515,9 +521,9 @@
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="#f1c40f" opacity="0.9">
                         <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
                     </svg>
-                    Книга Рецептов ({RECIPES.length})
+                    {$t('alchemy.recipeBook')} ({RECIPES.length})
                 </div>
-                <span class="book-sub">Открыто: {Object.values($unlockedRecipes).filter(l => l === 3).length}/{RECIPES.length}</span>
+                <span class="book-sub">{$t('alchemy.recipesUnlocked', { current: Object.values($unlockedRecipes).filter(l => l === 3).length, total: RECIPES.length })}</span>
             </div>
 
             {#each RECIPES as recipe}
@@ -532,7 +538,7 @@
                             <div class="r-rarity" style="color:{RC[recipe.rarity]}">{RL[recipe.rarity]}</div>
                         </div>
                         {#if hints === 3}
-                            <div class="r-ok" title="Рецепт полностью известен">
+                            <div class="r-ok" title="Recipe known">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
@@ -553,7 +559,7 @@
                                 </div>
                                 {/if}
                             {:else}
-                                <div class="r-ing hidden" title="Неизвестный ингредиент">?</div>
+                                <div class="r-ing hidden" title="?">?</div>
                             {/if}
                         {/each}
                         <span class="rp">=</span>
@@ -564,7 +570,7 @@
                         <div class="hint-actions-row">
                             <button class="hint-btn crystal-hint-btn" disabled={$crystals < HINT_COSTS[hints]}
                                 on:click={() => handleHint(recipe.id)}
-                                title="Раскрыть ингредиент за кристаллы">
+                                title="Unlock ingredient with crystals">
                                 <ResourceIcon type="crystals" size={13} />
                                 <span>{HINT_COSTS[hints]}</span>
                                 <span class="hint-step-tag">({hints+1}/3)</span>
@@ -572,12 +578,12 @@
                             {#if hints === 0 && !$gameStore.recipeAdHintsUsed?.[recipe.id]}
                                 <button class="hint-btn ad-hint-btn"
                                     on:click={() => handleHintAd(recipe.id)}
-                                    title="Раскрыть 1-й ингредиент за просмотр рекламы">
+                                    title="Unlock with ad">
                                     <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
                                         <polygon points="5,3 19,12 5,21"/>
                                     </svg>
-                                    <span>1-й бесплатно</span>
-                                    <span class="hint-ad-pill">РЕК</span>
+                                    <span>{$t('alchemy.freeFirst')}</span>
+                                    <span class="hint-ad-pill">{$t('alchemy.adTag')}</span>
                                 </button>
                             {/if}
                         </div>
@@ -589,12 +595,12 @@
                             class="quick-brew-btn" 
                             disabled={!craftCheck.can || isOverheated} 
                             on:click={() => handleQuickBrew(recipe.id)}
-                            title={isOverheated ? 'Котёл перегрет и остывает' : (craftCheck.can ? 'Сварить зелье в 1 клик' : `Недостаточно ингредиентов`)}
+                            title={isOverheated ? $t('alchemy.coolingDown') : (craftCheck.can ? $t('alchemy.quickBrew') : $t('alchemy.needIngredients'))}
                         >
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
                             </svg>
-                            <span>{isOverheated ? 'Котёл остывает…' : (craftCheck.can ? 'Сварить в 1 клик' : `Не хватает: ${craftCheck.missingName}`)}</span>
+                            <span>{isOverheated ? $t('alchemy.coolingDown') : (craftCheck.can ? $t('alchemy.quickBrew') : $t('alchemy.missingIng', { name: craftCheck.missingName }))}</span>
                         </button>
                     {/if}
                 </div>

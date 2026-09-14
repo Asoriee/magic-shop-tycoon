@@ -13,6 +13,7 @@
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     interface SparkBlessing {
         type: 'gold' | 'crystals' | 'astral';
@@ -369,11 +370,11 @@
                     <svg viewBox="0 0 16 16" width="12" height="12" fill="#ffeaa7">
                         <path d="M8 1 L9.5 5.5 L14 7 L9.5 8.5 L8 13 L6.5 8.5 L2 7 L6.5 5.5 Z"/>
                     </svg>
-                    БЛУЖДАЮЩАЯ ЭНЕРГИЯ
+                    {$t('flyingBonus.title')}
                 </span>
-                <h2 class="spark-title">Чародейская Искра</h2>
+                <h2 class="spark-title">{$t('flyingBonus.title')}</h2>
                 <p class="spark-intro">
-                    Вы поймали сгусток первородной магии! Высвободите его силу, чтобы наполнить лавку древней мощью.
+                    {$t('flyingBonus.description')}
                 </p>
             </div>
 
@@ -460,7 +461,7 @@
                                 <ResourceIcon type="gold" size={22} />
                             </span>
                             <div class="reward-data">
-                                <span class="reward-label">Золото</span>
+                                <span class="reward-label">{$t('common.gold')}</span>
                                 <span class="reward-amount gold-text">+{formatNumber(currentBlessing.gold)}</span>
                             </div>
                         </div>
@@ -473,7 +474,7 @@
                                 <ResourceIcon type="crystals" size={22} />
                             </span>
                             <div class="reward-data">
-                                <span class="reward-label">Самоцветы</span>
+                                <span class="reward-label">{$t('common.crystals')}</span>
                                 <span class="reward-amount crystal-text">+{currentBlessing.crystals}</span>
                             </div>
                         </div>
@@ -488,7 +489,7 @@
                                 {@html currentBlessing.potion.icon}
                             </span>
                             <div class="reward-data">
-                                <span class="reward-label">Зелье</span>
+                                <span class="reward-label">{$t('alchemy.allRecipes')}</span>
                                 <span class="reward-amount potion-text">{currentBlessing.potion.name}</span>
                             </div>
                         </div>
@@ -504,7 +505,7 @@
                         class="action-btn btn-vip-claim" 
                         on:click={claimBlessing} 
                         disabled={isClaiming}
-                        title="Получить дар мгновенно по привилегии ВИП"
+                        title="{$t('flyingBonus.claim')}"
                     >
                         <div class="btn-sheen-glow"></div>
                         <span class="btn-content-wrap">
@@ -515,8 +516,8 @@
                                 </svg>
                             </span>
                             <div class="btn-text-block">
-                                <span class="btn-primary-label">ВЫСВОБОДИТЬ ДАР</span>
-                                <span class="btn-sub-label">ВИП ПРИВИЛЕГИЯ • БЕЗ РЕКЛАМЫ</span>
+                                <span class="btn-primary-label">{$t('flyingBonus.claim')}</span>
+                                <span class="btn-sub-label">{$t('common.vip')} • {$t('common.free')}</span>
                             </div>
                         </span>
                     </button>
@@ -526,7 +527,7 @@
                         class="action-btn btn-ad-claim" 
                         on:click={claimBlessing} 
                         disabled={isClaiming}
-                        title="Посмотреть рекламу и забрать дар"
+                        title="{$t('flyingBonus.claim')}"
                     >
                         <div class="btn-sheen-glow"></div>
                         <span class="btn-content-wrap">
@@ -538,8 +539,8 @@
                                 </svg>
                             </span>
                             <div class="btn-text-block">
-                                <span class="btn-primary-label">ВЫСВОБОДИТЬ ДАР</span>
-                                <span class="btn-sub-label">СМОТРЕТЬ РЕКЛАМУ</span>
+                                <span class="btn-primary-label">{$t('flyingBonus.claim')}</span>
+                                <span class="btn-sub-label">{$t('common.watchAd')}</span>
                             </div>
                         </span>
                     </button>
@@ -547,7 +548,7 @@
 
                 <!-- Dismiss Button -->
                 <button class="action-btn btn-dismiss" on:click={closeModal} disabled={isClaiming}>
-                    Отпустить искру
+                    {$t('common.close')}
                 </button>
             </div>
 

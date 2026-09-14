@@ -10,6 +10,7 @@
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
+    import { t } from '../i18n';
 
     export let isOpen = false;
     export let isEmbedded = false;
@@ -84,20 +85,20 @@
                             <ellipse cx="16" cy="6" rx="6" ry="2" fill="#e67e22"/>
                         </svg>
                     </div>
-                    <h2 class="tab-title">Лавка Древностей</h2>
+                    <h2 class="tab-title">{$t('artifactsStore.title')}</h2>
                 </div>
-                <p class="header-sub">Здесь продаются могущественные реликвии за Звездную Пыль</p>
+                <p class="header-sub">{$t('artifactsStore.subtitle')}</p>
 
                 <div class="balance-row">
                     <div class="balance-chip stardust">
                         <span class="icon">
                             <ResourceIcon type="stardust" size={16} />
                         </span>
-                        <span>{formatNumber($gameStore.stardust)} Звездной Пыли</span>
+                        <span>{$t('grimoire.stardustBalance', { val: formatNumber($gameStore.stardust) })}</span>
                     </div>
                 </div>
 
-                <button class="close-btn" on:click={close}>✕</button>
+                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
             </div>
         {/if}
 
@@ -107,7 +108,7 @@
                 {@const ownedInCol = col.requiredArtifactIds.filter(id => $gameStore.artifacts.includes(id)).length}
                 {@const isColDone = ownedInCol === col.requiredArtifactIds.length}
                 <button 
-                    type="button"
+                    type="button" 
                     class="synergy-tab-btn" 
                     class:active={activeSynergySetId === col.id}
                     class:done={isColDone}
@@ -137,14 +138,14 @@
             </div>
             <div class="synergy-info">
                 <div class="synergy-title-row">
-                    <span class="synergy-name">{currentSynergySet?.name || 'Сет Древностей'}</span>
+                    <span class="synergy-name">{currentSynergySet?.name || 'Artifacts'}</span>
                     <span class="synergy-count" class:done={isSetComplete}>{setOwnedCount}/{setTotalCount}</span>
                 </div>
                 <div class="synergy-desc">
                     {#if isSetComplete}
-                        Комплект собран! {rewardPet ? `Разблокирован легендарный ${rewardPet.name} в Коллекциях.` : 'Все бонусы активны!'}
+                        {rewardPet ? $t('artifactsStore.setCompleted', { name: rewardPet.name }) : $t('artifactsStore.setCompletedAll')}
                     {:else}
-                        {currentSynergySet?.description || 'Соберите все реликвии комплекта для призыва фамильяра.'}
+                        {currentSynergySet?.description || $t('artifactsStore.setHint')}
                     {/if}
                 </div>
             </div>
@@ -158,7 +159,7 @@
                 class:active={activeFilter === 'all'} 
                 on:click={() => activeFilter = 'all'}
             >
-                Все ({AVAILABLE_ARTIFACTS.length})
+                {$t('rarity.all')} ({AVAILABLE_ARTIFACTS.length})
             </button>
             <button 
                 type="button" 
@@ -166,7 +167,7 @@
                 class:active={activeFilter === 'standalone'} 
                 on:click={() => activeFilter = 'standalone'}
             >
-                Базовые (3)
+                {$t('artifactsStore.basicFilter')} (3)
             </button>
             {#each AVAILABLE_COLLECTIONS as col}
                 <button 
@@ -175,7 +176,7 @@
                     class:active={activeFilter === col.id} 
                     on:click={() => activeFilter = col.id}
                 >
-                    {col.name.replace('Наследие ', '').replace('Хроники ', '')} ({col.requiredArtifactIds.length})
+                    {col.name} ({col.requiredArtifactIds.length})
                 </button>
             {/each}
         </div>
@@ -201,7 +202,7 @@
                             <h3>{art.name}</h3>
                             {#if setInfo}
                                 <span class="badge-set" style="background: {setInfo.themeColor}">
-                                    {setInfo.name.replace('Наследие ', '').replace('Хроники ', 'Сет ')}
+                                    {setInfo.name}
                                 </span>
                             {/if}
                         </div>
@@ -213,7 +214,7 @@
                                 <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="3,8 7,12 13,4" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
-                                Получено
+                                {$t('collectionsMeta.obtained')}
                             </span>
                         {:else}
                             <button 

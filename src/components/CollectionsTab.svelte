@@ -8,6 +8,7 @@
         AVAILABLE_PETS,
         formatNumber 
     } from '../store';
+    import { t } from '../i18n';
 
     let containerEl: HTMLElement;
 
@@ -56,10 +57,10 @@
                     <div class="vitrine-name-line">
                         <h3 class="vitrine-name">{collection.name}</h3>
                         {#if isUnlocked}
-                            <span class="complete-badge">Собрано</span>
+                            <span class="complete-badge">{$t('collectionsMeta.completed')}</span>
                         {/if}
                     </div>
-                    <span class="vitrine-desc">{collection.description || 'Соберите комплект реликвий в Лавке Древностей Города, чтобы пробудить великую силу!'}</span>
+                    <span class="vitrine-desc">{collection.description}</span>
                 </div>
 
                 <div class="vitrine-progress-badge">
@@ -91,11 +92,11 @@
                                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
-                                        Получено
+                                        {$t('collectionsMeta.obtained')}
                                     </span>
                                 {:else}
                                     <span class="pedestal-status locked-status">
-                                        {formatNumber(artifact.cost)} пыли
+                                        {$t('collectionsMeta.stardustCost', { cost: formatNumber(artifact.cost) })}
                                     </span>
                                 {/if}
                             </div>
@@ -107,11 +108,11 @@
             <!-- Reward Showcase Section -->
             <div class="reward-vitrine" class:reward-unlocked={isUnlocked}>
                 <div class="reward-header-line">
-                    <span class="reward-tag">ГРАНД-НАГРАДА КОМПЛЕКТА</span>
+                    <span class="reward-tag">{$t('collectionsMeta.grandReward')}</span>
                     {#if isUnlocked}
-                        <span class="active-effect-tag">ЭФФЕКТЫ АКТИВНЫ</span>
+                        <span class="active-effect-tag">{$t('collectionsMeta.effectsActive')}</span>
                     {:else}
-                        <span class="pending-effect-tag">ТРЕБУЕТСЯ СБОРКА</span>
+                        <span class="pending-effect-tag">{$t('collectionsMeta.pendingEffects')}</span>
                     {/if}
                 </div>
 
@@ -121,7 +122,7 @@
                             <div class="reward-pet-icon">
                                 {@html rewardPet.icon}
                             </div>
-                            <span class="reward-pet-rarity">ЛЕГЕНДАРНЫЙ</span>
+                            <span class="reward-pet-rarity">{$t('rarity.legendary').toUpperCase()}</span>
                         </div>
 
                         <div class="reward-details">
@@ -153,8 +154,8 @@
             </svg>
         </div>
         <div class="future-info">
-            <h4 class="future-title">Обитель Забытых Богов</h4>
-            <p class="future-desc">Древнейшие летописи хранят молчание о реликвиях Первозданного Хаоса. Следите за обновлениями лавки!</p>
+            <h4 class="future-title">{$t('collectionsMeta.futureTitle')}</h4>
+            <p class="future-desc">{$t('collectionsMeta.futureDesc')}</p>
         </div>
     </div>
 </div>

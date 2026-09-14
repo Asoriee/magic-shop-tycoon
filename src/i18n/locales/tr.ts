@@ -38,6 +38,7 @@ export const tr: Translations = {
         cancel: 'İptal',
         loading: 'Yükleniyor...',
         autoSave: 'Kaydediliyor...',
+        ad: 'Reklam',
         potion: 'İksir',
     },
     numberUnits: {

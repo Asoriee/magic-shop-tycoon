@@ -38,6 +38,7 @@ export const ru: Translations = {
         cancel: 'Отмена',
         loading: 'Загрузка...',
         autoSave: 'Автосохранение...',
+        ad: 'Реклама',
         potion: 'Зелье',
     },
     numberUnits: {

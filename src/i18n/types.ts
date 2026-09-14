@@ -39,6 +39,7 @@ export interface Translations {
         cancel: string;
         loading: string;
         autoSave: string;
+        ad: string;
         [key: string]: any;
     };
     numberUnits: {

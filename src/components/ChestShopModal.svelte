@@ -179,13 +179,19 @@
         }
     ];
 
-    $: alchemistGoldCost = Math.max(5000, Math.round(($currentIdleIncome || 0) * 600));
-
     function getChestCost(chest: ChestConfig, mult: 1 | 5): number {
         if (chest.free) return 0;
         if (mult === 1) return chest.crystalCost;
         return Math.floor(chest.crystalCost * 5 * 0.95); // 5% скидка на опт
     }
+
+    function getChestGoldCost(mult: 1 | 5): number {
+        const base = Math.max(5000, Math.round(($currentIdleIncome || 0) * 600));
+        if (mult === 1) return base;
+        return Math.floor(base * 5 * 0.95); // 5% скидка на опт
+    }
+
+    $: alchemistGoldCost = getChestGoldCost(openMultiplier);
 
     $: if (isOpen) {
         tick().then(() => {
@@ -223,10 +229,11 @@
                 }, () => {});
             }
         } else if (payWithGold) {
-            if ($gameStore.gold < alchemistGoldCost) return;
-            gameStore.update(s => ({ ...s, gold: s.gold - alchemistGoldCost }));
+            const cost = getChestGoldCost(mult);
+            if ($gameStore.gold < cost) return;
+            gameStore.update(s => ({ ...s, gold: s.gold - cost }));
             await saveGame();
-            await triggerOpen(chest.type, 1);
+            await triggerOpen(chest.type, mult);
         } else {
             const cost = getChestCost(chest, mult);
             if ($crystals < cost) return;
@@ -427,8 +434,9 @@
             {#each CHESTS as chest}
                 {@const mult = chest.free ? 1 : openMultiplier}
                 {@const currentCost = getChestCost(chest, mult)}
+                {@const currentGoldCost = getChestGoldCost(mult)}
                 {@const canAffordCrystals = chest.free || $crystals >= currentCost}
-                {@const canAffordGold = $gameStore.gold >= alchemistGoldCost}
+                {@const canAffordGold = $gameStore.gold >= currentGoldCost}
                 <div class="chest-card" style="--border: {chest.accentColor}; --glow: {chest.accentColor}40">
                     <div class="chest-visual">
                         <svg viewBox="0 0 70 60" width="70" height="60">
@@ -504,7 +512,7 @@
                                 title={$t('chests.buyGoldHint')}
                             >
                                 <ResourceIcon type="gold" size={13} />
-                                <span>{formatNumber(alchemistGoldCost)}</span>
+                                <span>{formatNumber(currentGoldCost)} {mult > 1 ? `(${mult}x)` : ''}</span>
                             </button>
                         {/if}
 

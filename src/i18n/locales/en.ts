@@ -38,6 +38,7 @@ export const en: Translations = {
         cancel: 'Cancel',
         loading: 'Loading...',
         autoSave: 'Auto-saving...',
+        ad: 'Ad',
         potion: 'Potion',
     },
     numberUnits: {

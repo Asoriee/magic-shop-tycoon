@@ -82,12 +82,12 @@
 {#if isOpen}
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-overlay" class:embedded={isEmbedded} on:click={onClose} role="dialog" aria-modal="true" aria-label="Лавка Улучшений" tabindex="-1">
+<div class="modal-overlay" class:embedded={isEmbedded} on:click={onClose} role="dialog" aria-modal="true" aria-label={$t('shop.title')} tabindex="-1">
     <div class="modal-content" class:embedded-modal={isEmbedded} on:click|stopPropagation>
         {#if !isEmbedded}
             <!-- Master Header -->
             <div class="master-header">
-                <button class="close-btn" on:click={onClose} aria-label="Закрыть">✕</button>
+                <button class="close-btn" on:click={onClose} aria-label={$t('common.close')}>✕</button>
 
                 <div class="header-main">
                     <div class="master-icon-wrap">
@@ -136,8 +136,8 @@
                     </div>
 
                     <div class="header-titles">
-                        <h2 class="title-text">ЛАВКА УЛУЧШЕНИЙ</h2>
-                        <span class="subtitle-text">Инвестируйте золото в производство, силу клика и магическое мастерство</span>
+                        <h2 class="title-text">{$t('shop.title').toUpperCase()}</h2>
+                        <span class="subtitle-text">{$t('shop.subtitle')}</span>
                     </div>
                 </div>
 
@@ -190,7 +190,7 @@
                     class:active={activeCategory === 'all'} 
                     on:click={() => activeCategory = 'all'}
                 >
-                    {$currentLang === 'ru' ? 'Все' : ($currentLang === 'tr' ? 'Tümü' : 'All')} <span class="pill-count">{$gameStore.upgrades.length}</span>
+                    {$t('shop.allCategory')} <span class="pill-count">{$gameStore.upgrades.length}</span>
                 </button>
                 <button 
                     type="button"

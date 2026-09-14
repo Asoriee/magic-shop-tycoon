@@ -121,8 +121,8 @@
             items: $t('chests.itemsCount', { count: 5 }),
             resonance: 10,
             chances: [
-                { label: `2х ${$t('inventory.potionsTab')}`, color: '#55efc4' },
-                { label: `1х ${$t('rarity.rare')}`, color: '#74b9ff' },
+                { label: `2x ${$t('inventory.potionsTab')}`, color: '#55efc4' },
+                { label: `1x ${$t('rarity.rare')}`, color: '#74b9ff' },
                 { label: `40% ${$t('common.gold')}`, color: '#ffeaa7' }
             ]
         },
@@ -136,8 +136,8 @@
             items: $t('chests.itemsCount', { count: 6 }),
             resonance: 15,
             chances: [
-                { label: `1х ${$t('rarity.epic')}`, color: '#a29bfe' },
-                { label: `1х ${$t('inventory.potionsTab')}`, color: '#74b9ff' },
+                { label: `1x ${$t('rarity.epic')}`, color: '#a29bfe' },
+                { label: `1x ${$t('inventory.potionsTab')}`, color: '#74b9ff' },
                 { label: `50% ${$t('common.gold')}`, color: '#ffeaa7' },
                 { label: `20% ${$t('common.crystals')}`, color: '#00cec9' }
             ]
@@ -152,9 +152,9 @@
             items: $t('chests.itemsCount', { count: 11 }),
             resonance: 30,
             chances: [
-                { label: `1х ${$t('rarity.legendary')}`, color: '#f1c40f' },
-                { label: `3х ${$t('rarity.epic')}`, color: '#a29bfe' },
-                { label: `1х ${$t('inventory.potionsTab')}`, color: '#74b9ff' },
+                { label: `1x ${$t('rarity.legendary')}`, color: '#f1c40f' },
+                { label: `3x ${$t('rarity.epic')}`, color: '#a29bfe' },
+                { label: `1x ${$t('inventory.potionsTab')}`, color: '#74b9ff' },
                 { label: `70% ${$t('common.gold')}`, color: '#ffeaa7' },
                 { label: `35% ${$t('common.crystals')}`, color: '#00cec9' }
             ]
@@ -169,9 +169,9 @@
             items: $t('chests.itemsCount', { count: '19+' }),
             resonance: 60,
             chances: [
-                { label: `2х ${$t('rarity.legendary')}`, color: '#f1c40f' },
-                { label: `5х ${$t('rarity.epic')}`, color: '#a29bfe' },
-                { label: `2х ${$t('inventory.potionsTab')}`, color: '#ff7675' },
+                { label: `2x ${$t('rarity.legendary')}`, color: '#f1c40f' },
+                { label: `5x ${$t('rarity.epic')}`, color: '#a29bfe' },
+                { label: `2x ${$t('inventory.potionsTab')}`, color: '#ff7675' },
                 { label: `100% ${$t('common.gold')}`, color: '#ffeaa7' },
                 { label: `100% ${$t('common.crystals')}`, color: '#00cec9' },
                 { label: `15% ${$t('familiars.title')}`, color: '#e056fd' }
@@ -409,7 +409,7 @@
                     class:active={openMultiplier === 1}
                     on:click={() => openMultiplier = 1}
                 >
-                    1х
+                    1x
                 </button>
                 <button 
                     type="button" 
@@ -417,7 +417,7 @@
                     class:active={openMultiplier === 5}
                     on:click={() => openMultiplier = 5}
                 >
-                    5х <span class="discount-pill">-5%</span>
+                    5x <span class="discount-pill">-5%</span>
                 </button>
             </div>
         </div>

@@ -75,18 +75,18 @@
     }
 
     function formatTime(ms: number) {
-        if (ms <= 0) return 'Готово!';
+        if (ms <= 0) return get(t)('common.ready');
         const totalSeconds = Math.floor(ms / 1000);
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-        if (hours > 0) return `${hours}ч ${minutes}м`;
-        return `${minutes}м ${seconds}с`;
+        if (hours > 0) return `${hours}${get(t)('common.hour')} ${minutes}${get(t)('common.min')}`;
+        return `${minutes}${get(t)('common.min')} ${seconds}${get(t)('common.sec')}`;
     }
 
     function rollGacha() {
         if ($crystals < GACHA_COST) {
-            showToast('Недостаточно кристаллов для призыва!');
+            showToast(get(t)('familiars.notEnoughCrystalsSummon'));
             const gachaBtn = document.querySelector('.gacha-btn');
             if (gachaBtn) {
                 gsap.fromTo(gachaBtn, 
@@ -185,7 +185,7 @@
         
         const hours = pet.expeditionHours || 2;
         gameStore.startExpedition(petId, hours);
-        showToast(`${pet.name} отправлен в поход (${hours}ч)!`);
+        showToast(get(t)('familiars.expeditionSent', { name: pet.name, hours }));
         saveGame();
     }
 
@@ -193,7 +193,7 @@
         showRewardedAd(() => {
             gameStore.speedUpExpedition(petId, 2); // Reduce by 2 hours
             gameStore.updateQuestProgress('watch_ads', 1);
-            showToast('Время экспедиции сокращено на 2 часа!');
+            showToast(get(t)('familiars.expeditionSpeedUpToast'));
             saveGame();
         }, () => {});
     }
@@ -201,13 +201,13 @@
     function instantSkipExpedition(petId: string, timeRem: number) {
         const cost = getExpeditionSkipCost(timeRem);
         if ($crystals < cost) {
-            showToast(`Недостаточно кристаллов! Нужно: ${cost}`);
+            showToast(get(t)('familiars.notEnoughCrystalsCost', { cost }));
             return;
         }
 
         crystals.update(c => c - cost);
         gameStore.completeExpeditionInstantly(petId);
-        showToast('Экспедиция мгновенно завершена!');
+        showToast(get(t)('familiars.expeditionInstantComplete'));
         saveGame();
     }
 
@@ -241,7 +241,7 @@
 
         crystals.update(c => c + totalCrystals);
         playSuccessSound();
-        showToast(`Добыча: +${formatNumber(awardedGold)} золота и +${totalCrystals} самоцветов!`);
+        showToast(get(t)('familiars.expeditionLootToast', { gold: formatNumber(awardedGold), crystals: totalCrystals }));
         saveGame();
     }
 
@@ -249,15 +249,15 @@
         gameStore.setActiveCompanion(petId);
         playCoinSound();
         const pet = AVAILABLE_PETS.find(p => p.id === petId);
-        showToast(`${pet?.name || 'Фамильяр'} теперь ваш спутник в лавке!`);
+        showToast(get(t)('familiars.companionAssigned', { name: pet?.name || '' }));
         saveGame();
     }
 
     $: RARITY_NAMES = {
-        common: $t('rarity.common') || 'Обычный',
-        rare: $t('rarity.rare') || 'Редкий',
-        epic: $t('rarity.epic') || 'Эпический',
-        legendary: $t('rarity.legendary') || 'Легендарный'
+        common: $t('rarity.common'),
+        rare: $t('rarity.rare'),
+        epic: $t('rarity.epic'),
+        legendary: $t('rarity.legendary')
     };
 </script>
 
@@ -444,7 +444,7 @@
                                                     <polygon points="5,3 19,12 5,21"/>
                                                 </svg>
                                                 <span>{$t('familiars.speedUp2h')}</span>
-                                                <span class="exp-ad-tag">{$t('common.ad') || 'РЕК'}</span>
+                                                <span class="exp-ad-tag">{$t('common.ad')}</span>
                                             </button>
 
                                             <button 
@@ -469,11 +469,11 @@
                         <div class="gacha-info">
                             <h3 class="gacha-headline">{$t('familiars.magicSummon')}</h3>
                             <p class="gacha-desc">
-                                Пробуждайте и улучшайте фамильяров (до Ур. 10)! Повторное получение спутника повышает его уровень, увеличивая объём добычи и сокращая время походов.
+                                {$t('familiars.summonNotice')}
                             </p>
                             
                             <div class="cost-badge">
-                                <span>Стоимость призыва:</span>
+                                <span>{$t('familiars.summonCostLabel')}:</span>
                                 <div class="cost-crystal">
                                     <ResourceIcon type="crystals" size={18} />
                                     <span class="cost-num">{GACHA_COST}</span>
@@ -522,11 +522,11 @@
                         {:else}
                             <div class="gacha-result {rolledPet.rarity}" bind:this={resultElement}>
                                 {#if rollType === 'new'}
-                                    <span class="result-celebration">НОВЫЙ СПУТНИК ПРИЗВАН!</span>
+                                    <span class="result-celebration">{$t('familiars.newCompanionSummoned')}</span>
                                 {:else if rollType === 'upgrade'}
-                                    <span class="result-celebration upgrade-celebration">УРОВЕНЬ ПОВЫШЕН! (УР. {newLevelReached})</span>
+                                    <span class="result-celebration upgrade-celebration">{$t('familiars.levelUpCelebration', { level: newLevelReached })}</span>
                                 {:else}
-                                    <span class="result-celebration max-celebration">МАКСИМАЛЬНЫЙ УРОВЕНЬ!</span>
+                                    <span class="result-celebration max-celebration">{$t('familiars.maxLevelCelebration')}</span>
                                 {/if}
                                 <div class="result-icon">{@html rolledPet.icon}</div>
                                 <h2 class="pet-name">{rolledPet.name}</h2>
@@ -534,13 +534,13 @@
                                 
                                 {#if rollType === 'upgrade'}
                                     <div class="upgrade-bonus-notice">
-                                        <span>Эффективность в походах возросла:</span>
-                                        <strong>+15% к добыче • -4% ко времени</strong>
+                                        <span>{$t('familiars.efficiencyGrown')}</span>
+                                        <strong>{$t('familiars.efficiencyBonusDesc')}</strong>
                                     </div>
                                 {:else if rollType === 'max_refund'}
                                     <div class="upgrade-bonus-notice refund-notice">
-                                        <span>Фамильяр достиг максимума (Ур. 10)!</span>
-                                        <strong>+50 кристаллов компенсации получено</strong>
+                                        <span>{$t('familiars.maxLevelReachedDesc')}</span>
+                                        <strong>{$t('familiars.compensationDesc')}</strong>
                                     </div>
                                 {:else}
                                     <p class="result-desc">{rolledPet.description}</p>

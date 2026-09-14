@@ -125,21 +125,21 @@
 
     function getTypeLabel(type: QuestType): string {
         switch (type) {
-            case 'clicks': return $t('quests.typeClicksShort') || 'Сварить зелий кликом';
-            case 'buy_upgrades': return $t('quests.typeUpgradesShort') || 'Купить улучшений в лавке';
-            case 'send_expeditions': return $t('quests.typeExpeditionsShort') || 'Отправить фамильяров в поход';
-            case 'brew_potions': return $t('quests.typeBrewShort') || 'Сварить зелий в алхимии';
-            case 'complete_orders': return $t('quests.typeOrdersShort') || 'Выполнить заказы жителей';
-            case 'watch_ads': return $t('quests.typeAdsShort') || 'Посмотреть видения в шаре';
-            default: return $t('quests.title') || 'Задание';
+            case 'clicks': return $t('quests.typeClicksShort');
+            case 'buy_upgrades': return $t('quests.typeUpgradesShort');
+            case 'send_expeditions': return $t('quests.typeExpeditionsShort');
+            case 'brew_potions': return $t('quests.typeBrewShort');
+            case 'complete_orders': return $t('quests.typeOrdersShort');
+            case 'watch_ads': return $t('quests.typeAdsShort');
+            default: return $t('quests.title');
         }
     }
 
     function getDifficultyLabel(diff: QuestDifficulty): string {
         switch (diff) {
-            case 'easy': return $t('quests.diffEasy') || 'Легкий';
-            case 'medium': return $t('quests.diffMedium') || 'Средний';
-            case 'hard': return $t('quests.diffHard') || 'Сложный';
+            case 'easy': return $t('quests.diffEasy');
+            case 'medium': return $t('quests.diffMedium');
+            case 'hard': return $t('quests.diffHard');
             default: return '';
         }
     }

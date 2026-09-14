@@ -60,6 +60,19 @@ export interface Translations {
         vipActivate: string;
         [key: string]: any;
     };
+    hud: {
+        rank: string;
+        rankTooltip: string;
+        rankProgress: string;
+        goldTooltip: string;
+        incomeTooltip: string;
+        crystalTooltip: string;
+        stardustTooltip: string;
+        vipTooltip: string;
+        vipRewardDot: string;
+        loadingMagic: string;
+        [key: string]: any;
+    };
     cauldron: {
         clickPrompt: string;
         combo: string;
@@ -77,16 +90,33 @@ export interface Translations {
         claimDoubleAd: string;
         claimVipBonus: string;
         maxLimitReached: string;
+        claimAndClose?: string;
         [key: string]: any;
     };
     flyingBonus: {
         title: string;
         description: string;
         claim: string;
+        sparkTitle?: string;
+        dismissTooltip?: string;
+        sparkElixirTitle?: string;
+        sparkElixirRarity?: string;
+        sparkElixirDesc?: string;
+        sparkAstralTitle?: string;
+        sparkAstralRarity?: string;
+        sparkAstralDesc?: string;
+        sparkCrystalTitle?: string;
+        sparkCrystalRarity?: string;
+        sparkCrystalDesc?: string;
+        sparkGoldTitle?: string;
+        sparkGoldRarity?: string;
+        sparkGoldDesc?: string;
         [key: string]: any;
     };
     shop: {
         title: string;
+        subtitle?: string;
+        allCategory?: string;
         tabProduction: string;
         tabClick: string;
         tabMastery: string;
@@ -115,6 +145,32 @@ export interface Translations {
         adHintButton: string;
         adHintUsed: string;
         needIngredients: string;
+        slot?: string;
+        removeSlot?: string;
+        attemptsRemaining?: string;
+        criticalDoubleSuccess?: string;
+        brewSuccessMsg?: string;
+        resonance0?: string;
+        resonance1?: string;
+        resonance2?: string;
+        resonanceWarning?: string;
+        overheatedNotice?: string;
+        coolingWait?: string;
+        coolingWaitSec?: string;
+        overheatedBlocked?: string;
+        recipeBrewSuccess?: string;
+        recipeBrewFail?: string;
+        iceCoolingSuccess?: string;
+        adLoadError?: string;
+        videoLoadError?: string;
+        notEnoughCrystalsCooling?: string;
+        instantCoolSuccess?: string;
+        hintRevealedCrystals?: string;
+        notEnoughCrystalsHint?: string;
+        hintRevealedAd?: string;
+        hintAdOnlyFirst?: string;
+        recipeNotFound?: string;
+        needIngredientsNamed?: string;
         [key: string]: any;
     };
     grimoire: {
@@ -152,6 +208,10 @@ export interface Translations {
         requires: string;
         reward: string;
         emptyState: string;
+        orderCompletedToast?: string;
+        caravanArrivedToast?: string;
+        videoLoadError?: string;
+        crystalsReward?: string;
         [key: string]: any;
     };
     expeditions: {
@@ -177,6 +237,15 @@ export interface Translations {
         typeOrders: string;
         typeExpeditions: string;
         typeAds: string;
+        typeClicksShort?: string;
+        typeUpgradesShort?: string;
+        typeExpeditionsShort?: string;
+        typeBrewShort?: string;
+        typeOrdersShort?: string;
+        typeAdsShort?: string;
+        diffEasy?: string;
+        diffMedium?: string;
+        diffHard?: string;
         [key: string]: any;
     };
     bank: {
@@ -190,6 +259,7 @@ export interface Translations {
         invest: string;
         withdraw: string;
         convertCrystals: string;
+        yanSuffix?: string;
         [key: string]: any;
     };
     treasury: {
@@ -245,6 +315,15 @@ export interface Translations {
         pityResonance: string;
         doubleDropsNotice: string;
         rewardsWon: string;
+        bagOfGold?: string;
+        vagabondPouch?: string;
+        alchemistPouch?: string;
+        sorcererSack?: string;
+        etherTreasury?: string;
+        titanCoffer?: string;
+        gemRefund?: string;
+        petUpgrade?: string;
+        petNew?: string;
         [key: string]: any;
     };
     familiars: {
@@ -255,6 +334,22 @@ export interface Translations {
         maxLevel: string;
         expeditionBonus: string;
         levelBonus: string;
+        notEnoughCrystalsSummon?: string;
+        expeditionSent?: string;
+        expeditionSpeedUpToast?: string;
+        notEnoughCrystalsCost?: string;
+        expeditionInstantComplete?: string;
+        expeditionLootToast?: string;
+        companionAssigned?: string;
+        summonNotice?: string;
+        summonCostLabel?: string;
+        newCompanionSummoned?: string;
+        levelUpCelebration?: string;
+        maxLevelCelebration?: string;
+        efficiencyGrown?: string;
+        efficiencyBonusDesc?: string;
+        maxLevelReachedDesc?: string;
+        compensationDesc?: string;
         [key: string]: any;
     };
     leaderboard: {
@@ -265,6 +360,7 @@ export interface Translations {
         you: string;
         anonymousMage: string;
         loading: string;
+        loadError?: string;
         [key: string]: any;
     };
     premium: {

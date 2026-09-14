@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+    import { get } from 'svelte/store';
     import gsap from 'gsap';
     import { 
         gameStore, 
@@ -14,7 +15,7 @@
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playCoinSound, playSuccessSound } from '../audio';
-    import { t, currentLang, getCustomerName } from '../i18n';
+    import { t, currentLang, getCustomerName, getCustomerArchetype } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isEmbedded = false;
@@ -128,8 +129,18 @@
             }
 
             const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0);
-            const crystalTxt = order.rewardCrystals ? `, +${order.rewardCrystals} кристаллов` : '';
-            const chestName = order.rewardChest === 'astral' ? ', Астральный ларец' : (order.rewardChest === 'magical' ? ', Волшебный ларец' : (order.rewardChest === 'wooden' ? ', Деревянный ларец' : ''));
+            const localizedCustName = getCustomerName(order.name, get(currentLang));
+            const crystalTxt = order.rewardCrystals ? `, ${get(t)('orders.crystalsReward', { count: order.rewardCrystals })}` : '';
+            let chestName = '';
+            if (order.rewardChest) {
+                chestName = `, ${get(t)(`chests.${order.rewardChest}`)}`;
+            }
+            const toastMsg = get(t)('orders.orderCompletedToast', {
+                name: localizedCustName,
+                gold: formatNumber(dynGold),
+                crystals: crystalTxt,
+                chest: chestName
+            });
             
             // Complete animation
             const el = document.getElementById(`order-${order.id}`);
@@ -147,7 +158,7 @@
                         } else {
                             playCoinSound();
                         }
-                        showToast(`Заказ «${order.name}» сдан! +${formatNumber(dynGold)} золота${crystalTxt}${chestName}`);
+                        showToast(toastMsg);
                         saveGame();
                     }
                 });
@@ -158,7 +169,7 @@
                 } else {
                     playCoinSound();
                 }
-                showToast(`Заказ «${order.name}» сдан! +${formatNumber(dynGold)} золота${crystalTxt}${chestName}`);
+                showToast(toastMsg);
                 saveGame();
             }
         };
@@ -197,10 +208,10 @@
         showRewardedAd(() => {
             gameStore.spawnOrder();
             gameStore.updateQuestProgress('watch_ads', 1);
-            showToast('Новый торговый караван прибыл в лавку!');
+            showToast(get(t)('orders.caravanArrivedToast'));
             saveGame();
         }, undefined, () => {
-            showToast('Не удалось загрузить видео, попробуйте позже.');
+            showToast(get(t)('orders.videoLoadError'));
         });
     }
 </script>
@@ -277,6 +288,7 @@
             {@const canFulfill = checkCanFulfill(order)}
             {@const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0)}
             {@const localizedCustName = getCustomerName(order.name, $currentLang)}
+            {@const archetype = getCustomerArchetype(order.name, order.isVip, order.orderType)}
             <div class="order-card" class:vip={order.isVip} id="order-{order.id}">
                 <button 
                     type="button" 
@@ -290,14 +302,14 @@
                 
                 <div class="customer-row">
                     <div class="customer-avatar" class:vip={order.isVip}>
-                        {#if order.isVip}
+                        {#if archetype === 'vip'}
                             <ResourceIcon type="vip" size={26} />
-                        {:else if order.name.includes('Маг') || order.name.includes('Чародей') || order.name.includes('Ведьма')}
+                        {:else if archetype === 'mage'}
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <polygon points="12,2 19,10 17,20 7,20 5,10" fill="#6c5ce7" stroke="#a29bfe" stroke-width="1.5"/>
                                 <circle cx="12" cy="11" r="2.5" fill="#ffeaa7"/>
                             </svg>
-                        {:else if order.name.includes('Рыцарь')}
+                        {:else if archetype === 'knight'}
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
                                 <path d="M7 5 C7 3 17 3 17 5 L17 14 C17 19 12 21 12 21 C12 21 7 19 7 14 Z" fill="#74b9ff" stroke="#0984e3" stroke-width="1.5"/>
                                 <line x1="9" y1="10" x2="15" y2="10" stroke="#2d3436" stroke-width="2"/>

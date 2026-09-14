@@ -1,6 +1,7 @@
 import { writable, get, derived } from 'svelte/store';
 import { 
     formatNumberLocalized, 
+    translate,
     getIngredientName, 
     getPotionName, 
     getPotionDesc, 
@@ -830,37 +831,37 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             }
         }
 
-        // --- 3. ДИНАМИЧЕСКОЕ ЗОЛОТО ---
+        // --- 3. Dynamic Gold Drop ---
         let goldChance = 0;
         let goldSeconds = 0;
         let minGoldFloor = 0;
-        let goldTitle = 'Мешок Золота';
+        let goldKey = 'bagOfGold';
 
         if (chestType === 'wooden') {
             goldChance = 0.30;
-            goldSeconds = 180; // 3 минуты дохода
+            goldSeconds = 180; // 3 min
             minGoldFloor = 1000;
-            goldTitle = 'Кошель Бродяги';
+            goldKey = 'vagabondPouch';
         } else if (chestType === 'alchemist') {
             goldChance = 0.40;
-            goldSeconds = 480; // 8 минут дохода
+            goldSeconds = 480; // 8 min
             minGoldFloor = 5000;
-            goldTitle = 'Кошель Алхимика';
+            goldKey = 'alchemistPouch';
         } else if (chestType === 'magical') {
             goldChance = 0.50;
-            goldSeconds = 900; // 15 минут дохода
+            goldSeconds = 900; // 15 min
             minGoldFloor = 15000;
-            goldTitle = 'Сума Чародея';
+            goldKey = 'sorcererSack';
         } else if (chestType === 'astral') {
             goldChance = 0.70;
-            goldSeconds = 1800; // 30 минут дохода
+            goldSeconds = 1800; // 30 min
             minGoldFloor = 50000;
-            goldTitle = 'Казна Эфира';
+            goldKey = 'etherTreasury';
         } else if (chestType === 'titan') {
-            goldChance = 1.00; // 100% гарантия!
-            goldSeconds = 3600; // 60 минут (1 час чистого дохода лавки!)
+            goldChance = 1.00; // 100% guaranteed
+            goldSeconds = 3600; // 60 min
             minGoldFloor = 150000;
-            goldTitle = 'Сокровищница Титанов';
+            goldKey = 'titanCoffer';
         }
 
         if (Math.random() < goldChance) {
@@ -870,21 +871,21 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             drops.push({
                 type: 'gold',
                 id: 'gold_reward',
-                name: goldTitle,
+                get name() { return translate(`chests.${goldKey}`); },
                 count: 1,
                 rarity: chestType === 'titan' ? 'legendary' : (chestType === 'astral' ? 'epic' : 'rare'),
                 goldAmount: goldAward
             });
         }
 
-        // --- 4. ВОЗВРАТ САМОЦВЕТОВ ---
+        // --- 4. Gem Refund ---
         let crystalGain = 0;
         if (chestType === 'magical' && Math.random() < 0.20) {
             crystalGain = 5 * multiplier;
         } else if (chestType === 'astral' && Math.random() < 0.35) {
             crystalGain = 15 * multiplier;
         } else if (chestType === 'titan') {
-            crystalGain = 25 * multiplier; // 100% гарантия 25 кристаллов!
+            crystalGain = 25 * multiplier;
         }
 
         if (crystalGain > 0) {
@@ -892,14 +893,14 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
             drops.push({
                 type: 'crystals',
                 id: 'crystal_cashback',
-                name: 'Возврат Самоцветов',
+                get name() { return translate('chests.gemRefund'); },
                 count: crystalGain,
                 rarity: chestType === 'titan' ? 'legendary' : 'epic',
                 crystalAmount: crystalGain
             });
         }
 
-        // --- 5. ЯЙЦО ФАМИЛЬЯРА (ТОЛЬКО ЛАРЕЦ ТИТАНОВ, 15% ШАНС) ---
+        // --- 5. Familiar Egg (Titan chest only, 15% chance) ---
         if (chestType === 'titan' && Math.random() < 0.15) {
             const regularPets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
             if (regularPets.length > 0) {
@@ -919,7 +920,7 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
                     drops.push({
                         type: 'pet',
                         id: rolledPet.id,
-                        name: `Улучшение: ${rolledPet.name} (Ур. ${newLevel})`,
+                        get name() { return translate('chests.petUpgrade', { name: rolledPet.name, level: newLevel }); },
                         count: 1,
                         rarity: rolledPet.rarity,
                         icon: rolledPet.icon,
@@ -937,7 +938,7 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
                     drops.push({
                         type: 'pet',
                         id: rolledPet.id,
-                        name: `Новый спутник: ${rolledPet.name} (Ур. 1)`,
+                        get name() { return translate('chests.petNew', { name: rolledPet.name }); },
                         count: 1,
                         rarity: rolledPet.rarity,
                         icon: rolledPet.icon,
@@ -1008,8 +1009,8 @@ const defaultUpgrades: Upgrade[] = [
     // --- Производство (Пассивный доход) ---
     {
         id: 'idle1',
-        name: 'Чародейский половник',
-        description: 'Автоматически помешивает зелье в котле без перерыва.',
+        get name() { return getUpgradeName('idle1'); },
+        get description() { return getUpgradeDesc('idle1'); },
         type: 'idle',
         category: 'production',
         baseCost: 15,
@@ -1020,8 +1021,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click1',
-        name: 'Магическая ложка',
-        description: 'Увеличивает силу каждого ручного клика по котлу.',
+        get name() { return getUpgradeName('click1'); },
+        get description() { return getUpgradeDesc('click1'); },
         type: 'click',
         category: 'click',
         baseCost: 20,
@@ -1032,8 +1033,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_apprentice',
-        name: 'Младший Ученик',
-        description: 'Прилежный ассистент фасует порошки и убирает лавку.',
+        get name() { return getUpgradeName('idle_apprentice'); },
+        get description() { return getUpgradeDesc('idle_apprentice'); },
         type: 'idle',
         category: 'production',
         baseCost: 100,
@@ -1044,8 +1045,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click_gloves',
-        name: 'Перчатки Алхимика',
-        description: 'Руническая кожа защищает руки и ускоряет процесс.',
+        get name() { return getUpgradeName('click_gloves'); },
+        get description() { return getUpgradeDesc('click_gloves'); },
         type: 'click',
         category: 'click',
         baseCost: 200,
@@ -1056,8 +1057,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle2',
-        name: 'Огненный Саламандр',
-        description: 'Дух пламени поддерживает идеальную температуру варки.',
+        get name() { return getUpgradeName('idle2'); },
+        get description() { return getUpgradeDesc('idle2'); },
         type: 'idle',
         category: 'production',
         baseCost: 750,
@@ -1068,8 +1069,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click2',
-        name: 'Слова Силы',
-        description: 'Древние рунические заклинания резонируют с кипящим котлом.',
+        get name() { return getUpgradeName('click2'); },
+        get description() { return getUpgradeDesc('click2'); },
         type: 'click',
         category: 'click',
         baseCost: 1500,
@@ -1080,8 +1081,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_distiller',
-        name: 'Алхимический Дистиллятор',
-        description: 'Медные змеевики очищают эликсиры до безупречной чистоты.',
+        get name() { return getUpgradeName('idle_distiller'); },
+        get description() { return getUpgradeDesc('idle_distiller'); },
         type: 'idle',
         category: 'production',
         baseCost: 5000,
@@ -1092,8 +1093,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click_crit',
-        name: 'Критический Всплеск',
-        description: '+3% шанс нанести сокрушительный критический клик с множителем x5!',
+        get name() { return getUpgradeName('click_crit'); },
+        get description() { return getUpgradeDesc('click_crit'); },
         type: 'crit',
         category: 'click',
         baseCost: 8000,
@@ -1104,8 +1105,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_greenhouse',
-        name: 'Зачарованная Теплица',
-        description: 'Волшебный свет ускоряет созревание мандрагор и редких трав.',
+        get name() { return getUpgradeName('idle_greenhouse'); },
+        get description() { return getUpgradeDesc('idle_greenhouse'); },
         type: 'idle',
         category: 'production',
         baseCost: 35000,
@@ -1116,8 +1117,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click_resonance',
-        name: 'Катализатор Резонанса',
-        description: 'Прибавляет +0.2% от текущего дохода в сек. к каждому клику (макс. 10%)!',
+        get name() { return getUpgradeName('click_resonance'); },
+        get description() { return getUpgradeDesc('click_resonance'); },
         type: 'resonance',
         category: 'click',
         baseCost: 50000,
@@ -1128,8 +1129,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_homunculus',
-        name: 'Цех Гомункулов',
-        description: 'Искусственные алхимические рабочие варят оптовые партии зелий.',
+        get name() { return getUpgradeName('idle_homunculus'); },
+        get description() { return getUpgradeDesc('idle_homunculus'); },
         type: 'idle',
         category: 'production',
         baseCost: 250000,
@@ -1140,8 +1141,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_rift',
-        name: 'Астральный Разлом',
-        description: 'Портал напрямую выкачивает чистую ману эфира в вашу казну.',
+        get name() { return getUpgradeName('idle_rift'); },
+        get description() { return getUpgradeDesc('idle_rift'); },
         type: 'idle',
         category: 'production',
         baseCost: 2000000,
@@ -1152,8 +1153,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_observatory',
-        name: 'Звёздная Обсерватория',
-        description: 'Призматические телескопы фокусируют космическую энергию звёзд прямо в котлы.',
+        get name() { return getUpgradeName('idle_observatory'); },
+        get description() { return getUpgradeDesc('idle_observatory'); },
         type: 'idle',
         category: 'production',
         baseCost: 15000000,
@@ -1164,8 +1165,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_reactor',
-        name: 'Эфирный Реактор',
-        description: 'Расщепляет первозданный эфир на концентрированные потоки магического золота.',
+        get name() { return getUpgradeName('idle_reactor'); },
+        get description() { return getUpgradeDesc('idle_reactor'); },
         type: 'idle',
         category: 'production',
         baseCost: 120000000,
@@ -1176,8 +1177,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click_hammer',
-        name: 'Рунический Молот',
-        description: 'Удар титанического молота наполняет каждый клик сокрушительной мощью.',
+        get name() { return getUpgradeName('click_hammer'); },
+        get description() { return getUpgradeDesc('click_hammer'); },
         type: 'click',
         category: 'click',
         baseCost: 500000000,
@@ -1188,8 +1189,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_temple',
-        name: 'Храм Вечности',
-        description: 'Молитвы верховных жрецов преобразуют ход времени в чистое богатство лавки.',
+        get name() { return getUpgradeName('idle_temple'); },
+        get description() { return getUpgradeDesc('idle_temple'); },
         type: 'idle',
         category: 'production',
         baseCost: 1000000000,
@@ -1200,8 +1201,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_chaos_lab',
-        name: 'Лаборатория Хаоса',
-        description: 'Синтезирует трансмутационные эликсиры и философский порошок в промышленных масштабах.',
+        get name() { return getUpgradeName('idle_chaos_lab'); },
+        get description() { return getUpgradeDesc('idle_chaos_lab'); },
         type: 'idle',
         category: 'production',
         baseCost: 10000000000,
@@ -1212,8 +1213,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click_infinity_eye',
-        name: 'Око Бесконечности',
-        description: 'Концентрирует взгляд демиурга: колоссально умножает силу каждого клика.',
+        get name() { return getUpgradeName('click_infinity_eye'); },
+        get description() { return getUpgradeDesc('click_infinity_eye'); },
         type: 'click',
         category: 'click',
         baseCost: 50000000000,
@@ -1224,8 +1225,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_chronos_gate',
-        name: 'Врата Хроноса',
-        description: 'Открывает караванные пути сквозь века и цивилизации прошлого и будущего.',
+        get name() { return getUpgradeName('idle_chronos_gate'); },
+        get description() { return getUpgradeDesc('idle_chronos_gate'); },
         type: 'idle',
         category: 'production',
         baseCost: 120000000000,
@@ -1236,8 +1237,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_cosmos_heart',
-        name: 'Сердце Мироздания',
-        description: 'Абсолютный источник первозданной магии. Лавка становится центром всей вселенной.',
+        get name() { return getUpgradeName('idle_cosmos_heart'); },
+        get description() { return getUpgradeDesc('idle_cosmos_heart'); },
         type: 'idle',
         category: 'production',
         baseCost: 1500000000000,
@@ -1248,8 +1249,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'idle_hearth',
-        name: 'Укрепленный Очаг',
-        description: 'Магический очаг удерживает жар: увеличивает максимальное время офлайн-дохода (+1 час за уровень).',
+        get name() { return getUpgradeName('idle_hearth'); },
+        get description() { return getUpgradeDesc('idle_hearth'); },
         type: 'hearth',
         category: 'mastery',
         baseCost: 12000,
@@ -1260,8 +1261,8 @@ const defaultUpgrades: Upgrade[] = [
     },
     {
         id: 'click_heat',
-        name: 'Магический Разогрев',
-        description: 'Серия быстрых кликов разжигает котёл: ускоряет нагрев, замедляет остывание и даёт до +150% к комбо-множителю!',
+        get name() { return getUpgradeName('click_heat'); },
+        get description() { return getUpgradeDesc('click_heat'); },
         type: 'heat',
         category: 'mastery',
         baseCost: 25000,
@@ -2994,7 +2995,7 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
         return { 
             status: 'success', 
             potionId: recipe.resultPotionId,
-            recipeName: pot?.name ?? 'Магическое зелье',
+            recipeName: pot?.name ?? translate('common.potion'),
             isDouble
         };
     }
@@ -3071,11 +3072,11 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
     const overheatUntil = state.cauldronOverheatUntil || 0;
     if (overheatUntil > now) {
         const sec = Math.ceil((overheatUntil - now) / 1000);
-        return { success: false, reason: `Котёл перегрет! Остывание: ${sec} сек` };
+        return { success: false, reason: translate('alchemy.coolingWaitSec', { sec }) };
     }
 
     const recipe = RECIPES.find(r => r.id === recipeId);
-    if (!recipe) return { success: false, reason: 'Рецепт не найден' };
+    if (!recipe) return { success: false, reason: translate('alchemy.recipeNotFound') };
 
     const counts = get(ingredientsCount);
     // Count needed ingredients
@@ -3088,7 +3089,7 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
     for (const [ing, cnt] of Object.entries(needed)) {
         if ((counts[ing] ?? 0) < cnt) {
             const ingObj = AVAILABLE_INGREDIENTS.find(i => i.id === ing);
-            return { success: false, reason: `Не хватает: ${ingObj?.name ?? ing}` };
+            return { success: false, reason: translate('alchemy.needIngredientsNamed', { name: ingObj?.name ?? ing }) };
         }
     }
 

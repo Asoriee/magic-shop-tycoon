@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { get } from 'svelte/store';
     import { gameStore, formatNumber } from '../store';
     import { getLeaderboardEntries, type LeaderboardEntry } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -22,7 +23,7 @@
             userEntry = res.userEntry;
         } catch (e) {
             console.error('Failed to load leaderboard', e);
-            errorMessage = 'Не удалось загрузить таблицу лидеров';
+            errorMessage = get(t)('leaderboard.loadError');
         } finally {
             isLoading = false;
         }

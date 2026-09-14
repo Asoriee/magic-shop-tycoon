@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+    import { get } from 'svelte/store';
     import gsap from 'gsap';
     import { 
         gameStore, 
@@ -96,10 +97,10 @@
                 const potion = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
                 return {
                     type: 'astral',
-                    title: 'Чародейский Эликсир',
+                    get title() { return get(t)('flyingBonus.sparkElixirTitle'); },
                     rarity: 'epic',
-                    rarityLabel: 'Эпический дар',
-                    description: 'Искра сконденсировалась в редкое зелье и поток чистого золота!',
+                    get rarityLabel() { return get(t)('flyingBonus.sparkElixirRarity'); },
+                    get description() { return get(t)('flyingBonus.sparkElixirDesc'); },
                     gold: epicGold,
                     crystals: 0,
                     potion
@@ -107,36 +108,34 @@
             } else {
                 return {
                     type: 'astral',
-                    title: 'Астральная Вспышка',
+                    get title() { return get(t)('flyingBonus.sparkAstralTitle'); },
                     rarity: 'epic',
-                    rarityLabel: 'Эпический дар',
-                    description: 'Искра осыпала мастерскую кристаллами чистой магии и золотом!',
+                    get rarityLabel() { return get(t)('flyingBonus.sparkAstralRarity'); },
+                    get description() { return get(t)('flyingBonus.sparkAstralDesc'); },
                     gold: epicGold,
-                    crystals: Math.floor(Math.random() * 3) + 5 // 5..7 кристаллов
+                    crystals: Math.floor(Math.random() * 3) + 5
                 };
             }
         } else if (roll < 0.50) {
-            // 30% Редкий дар: 120с дохода + 2..3 кристалла
             const rareGold = Math.max(80, Math.floor(baseIncome * 120));
-            const crystalAmount = Math.floor(Math.random() * 2) + 2; // 2 или 3 кристалла
+            const crystalAmount = Math.floor(Math.random() * 2) + 2;
             return {
                 type: 'crystals',
-                title: 'Кристаллический Разряд',
+                get title() { return get(t)('flyingBonus.sparkCrystalTitle'); },
                 rarity: 'rare',
-                rarityLabel: 'Редкий дар',
-                description: 'Вспышка магии кристаллизовалась в драгоценные самоцветы!',
+                get rarityLabel() { return get(t)('flyingBonus.sparkCrystalRarity'); },
+                get description() { return get(t)('flyingBonus.sparkCrystalDesc'); },
                 gold: rareGold,
                 crystals: crystalAmount
             };
         } else {
-            // 50% Обычный дар: 90с дохода
             const commonGold = Math.max(50, Math.floor(baseIncome * 90));
             return {
                 type: 'gold',
-                title: 'Золотая Энергия',
+                get title() { return get(t)('flyingBonus.sparkGoldTitle'); },
                 rarity: 'common',
-                rarityLabel: 'Чародейский дар',
-                description: 'Мощный импульс золотого потока наполняет хранилище лавки.',
+                get rarityLabel() { return get(t)('flyingBonus.sparkGoldRarity'); },
+                get description() { return get(t)('flyingBonus.sparkGoldDesc'); },
                 gold: commonGold,
                 crystals: 0
             };
@@ -254,7 +253,7 @@
         class="arcane-spark-flyer" 
         bind:this={sparkElement} 
         on:click={handleSparkClick}
-        title="Чародейская Искра! Нажмите, чтобы поймать"
+        title={$t('flyingBonus.sparkTitle')}
     >
         <svg viewBox="0 0 90 90" width="80" height="80" class="spark-svg">
             <defs>
@@ -357,7 +356,7 @@
         <div class="spark-modal-card" bind:this={modalEl} on:click|stopPropagation>
             
             <!-- Close Button -->
-            <button class="spark-close-btn" on:click={closeModal} title="Отпустить искру" aria-label="Закрыть">
+            <button class="spark-close-btn" on:click={closeModal} title={$t('flyingBonus.dismissTooltip')} aria-label={$t('common.close')}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>

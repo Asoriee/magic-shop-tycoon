@@ -251,3 +251,12 @@ export function getCustomerName(rawName: string, lang?: SupportedLang): string {
     const l = lang || get(currentLang);
     return locales[l]?.customers?.[rawName] || locales.ru.customers?.[rawName] || rawName;
 }
+
+export function getCustomerArchetype(name: string, isVip?: boolean, orderType?: string): 'vip' | 'mage' | 'knight' | 'citizen' {
+    if (isVip) return 'vip';
+    if (orderType === 'potion') return 'mage';
+    if (name === 'Рыцарь Ордена' || name === 'Страж Ворот' || name.includes('Knight') || name.includes('Guard') || name.includes('Şövalye') || name.includes('Muhafız')) return 'knight';
+    if (name === 'Боевой Маг' || name === 'Странствующий Чародей' || name === 'Ведьма Пустошей' || name.includes('Mage') || name.includes('Wizard') || name.includes('Witch') || name.includes('Büyücü') || name.includes('Sihirbaz') || name.includes('Cadı')) return 'mage';
+    return 'citizen';
+}
+

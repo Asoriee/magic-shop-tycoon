@@ -14,7 +14,15 @@ import {
 } from './store';
 
 import { setAdAudioMute } from './audio';
-import { detectInitialLanguage, setLanguage, translate } from './i18n';
+import { 
+    detectInitialLanguage, 
+    setLanguage, 
+    translate,
+    getUpgradeName,
+    getUpgradeDesc,
+    getSecretUpgradeName,
+    getSecretUpgradeDesc
+} from './i18n';
 
 declare global {
     interface Window {
@@ -284,16 +292,29 @@ export async function loadGame(): Promise<void> {
             }
             
             // Restore missing upgrades from default state
+            // Restore missing upgrades from default state with dynamic reactive getters
             if (!merged.upgrades) {
                 merged.upgrades = state.upgrades;
             } else {
                 merged.upgrades = state.upgrades.map(defaultU => {
                     const savedU = merged.upgrades.find((u: any) => u.id === defaultU.id);
-                    return savedU ? { ...defaultU, level: savedU.level } : defaultU;
+                    const lvl = savedU ? (savedU.level || 0) : defaultU.level;
+                    const u = { ...defaultU, level: lvl };
+                    Object.defineProperty(u, 'name', {
+                        get() { return getUpgradeName(defaultU.id); },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    Object.defineProperty(u, 'description', {
+                        get() { return getUpgradeDesc(defaultU.id); },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    return u;
                 });
             }
 
-            // Restore secret upgrades with seamless migration
+            // Restore secret upgrades with seamless migration and dynamic reactive getters
             if (!merged.secretUpgrades) {
                 merged.secretUpgrades = state.secretUpgrades;
             } else {
@@ -309,7 +330,19 @@ export async function loadGame(): Promise<void> {
                     if (!savedU && defaultU.id === 'cooldown_mastery') {
                         savedU = merged.secretUpgrades.find((u: any) => u.id === 'alchemy');
                     }
-                    return savedU ? { ...defaultU, level: Math.min(defaultU.maxLevel, savedU.level || 0) } : defaultU;
+                    const lvl = savedU ? Math.min(defaultU.maxLevel, savedU.level || 0) : defaultU.level;
+                    const u = { ...defaultU, level: lvl };
+                    Object.defineProperty(u, 'name', {
+                        get() { return getSecretUpgradeName(defaultU.id); },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    Object.defineProperty(u, 'description', {
+                        get() { return getSecretUpgradeDesc(defaultU.id); },
+                        enumerable: true,
+                        configurable: true
+                    });
+                    return u;
                 });
             }
             

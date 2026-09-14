@@ -269,7 +269,7 @@
                                     {#if isPurchasing}
                                         <span class="btn-spinner-sm"></span>
                                     {:else}
-                                        <span class="btn-yan-small">{getProductDisplayPrice('vip_status', '249 ЯН')}</span>
+                                        <span class="btn-yan-small">{getProductDisplayPrice('vip_status', `249 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
                                         <span class="btn-cta-small">{$t('treasury.extendVipCta')}</span>
                                     {/if}
                                 </button>
@@ -284,7 +284,7 @@
                                 {#if isPurchasing}
                                     <span class="btn-spinner"></span>
                                 {:else}
-                                    <span class="btn-yan">{getProductDisplayPrice('vip_status', '249 ЯН')}</span>
+                                    <span class="btn-yan">{getProductDisplayPrice('vip_status', `249 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
                                     <span class="btn-cta">{$t('treasury.buyVipCta')}</span>
                                 {/if}
                             </button>
@@ -370,7 +370,7 @@
                         on:click={() => handleBuy('pack_crystals_100')} 
                         disabled={isPurchasing}
                     >
-                        {getProductDisplayPrice('pack_crystals_100', '100 ЯН')}
+                        {getProductDisplayPrice('pack_crystals_100', `100 ${$t('bank.yanSuffix') || 'YAN'}`)}
                     </button>
                 </div>
 
@@ -402,7 +402,7 @@
                         on:click={() => handleBuy('pack_crystals_300')} 
                         disabled={isPurchasing}
                     >
-                        {getProductDisplayPrice('pack_crystals_300', '250 ЯН')}
+                        {getProductDisplayPrice('pack_crystals_300', `250 ${$t('bank.yanSuffix') || 'YAN'}`)}
                     </button>
                 </div>
 
@@ -441,7 +441,7 @@
                         on:click={() => handleBuy('pack_crystals_1000')} 
                         disabled={isPurchasing}
                     >
-                        {getProductDisplayPrice('pack_crystals_1000', '650 ЯН')}
+                        {getProductDisplayPrice('pack_crystals_1000', `650 ${$t('bank.yanSuffix') || 'YAN'}`)}
                     </button>
                 </div>
 

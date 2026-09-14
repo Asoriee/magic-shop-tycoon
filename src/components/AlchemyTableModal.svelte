@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy, tick } from 'svelte';
+    import { get } from 'svelte/store';
     import gsap from 'gsap';
     import {
         gameStore,
@@ -54,15 +55,6 @@
     $: isOverheated = overheatUntil > nowTime;
     $: remainingOverheatSeconds = Math.max(0, Math.ceil((overheatUntil - nowTime) / 1000));
     $: isDangerouslyClose = $brewAttemptsLeft <= 1 && $failedBrewAttempts > 0;
-
-    function getAttemptsWord(count: number): string {
-        const c = Math.abs(count) % 100;
-        const n = c % 10;
-        if (c > 10 && c < 20) return 'попыток';
-        if (n > 1 && n < 5) return 'попытки';
-        if (n === 1) return 'попытка';
-        return 'попыток';
-    }
 
     // Mastery stats
     $: brewsCount = $gameStore.alchemyBrewsCount || 0;
@@ -142,8 +134,8 @@
                 .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.55, ease: 'elastic.out(1, 0.5)' });
             gsap.fromTo(flashEl, { opacity: 0.65, backgroundColor: 'rgba(241,196,15,0.55)' }, { opacity: 0, duration: 0.7 });
             
-            const doubleText = result.isDouble ? ' КРИТИЧЕСКИЙ УСПЕХ: х2 зелья!' : '';
-            showToast(`Успех! Сварено «${result.recipeName}»!${doubleText}`, 'success', 3500);
+            const doubleText = result.isDouble ? get(t)('alchemy.criticalDoubleSuccess') : '';
+            showToast(get(t)('alchemy.brewSuccessMsg', { name: result.recipeName, double: doubleText }), 'success', 3500);
             await saveGame();
         } else if (result.status === 'warning') {
             playOverheatSizzle();
@@ -152,30 +144,29 @@
             gsap.to(cauldronEl, { keyframes: [{ x:-7, duration:.07 },{ x:7, duration:.07 },{ x:-5, duration:.07 },{ x:5, duration:.07 },{ x:0, duration:.06 }] });
             gsap.fromTo(flashEl, { opacity: 0.35, backgroundColor: 'rgba(253,203,0,0.3)' }, { opacity: 0, duration: 0.5 });
             
-            let resText = 'Резонанс 0/3: ни один ингредиент не подошёл!';
-            if (matches === 1) resText = 'Слабый резонанс: 1 из 3 ингредиентов подходит к тайному рецепту!';
-            if (matches === 2) resText = 'Мощный резонанс: 2 из 3 ингредиентов верны! Замените третий!';
+            let resText = get(t)('alchemy.resonance0');
+            if (matches === 1) resText = get(t)('alchemy.resonance1');
+            if (matches === 2) resText = get(t)('alchemy.resonance2');
             
             lastResonanceMsg = resText;
-            showToast(`${resText} До перегрева: ${left} ${getAttemptsWord(left)}!`, 'warning', 4200);
+            showToast(get(t)('alchemy.resonanceWarning', { resonance: resText, left: String(left) }), 'warning', 4200);
         } else if (result.status === 'overheat') {
-            // Ингредиенты остаются в слотах, чтобы игрок помнил состав!
             lastResonanceMsg = null;
             nowTime = Date.now();
             playOverheatSizzle();
             gsap.to(cauldronEl, { keyframes: [{ x:-14, duration:.07 },{ x:14, duration:.07 },{ x:-12, duration:.07 },{ x:12, duration:.07 },{ x:-10, duration:.07 },{ x:10, duration:.07 },{ x:0, duration:.07 }] });
             gsap.fromTo(flashEl, { opacity: 0.7, backgroundColor: 'rgba(231,76,60,0.6)' }, { opacity: 0, duration: 0.8 });
-            showToast(`Котёл перегрелся! Ингредиенты сохранены. Время остывания: 2 минуты.`, 'burn', 5000);
+            showToast(get(t)('alchemy.overheatedNotice'), 'burn', 5000);
             await saveGame();
         } else if (result.status === 'blocked') {
-            showToast(`Котёл остывает! Подождите или используйте ледяную магию.`, 'warning');
+            showToast(get(t)('alchemy.coolingWait'), 'warning');
         }
         isBrewing = false;
     }
 
     async function handleQuickBrew(recipeId: string) {
         if (isOverheated) {
-            showToast('Котёл перегрет! Дождитесь остывания или остудите его.', 'warning');
+            showToast(get(t)('alchemy.overheatedBlocked'), 'warning');
             return;
         }
         const res = quickBrewRecipe(recipeId);
@@ -186,11 +177,11 @@
                     .to(cauldronEl, { y: -16, scale: 1.08, duration: 0.15, ease: 'power2.out' })
                     .to(cauldronEl, { y: 0,   scale: 1,    duration: 0.4, ease: 'elastic.out(1, 0.5)' });
             }
-            const doubleText = res.isDouble ? ' Сварено х2 зелья!' : '';
-            showToast(`Зелье мгновенно сварено по рецепту!${doubleText}`, 'success');
+            const doubleText = res.isDouble ? get(t)('alchemy.criticalDoubleSuccess') : '';
+            showToast(get(t)('alchemy.recipeBrewSuccess', { double: doubleText }), 'success');
             await saveGame();
         } else {
-            showToast(res.reason ?? 'Недостаточно ингредиентов для варки!', 'warning');
+            showToast(res.reason ?? get(t)('alchemy.recipeBrewFail'), 'warning');
         }
     }
 
@@ -200,23 +191,23 @@
             lastResonanceMsg = null;
             nowTime = Date.now();
             playCoinSound();
-            showToast('Котёл благополучно остужен ледяной магией!', 'success');
+            showToast(get(t)('alchemy.iceCoolingSuccess'), 'success');
             saveGame();
         }, undefined, () => {
-            showToast('Не удалось загрузить рекламу, попробуйте позже.');
+            showToast(get(t)('alchemy.adLoadError'));
         });
     }
 
     async function handleCoolDownCrystals(cost = 8) {
         if ($crystals < cost) {
-            showToast('Недостаточно кристаллов для мгновенного охлаждения!', 'warning');
+            showToast(get(t)('alchemy.notEnoughCrystalsCooling'), 'warning');
             return;
         }
         if (coolDownCauldronCrystals(cost)) {
             lastResonanceMsg = null;
             nowTime = Date.now();
             playCoinSound();
-            showToast(`Котёл мгновенно остужен за ${cost} кристаллов!`, 'success');
+            showToast(get(t)('alchemy.instantCoolSuccess', { cost }), 'success');
             await saveGame();
         }
     }
@@ -224,10 +215,10 @@
     async function handleHint(recipeId: string) {
         if (buyRecipeHint(recipeId)) {
             playCoinSound();
-            showToast('Ингредиент рецепта раскрыт за кристаллы!', 'success', 2000);
+            showToast(get(t)('alchemy.hintRevealedCrystals'), 'success', 2000);
             await saveGame();
         } else {
-            showToast('Недостаточно кристаллов для подсказки!', 'warning');
+            showToast(get(t)('alchemy.notEnoughCrystalsHint'), 'warning');
         }
     }
 
@@ -235,13 +226,13 @@
         showRewardedAd(() => {
             if (unlockRecipeHintFree(recipeId)) {
                 gameStore.updateQuestProgress('watch_ads', 1);
-                showToast('Первый ингредиент рецепта раскрыт за рекламу!', 'success', 2500);
+                showToast(get(t)('alchemy.hintRevealedAd'), 'success', 2500);
                 saveGame();
             } else {
-                showToast('За рекламу можно открыть только первый ингредиент!', 'warning');
+                showToast(get(t)('alchemy.hintAdOnlyFirst'), 'warning');
             }
         }, undefined, () => {
-            showToast('Не удалось загрузить видео, попробуйте позже.');
+            showToast(get(t)('alchemy.videoLoadError'));
         });
     }
 
@@ -265,10 +256,10 @@
 
     const RC: Record<Rarity, string> = { common:'#b2bec3', rare:'#74b9ff', epic:'#a29bfe', legendary:'#f1c40f' };
     $: RL = { 
-        common: $t('rarity.common') || 'Обычный', 
-        rare: $t('rarity.rare') || 'Редкий', 
-        epic: $t('rarity.epic') || 'Эпический', 
-        legendary: $t('rarity.legendary') || 'Легендарный' 
+        common: $t('rarity.common'), 
+        rare: $t('rarity.rare'), 
+        epic: $t('rarity.epic'), 
+        legendary: $t('rarity.legendary') 
     };
 </script>
 
@@ -435,7 +426,7 @@
                     <div class="slot" class:filled={!!slotId}
                         style={ing ? `--sg:${RC[ing.rarity]}` : ''}
                         on:click={() => slotId && clearSlot(i)}
-                        title={ing ? `${ing.name} — нажмите убрать` : `Слот ${i+1}`}
+                        title={ing ? `${ing.name} — ${$t('alchemy.removeSlot')}` : `${$t('alchemy.slot')} ${i+1}`}
                     >
                         {#if ing}
                             <div class="slot-icon">{@html ing.icon}</div>

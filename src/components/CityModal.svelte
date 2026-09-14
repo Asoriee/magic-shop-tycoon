@@ -60,7 +60,7 @@
     <div class="modal-content" bind:this={modalEl} on:click|stopPropagation>
         <!-- Master Header -->
         <div class="master-header">
-            <button class="close-btn" on:click={close} aria-label="Закрыть">✕</button>
+            <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
 
             <div class="header-main">
                 <div class="master-icon-wrap">

@@ -79,7 +79,7 @@
 
     function getPotionName(potionId: string): string {
         const found = AVAILABLE_POTIONS.find((p: Potion) => p.id === potionId);
-        return found?.name || 'Зелье';
+        return found?.name || $t('common.potion');
     }
 
     function checkOfflineEarnings(forcedAwayMs?: number) {
@@ -232,7 +232,7 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div 
             class="hud-crest-box" 
-            title="Ранг мастерства лавки: {$milestoneInfo?.tier + 1} (Множитель: x{$milestoneInfo?.multiplier?.toFixed(2)}). Нажмите для перехода в Лавку" 
+            title={$t('hud.rankTooltip', { tier: $milestoneInfo?.tier + 1, mult: $milestoneInfo?.multiplier?.toFixed(2) })} 
             on:click={() => isShopOpen = true}
         >
             <div class="crest-icon-wrap">
@@ -244,10 +244,10 @@
             </div>
             <div class="crest-meta">
                 <div class="crest-title-row">
-                    <span class="crest-tier">Ранг {$milestoneInfo?.tier + 1}</span>
+                    <span class="crest-tier">{$t('hud.rank', { tier: $milestoneInfo?.tier + 1 })}</span>
                     <span class="crest-bonus">x{$milestoneInfo?.multiplier?.toFixed(2)}</span>
                 </div>
-                <div class="crest-progress-track" title="Прогресс до следующего ранга: {$milestoneInfo?.progress} / 25">
+                <div class="crest-progress-track" title={$t('hud.rankProgress', { current: $milestoneInfo?.progress, total: 25 })}>
                     <div class="crest-progress-fill" style="width: {(($milestoneInfo?.progress || 0) / 25) * 100}%"></div>
                 </div>
             </div>
@@ -258,7 +258,7 @@
             <!-- Gold Chip -->
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="hud-chip gold-chip" title="Золото (нажмите для перехода в Лавку)" on:click={() => isShopOpen = true}>
+            <div class="hud-chip gold-chip" title={$t('hud.goldTooltip')} on:click={() => isShopOpen = true}>
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="gold" size={18} />
                 </span>
@@ -268,17 +268,17 @@
             <!-- Idle Income Chip -->
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="hud-chip income-chip" title="Пассивный доход в секунду (нажмите для перехода в Лавку)" on:click={() => isShopOpen = true}>
+            <div class="hud-chip income-chip" title={$t('hud.incomeTooltip')} on:click={() => isShopOpen = true}>
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="income" size={16} />
                 </span>
-                <span class="chip-val income-val">+{formatNumber($currentIdleIncome)}/с</span>
+                <span class="chip-val income-val">+{formatNumber($currentIdleIncome)}{$t('common.perSec')}</span>
             </div>
 
             <!-- Crystals Chip -->
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="hud-chip crystal-chip" title="Кристаллы (нажмите для перехода в Сокровищницу)" on:click={() => isPremiumOpen = true}>
+            <div class="hud-chip crystal-chip" title={$t('hud.crystalTooltip')} on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="crystals" size={18} />
                 </span>
@@ -289,7 +289,7 @@
             {#if $gameStore.stardust > 0 || $gameStore.artifacts.length > 0}
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="hud-chip stardust-chip" title="Звёздная Пыль (нажмите для перехода к Алтарю Перерождения)" on:click={() => isPremiumOpen = true}>
+            <div class="hud-chip stardust-chip" title={$t('hud.stardustTooltip')} on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="stardust" size={18} />
                 </span>
@@ -301,13 +301,13 @@
             {#if $isVip}
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="hud-chip vip-chip" title="ВИП-статус: активно {$vipDaysLeft} дн. (нажмите для управления)" on:click={() => isPremiumOpen = true}>
+            <div class="hud-chip vip-chip" title={$t('hud.vipTooltip', { days: $vipDaysLeft })} on:click={() => isPremiumOpen = true}>
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="vip" size={18} />
                 </span>
-                <span class="chip-val vip-val">ВИП {$vipDaysLeft}д</span>
+                <span class="chip-val vip-val">{$t('common.vip')} {$vipDaysLeft}{$t('common.day')}</span>
                 {#if $isVipDailyRewardAvailable}
-                    <span class="vip-reward-dot" title="Доступна ежедневная награда ВИП"></span>
+                    <span class="vip-reward-dot" title={$t('hud.vipRewardDot')}></span>
                 {/if}
             </div>
             {/if}
@@ -535,7 +535,7 @@
 {:else}
 <div class="loading">
     <div class="spinner"></div>
-    <p>Загрузка магии...</p>
+    <p>{$t('hud.loadingMagic')}</p>
 </div>
 {/if}
 

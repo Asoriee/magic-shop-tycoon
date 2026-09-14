@@ -5,7 +5,7 @@
     import { playSuccessSound, playLevelUpSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
-    import { t } from '../i18n';
+    import { t, currentLang, getSecretUpgradeName, getSecretUpgradeDesc } from '../i18n';
 
     let buttons: Record<string, HTMLElement> = {};
     let nowTime = Date.now();
@@ -222,6 +222,8 @@
             {@const isMax = upgrade.level >= upgrade.maxLevel}
             {@const canAfford = $gameStore.stardust >= cost}
             {@const category = categoryColors[upgrade.category || 'ritual'] || categoryColors['ritual']}
+            {@const upgradeName = getSecretUpgradeName(upgrade.id, $currentLang)}
+            {@const upgradeDesc = getSecretUpgradeDesc(upgrade.id, $currentLang)}
             
             <div class="card" class:is-max={isMax}>
                 <div class="icon-wrap">
@@ -231,7 +233,7 @@
                 <div class="info">
                     <div class="title-row">
                         <div class="name-with-tag">
-                            <h4 class="card-name">{upgrade.name}</h4>
+                            <h4 class="card-name">{upgradeName}</h4>
                             <span class="category-chip" style="color: {category.color}; background: {category.bg}">
                                 {@html categoryIcons[upgrade.category || 'ritual'] || categoryIcons['ritual']}
                                 <span>{category.label}</span>
@@ -243,7 +245,7 @@
                     </div>
 
                     <p class="desc">
-                        {upgrade.description}
+                        {upgradeDesc}
                         {#if isBoosted && upgrade.level > 0}
                             <span class="boost-bonus-text">{$t('secretUpgradesMeta.boostActiveBadge')}</span>
                         {/if}

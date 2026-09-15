@@ -172,6 +172,9 @@ export interface Translations {
         hintAdOnlyFirst?: string;
         recipeNotFound?: string;
         needIngredientsNamed?: string;
+        recipeKnown?: string;
+        unlockCrystals?: string;
+        unlockAd?: string;
         [key: string]: any;
     };
     grimoire: {

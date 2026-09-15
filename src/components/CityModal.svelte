@@ -197,9 +197,7 @@
                 </div>
                 <span class="tab-label">{$t('city.tabChests')}</span>
                 {#if $isFreeChestReady}
-                    <span class="tab-badge badge-free">{$t('common.free')}</span>
-                {:else}
-                    <span class="tab-badge badge-ad">{$t('common.ad')}</span>
+                    <span class="tab-badge badge-ready">1</span>
                 {/if}
             </button>
 
@@ -472,17 +470,21 @@
     .tab-badge {
         position: absolute;
         top: 2px;
-        right: 4px;
-        font-size: 0.58rem;
+        right: 6px;
+        font-size: 0.62rem;
         font-weight: 900;
-        padding: 1px 5px;
-        border-radius: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        line-height: 1.2;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
         pointer-events: none;
         white-space: nowrap;
+        box-sizing: border-box;
     }
 
     .badge-ready {
@@ -504,22 +506,12 @@
         animation: readyPulse 1.6s infinite ease-in-out;
     }
 
-    .badge-free {
-        background: linear-gradient(135deg, #00cec9, #0984e3);
-        color: #ffffff;
-        box-shadow: 0 0 8px rgba(0, 206, 201, 0.6);
-    }
-
-    .badge-ad {
-        background: linear-gradient(135deg, #e67e22, #d35400);
-        color: #ffffff;
-        box-shadow: 0 0 8px rgba(230, 126, 34, 0.5);
-    }
-
     .badge-count {
         background: rgba(255, 255, 255, 0.12);
-        color: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 0 5px;
+        min-width: auto;
     }
 
     /* Content Area */
@@ -539,7 +531,7 @@
         display: flex;
         flex-direction: column;
         flex: 1;
-        overflow-y: auto;
+        min-height: 0;
     }
 
     /* Scrollbar styling */

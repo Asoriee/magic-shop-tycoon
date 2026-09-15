@@ -186,6 +186,9 @@ export const ru: Translations = {
         brewsToNext: '({count} до след. ур.)',
         maxLevel: '(МАКС)',
         adTag: 'РЕК',
+        recipeKnown: 'Рецепт изучен',
+        unlockCrystals: 'Открыть ингредиент за кристаллы',
+        unlockAd: 'Открыть ингредиент за рекламу',
     },
     grimoire: {
         title: 'Великий Гримуар',

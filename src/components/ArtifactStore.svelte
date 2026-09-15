@@ -113,7 +113,7 @@
                     class:active={activeSynergySetId === col.id}
                     class:done={isColDone}
                     style="--set-accent: {col.themeColor}"
-                    on:click={() => activeSynergySetId = col.id}
+                    on:click={() => { activeSynergySetId = col.id; activeFilter = col.id; }}
                 >
                     <span class="tab-dot" style="background: {col.themeColor}"></span>
                     <span class="tab-col-name">{getCollectionName(col.id, $currentLang)}</span>
@@ -174,7 +174,7 @@
                     type="button" 
                     class="filter-pill" 
                     class:active={activeFilter === col.id} 
-                    on:click={() => activeFilter = col.id}
+                    on:click={() => { activeFilter = col.id; activeSynergySetId = col.id; }}
                 >
                     {getCollectionName(col.id, $currentLang)} ({col.requiredArtifactIds.length})
                 </button>
@@ -279,9 +279,15 @@
         width: 100%;
         max-width: none;
         max-height: none;
-        height: 100%;
+        height: auto;
         background: transparent;
-        padding: 12px;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .embedded-modal .artifact-list {
+        overflow-y: visible;
+        height: auto;
     }
 
     .tab-header {
@@ -369,9 +375,12 @@
         gap: 6px;
         overflow-x: auto;
         padding-bottom: 6px;
+        padding-right: 24px;
         margin-bottom: 8px;
         flex-shrink: 0;
         scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
     }
     .synergy-tabs-row::-webkit-scrollbar { display: none; }
 
@@ -505,9 +514,12 @@
         gap: 6px;
         overflow-x: auto;
         padding-bottom: 8px;
+        padding-right: 24px;
         margin-bottom: 4px;
         flex-shrink: 0;
         scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
     }
     .filter-pills-wrap::-webkit-scrollbar { display: none; }
 

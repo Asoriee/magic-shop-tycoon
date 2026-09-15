@@ -186,6 +186,9 @@ export const tr: Translations = {
         brewsToNext: '(Sonraki seviyeye {count})',
         maxLevel: '(MAKS)',
         adTag: 'REK',
+        recipeKnown: 'Tarif öğrenildi',
+        unlockCrystals: 'Malzemeyi kristalle aç',
+        unlockAd: 'Malzemeyi reklamla aç',
     },
     grimoire: {
         title: 'Büyük Grimoire',

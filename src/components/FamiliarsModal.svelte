@@ -438,7 +438,7 @@
                                             <button 
                                                 class="action-btn speed-btn" 
                                                 on:click={() => speedUpExpedition(pet.id)}
-                                                title="Speed up"
+                                                title={$t('common.speedUpAd')}
                                             >
                                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
                                                     <polygon points="5,3 19,12 5,21"/>
@@ -451,7 +451,7 @@
                                                 class="action-btn skip-crystal-btn" 
                                                 disabled={$crystals < skipCost}
                                                 on:click={() => instantSkipExpedition(pet.id, timeRem)}
-                                                title="Skip"
+                                                title={$t('familiars.instantReturn', { cost: skipCost })}
                                             >
                                                 <ResourceIcon type="crystals" size={13} />
                                                 <span>{$t('familiars.instantReturn', { cost: skipCost })}</span>
@@ -1017,6 +1017,13 @@
         gap: 16px;
     }
 
+    .gacha-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
     .gacha-headline {
         margin: 0 0 6px;
         font-size: 1.3rem;
@@ -1053,7 +1060,7 @@
     }
 
     .gacha-btn {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
@@ -1067,7 +1074,7 @@
         cursor: pointer;
         box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
         transition: transform 0.2s, box-shadow 0.2s;
-        margin-top: 10px;
+        margin: 14px auto 0;
     }
     .gacha-btn:hover:not(:disabled) {
         transform: scale(1.05);

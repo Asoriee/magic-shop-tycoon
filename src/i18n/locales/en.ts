@@ -186,6 +186,9 @@ export const en: Translations = {
         brewsToNext: '({count} to next level)',
         maxLevel: '(MAX)',
         adTag: 'AD',
+        recipeKnown: 'Recipe known',
+        unlockCrystals: 'Unlock ingredient with crystals',
+        unlockAd: 'Unlock ingredient with ad',
     },
     grimoire: {
         title: 'Grand Grimoire',

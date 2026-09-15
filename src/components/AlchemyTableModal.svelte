@@ -529,7 +529,7 @@
                             <div class="r-rarity" style="color:{RC[recipe.rarity]}">{RL[recipe.rarity]}</div>
                         </div>
                         {#if hints === 3}
-                            <div class="r-ok" title="Recipe known">
+                            <div class="r-ok" title={$t('alchemy.recipeKnown')}>
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                 </svg>
@@ -561,7 +561,7 @@
                         <div class="hint-actions-row">
                             <button class="hint-btn crystal-hint-btn" disabled={$crystals < HINT_COSTS[hints]}
                                 on:click={() => handleHint(recipe.id)}
-                                title="Unlock ingredient with crystals">
+                                title={$t('alchemy.unlockCrystals')}>
                                 <ResourceIcon type="crystals" size={13} />
                                 <span>{HINT_COSTS[hints]}</span>
                                 <span class="hint-step-tag">({hints+1}/3)</span>
@@ -569,7 +569,7 @@
                             {#if hints === 0 && !$gameStore.recipeAdHintsUsed?.[recipe.id]}
                                 <button class="hint-btn ad-hint-btn"
                                     on:click={() => handleHintAd(recipe.id)}
-                                    title="Unlock with ad">
+                                    title={$t('alchemy.unlockAd')}>
                                     <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
                                         <polygon points="5,3 19,12 5,21"/>
                                     </svg>

@@ -102,12 +102,14 @@ export function setLanguage(lang: SupportedLang): void {
     }
 }
 
+export type TranslationParams = Record<string, string | number | boolean | null | undefined>;
+
 /**
  * Reactive translation helper for Svelte templates:
  * Usage in Svelte: `{$t('common.gold')}` or `{$t('header.vipDays', { days: 10 })}`
  */
 export const t = derived(currentLang, ($lang) => {
-    return (key: string, params?: Record<string, string | number>): string => {
+    return (key: string, params?: TranslationParams): string => {
         return translateKey($lang, key, params);
     };
 });
@@ -115,12 +117,12 @@ export const t = derived(currentLang, ($lang) => {
 /**
  * Synchronous non-reactive translation helper.
  */
-export function translate(key: string, params?: Record<string, string | number>): string {
+export function translate(key: string, params?: TranslationParams): string {
     const lang = get(currentLang);
     return translateKey(lang, key, params);
 }
 
-function translateKey(lang: SupportedLang, key: string, params?: Record<string, string | number>): string {
+function translateKey(lang: SupportedLang, key: string, params?: TranslationParams): string {
     const dict = locales[lang] || locales[DEFAULT_LANG];
     const parts = key.split('.');
     let cur: any = dict;

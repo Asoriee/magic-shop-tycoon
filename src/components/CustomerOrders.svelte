@@ -68,6 +68,9 @@
         }
     }
 
+    $: mins = Math.floor(secondsToNext / 60);
+    $: secs = secondsToNext % 60;
+
     onMount(() => {
         gameStore.checkOrderSpawns();
         updateCountdown();

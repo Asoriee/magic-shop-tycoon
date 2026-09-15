@@ -135,7 +135,7 @@
             gsap.fromTo(flashEl, { opacity: 0.65, backgroundColor: 'rgba(241,196,15,0.55)' }, { opacity: 0, duration: 0.7 });
             
             const doubleText = result.isDouble ? get(t)('alchemy.criticalDoubleSuccess') : '';
-            showToast(get(t)('alchemy.brewSuccessMsg', { name: result.recipeName, double: doubleText }), 'success', 3500);
+            showToast(get(t)('alchemy.brewSuccessMsg', { name: result.recipeName || '', double: doubleText }), 'success', 3500);
             await saveGame();
         } else if (result.status === 'warning') {
             playOverheatSizzle();
@@ -591,7 +591,7 @@
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
                             </svg>
-                            <span>{isOverheated ? $t('alchemy.coolingDown') : (craftCheck.can ? $t('alchemy.quickBrew') : $t('alchemy.missingIng', { name: craftCheck.missingName }))}</span>
+                            <span>{isOverheated ? $t('alchemy.coolingDown') : (craftCheck.can ? $t('alchemy.quickBrew') : $t('alchemy.missingIng', { name: craftCheck.missingName || '' }))}</span>
                         </button>
                     {/if}
                 </div>

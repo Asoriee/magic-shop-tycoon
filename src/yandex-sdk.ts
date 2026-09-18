@@ -518,7 +518,7 @@ export interface LeaderboardEntry {
     avatarUrl?: string;
 }
 
-const LEADERBOARD_NAME = 'stardust_masters';
+const LEADERBOARD_NAME = 'stardustmasters';
 let leaderboards: any = null;
 
 export async function submitLeaderboardScore(score: number): Promise<void> {

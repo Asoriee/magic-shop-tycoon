@@ -30,7 +30,8 @@
     }
 
     let activeTab: 'pets' | 'gacha' = 'pets';
-    let gachaAnimating = false;
+    let isSummoning = false;
+    let showResult = false;
     let rolledPet: Pet | null = null;
     let rollType: 'new' | 'upgrade' | 'max_refund' = 'new';
     let newLevelReached = 1;
@@ -96,7 +97,7 @@
     }
 
     function handleEggTap() {
-        if (gachaAnimating || !eggElement) return;
+        if (isSummoning || showResult || !eggElement) return;
         playCauldronBubble();
         gsap.timeline()
             .to(eggElement, { scale: 1.14, y: -10, duration: 0.12, ease: 'power2.out' })
@@ -106,6 +107,7 @@
     }
 
     function rollGacha(count: 1 | 5 = 1) {
+        if (isSummoning || showResult) return;
         const cost = count === 5 ? GACHA_COST_5 : GACHA_COST_1;
         if ($crystals < cost) {
             showToast(get(t)('familiars.notEnoughCrystalsSummon'));
@@ -173,70 +175,82 @@
             outcomes.push({ pet, type: outcomeType, level: resLvl });
         }
 
-        gachaAnimating = true;
+        isSummoning = true;
         isMultiRoll = (count === 5);
         rolledPet = null;
         multiResults = [];
+        playCauldronBubble();
 
-        // Egg ritual animation
-        setTimeout(() => {
-            if (eggElement) {
-                gsap.timeline()
-                    .set(eggElement, { scale: 1, rotation: 0, opacity: 1 })
-                    .to(eggElement, { rotation: 18, duration: 0.08, yoyo: true, repeat: 6 })
-                    .to(eggElement, { scale: 1.45, duration: 0.22, ease: 'power1.in' })
-                    .to(eggElement, { scale: 0, opacity: 0, duration: 0.15, ease: 'back.in(2)', onComplete: () => {
-                        // Apply mutations
-                        let hasLegendary = false;
-                        let hasUpgrade = false;
+        // Egg ritual animation on the sacred altar
+        if (eggElement) {
+            gsap.timeline()
+                .set(eggElement, { scale: 1, rotation: 0, x: 0, opacity: 1 })
+                .to(eggElement, { rotation: -10, x: -4, duration: 0.08, yoyo: true, repeat: 5 })
+                .to(eggElement, { rotation: 12, x: 5, scale: 1.15, duration: 0.07, yoyo: true, repeat: 6 })
+                .to(eggElement, { scale: 1.35, duration: 0.22, ease: 'power2.in' })
+                .to(eggElement, { scale: 0.1, opacity: 0, duration: 0.14, ease: 'back.in(2)', onComplete: () => {
+                    // Apply mutations
+                    let hasLegendary = false;
+                    let hasUpgrade = false;
 
-                        for (const out of outcomes) {
-                            if (out.pet.rarity === 'legendary') hasLegendary = true;
-                            if (out.type === 'new') {
-                                gameStore.unlockPet(out.pet.id);
-                            } else if (out.type === 'upgrade') {
-                                gameStore.upgradePet(out.pet.id);
-                                hasUpgrade = true;
-                            } else if (out.type === 'max_refund') {
-                                crystals.update(c => c + 50);
-                            }
+                    for (const out of outcomes) {
+                        if (out.pet.rarity === 'legendary') hasLegendary = true;
+                        if (out.type === 'new') {
+                            gameStore.unlockPet(out.pet.id);
+                        } else if (out.type === 'upgrade') {
+                            gameStore.upgradePet(out.pet.id);
+                            hasUpgrade = true;
+                        } else if (out.type === 'max_refund') {
+                            crystals.update(c => c + 50);
                         }
+                    }
 
-                        if (hasLegendary) {
-                            playSuccessSound();
-                        } else if (hasUpgrade) {
-                            playLevelUpSound();
-                        } else {
-                            playSuccessSound();
+                    if (hasLegendary) {
+                        playSuccessSound();
+                    } else if (hasUpgrade) {
+                        playLevelUpSound();
+                    } else {
+                        playSuccessSound();
+                    }
+                    saveGame();
+
+                    if (count === 1) {
+                        rolledPet = outcomes[0].pet;
+                        rollType = outcomes[0].type;
+                        newLevelReached = outcomes[0].level;
+                    } else {
+                        multiResults = outcomes;
+                    }
+
+                    isSummoning = false;
+                    showResult = true;
+
+                    setTimeout(() => {
+                        if (resultElement) {
+                            gsap.fromTo(resultElement, 
+                                { scale: 0.35, opacity: 0, y: 25 },
+                                { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: 'back.out(1.3)' }
+                            );
                         }
-                        saveGame();
-
-                        if (count === 1) {
-                            rolledPet = outcomes[0].pet;
-                            rollType = outcomes[0].type;
-                            newLevelReached = outcomes[0].level;
-                        } else {
-                            multiResults = outcomes;
-                        }
-
-                        setTimeout(() => {
-                            if (resultElement) {
-                                gsap.fromTo(resultElement, 
-                                    { scale: 0.3, opacity: 0, y: 30 },
-                                    { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' }
-                                );
-                            }
-                        }, 50);
-                    }});
-            }
-        }, 50);
+                    }, 50);
+                }});
+        }
     }
 
     function closeGachaResult() {
-        gachaAnimating = false;
+        showResult = false;
+        isSummoning = false;
         rolledPet = null;
         multiResults = [];
         isMultiRoll = false;
+        setTimeout(() => {
+            if (eggElement) {
+                gsap.fromTo(eggElement, 
+                    { scale: 0, opacity: 0 },
+                    { scale: 1, opacity: 1, rotation: 0, x: 0, duration: 0.4, ease: 'elastic.out(1, 0.6)' }
+                );
+            }
+        }, 50);
     }
 
     function startExpedition(petId: string) {
@@ -556,9 +570,9 @@
                 </div>
             {:else if activeTab === 'gacha'}
                 <div class="gacha-container">
-                    {#if !gachaAnimating}
+                    {#if !showResult}
                         <!-- Grand Jackpot Showcase -->
-                        <div class="gacha-jackpot-showcase">
+                        <div class="gacha-jackpot-showcase" class:dimmed={isSummoning}>
                             <div class="jackpot-header">
                                 <svg viewBox="0 0 24 24" width="16" height="16" class="jackpot-crown-icon" fill="#ffd700">
                                     <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V17H19V19Z"/>
@@ -588,9 +602,9 @@
                         <!-- Sacred Altar of Summoning -->
                         <!-- svelte-ignore a11y_click_events_have_key-events -->
                         <!-- svelte-ignore a11y_no_static_element_interactions -->
-                        <div class="gacha-altar-stage" on:click={handleEggTap}>
+                        <div class="gacha-altar-stage" class:ritual-active={isSummoning} on:click={handleEggTap}>
                             <!-- Outer Runic Orbit SVG -->
-                            <div class="altar-orbit altar-orbit-outer">
+                            <div class="altar-orbit altar-orbit-outer" class:orbit-accelerate={isSummoning}>
                                 <svg viewBox="0 0 200 200" width="100%" height="100%">
                                     <defs>
                                         <linearGradient id="orbitGradOuter" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -609,7 +623,7 @@
                             </div>
 
                             <!-- Inner Counter-rotating Orbit SVG -->
-                            <div class="altar-orbit altar-orbit-inner">
+                            <div class="altar-orbit altar-orbit-inner" class:orbit-accelerate-counter={isSummoning}>
                                 <svg viewBox="0 0 160 160" width="100%" height="100%">
                                     <defs>
                                         <linearGradient id="orbitGradInner" x1="100%" y1="0%" x2="0%" y2="100%">
@@ -641,7 +655,10 @@
                             </div>
 
                             <!-- Draconic Elemental Egg -->
-                            <div class="gacha-draconic-egg" bind:this={eggElement}>
+                            <div class="gacha-draconic-egg" class:egg-ritual={isSummoning} bind:this={eggElement}>
+                                {#if isSummoning}
+                                    <div class="ritual-flare-halo"></div>
+                                {/if}
                                 <svg viewBox="0 0 120 140" width="120" height="140">
                                     <defs>
                                         <radialGradient id="eggShellGlow" cx="42%" cy="36%" r="65%">
@@ -677,11 +694,13 @@
                                     <circle cx="53" cy="42" r="1.8" fill="#ffffff" opacity="0.8" />
                                 </svg>
                             </div>
-                            <span class="altar-interact-hint">{$t('familiars.altarHint')}</span>
+                            <span class="altar-interact-hint" class:hint-summoning={isSummoning}>
+                                {isSummoning ? '✨ ' + ($t('common.active') || 'Ритуал...') : $t('familiars.altarHint')}
+                            </span>
                         </div>
 
                         <!-- Drop Rates Transparency Bar -->
-                        <div class="gacha-odds-bar">
+                        <div class="gacha-odds-bar" class:dimmed={isSummoning}>
                             <span class="odd-pill leg-pill">{$t('familiars.ratesLegendary')}</span>
                             <span class="odd-pill epic-pill">{$t('familiars.ratesEpic')}</span>
                             <span class="odd-pill rare-pill">{$t('familiars.ratesRare')}</span>
@@ -690,7 +709,7 @@
 
                         <!-- Dual Summon CTA Buttons Row -->
                         <div class="gacha-actions-row">
-                            <button class="gacha-cta-btn cta-single" on:click={() => rollGacha(1)}>
+                            <button class="gacha-cta-btn cta-single" disabled={isSummoning} on:click={() => rollGacha(1)}>
                                 <span class="cta-label">{$t('familiars.summon1Btn')}</span>
                                 <div class="cta-price">
                                     <ResourceIcon type="crystals" size={17} />
@@ -698,7 +717,7 @@
                                 </div>
                             </button>
                             
-                            <button class="gacha-cta-btn cta-multi" on:click={() => rollGacha(5)}>
+                            <button class="gacha-cta-btn cta-multi" disabled={isSummoning} on:click={() => rollGacha(5)}>
                                 <span class="cta-discount-tag">{$t('familiars.discountTag')}</span>
                                 <span class="cta-label">{$t('familiars.summon5Btn')}</span>
                                 <div class="cta-price">
@@ -709,24 +728,7 @@
                             </button>
                         </div>
                     {:else}
-                        <!-- Animating Egg Ritual State -->
-                        {#if !rolledPet && multiResults.length === 0}
-                            <div class="gacha-egg-animating-wrap" bind:this={eggElement}>
-                                <div class="ritual-flare-ring"></div>
-                                <svg viewBox="0 0 120 140" width="130" height="150">
-                                    <defs>
-                                        <radialGradient id="eggActiveBurst" cx="45%" cy="38%" r="65%">
-                                            <stop offset="0%" stop-color="#fff"/>
-                                            <stop offset="30%" stop-color="#ffd56b"/>
-                                            <stop offset="70%" stop-color="#fd79a8"/>
-                                            <stop offset="100%" stop-color="#6c5ce7"/>
-                                        </radialGradient>
-                                    </defs>
-                                    <path d="M 60 14 C 90 14, 106 54, 102 90 C 98 116, 82 128, 60 128 C 38 128, 22 116, 18 90 C 14 54, 30 14, 60 14 Z"
-                                          fill="url(#eggActiveBurst)" stroke="#fff" stroke-width="3" />
-                                </svg>
-                            </div>
-                        {:else if isMultiRoll && multiResults.length > 0}
+                        {#if isMultiRoll && multiResults.length > 0}
                             <!-- 5-Card Multi-Summon Results Celebration Grid -->
                             <div class="gacha-multi-result" bind:this={resultElement}>
                                 <div class="multi-header">
@@ -1609,23 +1611,51 @@
         letter-spacing: 0.3px;
     }
 
-    /* Animating egg burst */
-    .gacha-egg-animating-wrap {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 200px;
+    /* Ritual Active Effects on Sacred Altar */
+    .gacha-altar-stage.ritual-active {
+        pointer-events: none;
     }
 
-    .ritual-flare-ring {
+    .altar-orbit.orbit-accelerate {
+        animation: rotateClockwise 1.1s linear infinite !important;
+        filter: drop-shadow(0 0 16px #ffd700) drop-shadow(0 0 8px #fd79a8);
+    }
+
+    .altar-orbit.orbit-accelerate-counter {
+        animation: rotateCounter 0.85s linear infinite !important;
+        filter: drop-shadow(0 0 16px #00cec9) drop-shadow(0 0 8px #a29bfe);
+    }
+
+    .ritual-flare-halo {
         position: absolute;
-        width: 160px;
-        height: 160px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 140px;
+        height: 140px;
         border-radius: 50%;
-        border: 2px dashed #ffd700;
-        animation: rotateClockwise 4s linear infinite;
-        box-shadow: 0 0 25px rgba(241, 196, 15, 0.5);
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.45) 0%, rgba(224, 86, 253, 0.25) 50%, transparent 72%);
+        animation: haloPulse 0.35s ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    @keyframes haloPulse {
+        from { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+        to { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+    }
+
+    .dimmed {
+        opacity: 0.35;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .altar-interact-hint.hint-summoning {
+        color: #ffd700;
+        font-weight: 800;
+        text-shadow: 0 0 8px rgba(241, 196, 15, 0.6);
+        animation: pulseBadge 1.2s infinite;
     }
 
     /* Drop Rates Transparency Bar */
@@ -1698,8 +1728,15 @@
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .gacha-cta-btn:hover {
+    .gacha-cta-btn:hover:not(:disabled) {
         transform: translateY(-2px);
+    }
+
+    .gacha-cta-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        filter: grayscale(0.2);
+        box-shadow: none;
     }
 
     .gacha-cta-btn.cta-single {

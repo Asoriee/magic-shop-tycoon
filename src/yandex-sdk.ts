@@ -45,7 +45,36 @@ let catalogProducts: any[] = [];
 
 const LOCAL_STORAGE_KEY = 'magicShopTycoonSave';
 
+/**
+ * Ждёт появления объекта YaGames в window (т.к. SDK грузится async).
+ * Timeout 5 сек — после этого игра стартует без SDK (fallback).
+ * На localhost пропускается сразу.
+ */
+function waitForYaGames(timeoutMs = 5000): Promise<void> {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal || typeof (window as any).YaGames !== 'undefined') {
+        return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+        const deadline = Date.now() + timeoutMs;
+        const check = () => {
+            if (typeof (window as any).YaGames !== 'undefined') {
+                resolve();
+            } else if (Date.now() >= deadline) {
+                console.warn('[SDK] YaGames not available after timeout, using fallback.');
+                resolve();
+            } else {
+                setTimeout(check, 100);
+            }
+        };
+        check();
+    });
+}
+
 export async function initYandexSdk() {
+    // Дождаться загрузки SDK-скрипта (он теперь async в index.html)
+    await waitForYaGames(5000);
+
     try {
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         

@@ -58,7 +58,7 @@
     $: rollablePets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
     $: lockedPets = rollablePets.filter(p => !$gameStore.unlockedPets.includes(p.id));
     $: activeExps = $gameStore.activeExpeditions;
-    $: jackpotPets = AVAILABLE_PETS.filter(p => p.id === 'pet_dragon' || p.id === 'pet_manticore');
+    $: jackpotPets = AVAILABLE_PETS.filter(p => p.rarity === 'legendary' && !p.isCollectionExclusive);
 
     // Timers update
     let now = Date.now();
@@ -1453,7 +1453,7 @@
 
     .jackpot-cards-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
         gap: 8px;
         width: 100%;
     }
@@ -1511,7 +1511,7 @@
     }
 
     .jackpot-name {
-        font-size: 0.82rem;
+        font-size: 0.78rem;
         font-weight: 800;
         color: #fff;
         line-height: 1.2;

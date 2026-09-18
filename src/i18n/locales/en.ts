@@ -606,6 +606,12 @@ export const en: Translations = {
         pet_astral_dragon: { name: 'Astral Dragon', description: 'Archmage set exclusive companion. Forages rare materials from the void.' },
         pet_phoenix: { name: 'Sun Phoenix', description: 'Legendary flame keeper. Expeditions return with Astral Chests and gems.' },
         pet_void_titan: { name: 'Aether Gryphon', description: 'Mythic guardian of eternity. Guarantees top-tier Astral Chests and gems.' },
+        pet_hedgehog: { name: 'Mushroom Hedgehog', description: 'Caring forest forager. Carries healing mushroom caps and rare sprouts on its quills (1.5 hours).' },
+        pet_chameleon: { name: 'Prismatic Chameleon', description: 'Shimmering lizard sorcerer. Locates arcane pigments and mimicry essences (3.5 hours).' },
+        pet_axolotl: { name: 'Water Axolotl', description: 'Gentle spirit of crystalline lakes. Brings revitalizing water and astral droplets (4 hours).' },
+        pet_scarab: { name: 'Sapphire Scarab', description: 'Ancient keeper of the deep. Unearths gemstones and precious minerals (7 hours).' },
+        pet_pegasus: { name: 'Storm Pegasus', description: 'Winged celestial steed. Delivers sparks of thunder and rare chests (8 hours).' },
+        pet_basilisk: { name: 'Emerald Basilisk', description: 'Regal serpent of the ancient abyss. Unearths great astral treasures and golden relics (13 hours)!' },
     },
     upgrades: {
         idle1: { name: 'Arcane Ladle', description: 'Automatically stirs the cauldron without stopping.' },

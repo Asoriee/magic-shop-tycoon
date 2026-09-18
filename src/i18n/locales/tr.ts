@@ -606,6 +606,12 @@ export const tr: Translations = {
         pet_astral_dragon: { name: 'Astral Ejderha', description: 'Başbüyücü seti yoldaşı. Boşluktan nadir malzemeler toplar.' },
         pet_phoenix: { name: 'Güneş Ankası', description: 'Efsanevi alev koruyucusu. Seferleri Astral Sandıklar ve mücevherler getirir.' },
         pet_void_titan: { name: 'Esir Grifonu', description: 'Sonsuzluğun muhafızı. En üst düzey Astral Sandık ve taşları garanti eder.' },
+        pet_hedgehog: { name: 'Mantar Kirpisi', description: 'Şefkatli orman toplayıcısı. Dikenlerinde şifalı mantarlar ve nadir filizler taşır (1.5 saat).' },
+        pet_chameleon: { name: 'Gökkuşağı Bukalemunu', description: 'Yanardöner büyücü kertenkele. Gizemli pigmentler ve taklit özleri bulur (3.5 saat).' },
+        pet_axolotl: { name: 'Su Semenderi', description: 'Berrak göllerin narin ruhu. Canlandırıcı su ve astral damlalar getirir (4 saat).' },
+        pet_scarab: { name: 'Sonsuzluk Bokböceği', description: 'Derinlerin kadim koruyucusu. Değerli mücevherler ve madenler kazar (7 saat).' },
+        pet_pegasus: { name: 'Fırtına Pegasusu', description: 'Kanatlı göksel at. Gökyüzü yıldırımlarının kıvılcımlarını ve sandıklar getirir (8 saat).' },
+        pet_basilisk: { name: 'Zümrüt Basilisk', description: 'Kadim uçurumların hükümdar yılanı. Büyük astral hazineler ve altın kalıntılar getirir (13 saat)!' },
     },
     upgrades: {
         idle1: { name: 'Büyülü Kepçe', description: 'Kazanı durmaksızın otomatik olarak karıştırır.' },

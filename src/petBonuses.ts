@@ -74,6 +74,15 @@ export function getPetBonusValues(petId: string, level: number = 1): PetBonusDat
                 doubleBrewBonus: 0.20 + step * 0.02, // +20% .. +38% double potion chance
                 offlineHoursBonus: 0
             };
+        case 'pet_basilisk':
+            return {
+                idleBonus: 0,
+                clickBonus: 0.25 + step * 0.025, // +25% .. +47.5%
+                critBonus: 0,
+                orderBonus: 0.40 + step * 0.04,  // +40% .. +76%
+                doubleBrewBonus: 0.08 + step * 0.008, // +8% .. +15.2%
+                offlineHoursBonus: 0
+            };
         case 'pet_void_titan':
             return {
                 idleBonus: 0.50 + step * 0.05, // +50% .. +95%
@@ -99,6 +108,24 @@ export function getPetBonusValues(petId: string, level: number = 1): PetBonusDat
                 idleBonus: 0.10 + step * 0.01, // +10% .. +19%
                 clickBonus: 0.20 + step * 0.02, // +20% .. +38%
                 critBonus: 0,
+                orderBonus: 0,
+                doubleBrewBonus: 0,
+                offlineHoursBonus: 0
+            };
+        case 'pet_scarab':
+            return {
+                idleBonus: 0,
+                clickBonus: 0.22 + step * 0.022, // +22% .. +41.8%
+                critBonus: 0,
+                orderBonus: 0.15 + step * 0.015, // +15% .. +28.5%
+                doubleBrewBonus: 0,
+                offlineHoursBonus: 0
+            };
+        case 'pet_pegasus':
+            return {
+                idleBonus: 0.22 + step * 0.022, // +22% .. +41.8%
+                clickBonus: 0,
+                critBonus: 0.06 + step * 0.007, // +6% .. +12.3% crit chance
                 orderBonus: 0,
                 doubleBrewBonus: 0,
                 offlineHoursBonus: 0
@@ -131,6 +158,24 @@ export function getPetBonusValues(petId: string, level: number = 1): PetBonusDat
                 orderBonus: 0.10 + step * 0.01, // +10% .. +19% order gold
                 doubleBrewBonus: 0,
                 offlineHoursBonus: 0
+            };
+        case 'pet_chameleon':
+            return {
+                idleBonus: 0.08 + step * 0.008, // +8% .. +15.2%
+                clickBonus: 0,
+                critBonus: 0,
+                orderBonus: 0.12 + step * 0.012, // +12% .. +22.8%
+                doubleBrewBonus: 0,
+                offlineHoursBonus: 0
+            };
+        case 'pet_axolotl':
+            return {
+                idleBonus: 0.12 + step * 0.012, // +12% .. +22.8%
+                clickBonus: 0,
+                critBonus: 0,
+                orderBonus: 0,
+                doubleBrewBonus: 0,
+                offlineHoursBonus: 1 + Math.floor(step / 5) // +1 to +2 hours
             };
 
         // Common Familiars
@@ -170,6 +215,15 @@ export function getPetBonusValues(petId: string, level: number = 1): PetBonusDat
                 doubleBrewBonus: 0,
                 offlineHoursBonus: 0
             };
+        case 'pet_hedgehog':
+            return {
+                idleBonus: 0.05 + step * 0.006, // +5% .. +10.4%
+                clickBonus: 0,
+                critBonus: 0,
+                orderBonus: 0,
+                doubleBrewBonus: 0.03 + step * 0.005, // +3% .. +7.5%
+                offlineHoursBonus: 0
+            };
 
         default:
             return {
@@ -186,14 +240,15 @@ export function getPetBonusValues(petId: string, level: number = 1): PetBonusDat
 const LEGENDARY_PETS = new Set([
     'pet_dragon',
     'pet_manticore',
+    'pet_basilisk',
     'pet_astral_dragon',
     'pet_phoenix',
     'pet_moon_cat',
     'pet_void_titan'
 ]);
 
-const EPIC_PETS = new Set(['pet_gryphon', 'pet_golem']);
-const RARE_PETS = new Set(['pet_spirit', 'pet_owl', 'pet_fox']);
+const EPIC_PETS = new Set(['pet_gryphon', 'pet_golem', 'pet_scarab', 'pet_pegasus']);
+const RARE_PETS = new Set(['pet_spirit', 'pet_owl', 'pet_fox', 'pet_chameleon', 'pet_axolotl']);
 
 function getPetRarity(petId: string): 'common' | 'rare' | 'epic' | 'legendary' {
     if (LEGENDARY_PETS.has(petId)) return 'legendary';
@@ -284,6 +339,36 @@ const AURA_LOCALES: Record<SupportedLang, Record<string, AuraLocaleTemplate>> = 
             title: 'Владыка Вечности',
             desc: b => `+${Math.round(b.idleBonus * 100)}% к доходу, +${Math.round(b.clickBonus * 100)}% к клику и +${b.offlineHoursBonus} ч оффлайн-лимита`,
             badge: b => `+${Math.round(b.idleBonus * 100)}% дох. / +${b.offlineHoursBonus} ч оффл.`
+        },
+        pet_hedgehog: {
+            title: 'Лесной Сборщик',
+            desc: b => `+${(b.idleBonus * 100).toFixed(1)}% к пассивному доходу и +${(b.doubleBrewBonus * 100).toFixed(1)}% к удвоению зелий`,
+            badge: b => `+${(b.idleBonus * 100).toFixed(1)}% дох. / +${(b.doubleBrewBonus * 100).toFixed(1)}% зелья`
+        },
+        pet_chameleon: {
+            title: 'Призматическая Мимикрия',
+            desc: b => `+${Math.round(b.orderBonus * 100)}% к золоту за заказы и +${Math.round(b.idleBonus * 100)}% к пассивному доходу`,
+            badge: b => `+${Math.round(b.orderBonus * 100)}% заказы / +${Math.round(b.idleBonus * 100)}% дох.`
+        },
+        pet_axolotl: {
+            title: 'Дар Регенерации',
+            desc: b => `+${Math.round(b.idleBonus * 100)}% к доходу лавки и +${b.offlineHoursBonus} ч оффлайн-лимита`,
+            badge: b => `+${Math.round(b.idleBonus * 100)}% дох. / +${b.offlineHoursBonus} ч оффл.`
+        },
+        pet_scarab: {
+            title: 'Драгоценный Панцирь',
+            desc: b => `+${Math.round(b.clickBonus * 100)}% к силе клика и +${Math.round(b.orderBonus * 100)}% золота за заказы`,
+            badge: b => `+${Math.round(b.clickBonus * 100)}% клик / +${Math.round(b.orderBonus * 100)}% заказы`
+        },
+        pet_pegasus: {
+            title: 'Грозовые Крылья',
+            desc: b => `+${Math.round(b.idleBonus * 100)}% к пассивному доходу и +${Math.round(b.critBonus * 100)}% к шансу крит. клика (x5)`,
+            badge: b => `+${Math.round(b.idleBonus * 100)}% дох. / +${Math.round(b.critBonus * 100)}% крит`
+        },
+        pet_basilisk: {
+            title: 'Окаменяющее Золото',
+            desc: b => `+${Math.round(b.orderBonus * 100)}% золота за заказы, +${Math.round(b.clickBonus * 100)}% к силе клика и +${Math.round(b.doubleBrewBonus * 100)}% к удвоению зелий`,
+            badge: b => `+${Math.round(b.orderBonus * 100)}% зак. / +${Math.round(b.clickBonus * 100)}% кл.`
         }
     },
     en: {
@@ -361,6 +446,36 @@ const AURA_LOCALES: Record<SupportedLang, Record<string, AuraLocaleTemplate>> = 
             title: 'Lord of Eternity',
             desc: b => `+${Math.round(b.idleBonus * 100)}% income, +${Math.round(b.clickBonus * 100)}% click & +${b.offlineHoursBonus}h offline limit`,
             badge: b => `+${Math.round(b.idleBonus * 100)}% inc. / +${b.offlineHoursBonus}h offline`
+        },
+        pet_hedgehog: {
+            title: 'Forest Forager',
+            desc: b => `+${(b.idleBonus * 100).toFixed(1)}% passive income & +${(b.doubleBrewBonus * 100).toFixed(1)}% double potion chance`,
+            badge: b => `+${(b.idleBonus * 100).toFixed(1)}% inc. / +${(b.doubleBrewBonus * 100).toFixed(1)}% potion`
+        },
+        pet_chameleon: {
+            title: 'Prismatic Mimicry',
+            desc: b => `+${Math.round(b.orderBonus * 100)}% order gold & +${Math.round(b.idleBonus * 100)}% passive income`,
+            badge: b => `+${Math.round(b.orderBonus * 100)}% orders / +${Math.round(b.idleBonus * 100)}% inc.`
+        },
+        pet_axolotl: {
+            title: 'Gift of Regeneration',
+            desc: b => `+${Math.round(b.idleBonus * 100)}% passive income & +${b.offlineHoursBonus}h offline limit`,
+            badge: b => `+${Math.round(b.idleBonus * 100)}% inc. / +${b.offlineHoursBonus}h offline`
+        },
+        pet_scarab: {
+            title: 'Precious Carapace',
+            desc: b => `+${Math.round(b.clickBonus * 100)}% click power & +${Math.round(b.orderBonus * 100)}% order gold`,
+            badge: b => `+${Math.round(b.clickBonus * 100)}% click / +${Math.round(b.orderBonus * 100)}% orders`
+        },
+        pet_pegasus: {
+            title: 'Storm Wings',
+            desc: b => `+${Math.round(b.idleBonus * 100)}% passive income & +${Math.round(b.critBonus * 100)}% crit chance (x5)`,
+            badge: b => `+${Math.round(b.idleBonus * 100)}% inc. / +${Math.round(b.critBonus * 100)}% crit`
+        },
+        pet_basilisk: {
+            title: 'Petrifying Gold',
+            desc: b => `+${Math.round(b.orderBonus * 100)}% order gold, +${Math.round(b.clickBonus * 100)}% click power & +${Math.round(b.doubleBrewBonus * 100)}% double potion chance`,
+            badge: b => `+${Math.round(b.orderBonus * 100)}% ord. / +${Math.round(b.clickBonus * 100)}% clk`
         }
     },
     tr: {
@@ -438,6 +553,36 @@ const AURA_LOCALES: Record<SupportedLang, Record<string, AuraLocaleTemplate>> = 
             title: 'Sonsuzluk Hükümdarı',
             desc: b => `+%${Math.round(b.idleBonus * 100)} gelir, +%${Math.round(b.clickBonus * 100)} tık ve +${b.offlineHoursBonus} saat çevrimdışı limit`,
             badge: b => `+%${Math.round(b.idleBonus * 100)} Gel. / +${b.offlineHoursBonus}s Çevrimdışı`
+        },
+        pet_hedgehog: {
+            title: 'Orman Toplayıcısı',
+            desc: b => `+%${(b.idleBonus * 100).toFixed(1)} pasif gelir ve +%${(b.doubleBrewBonus * 100).toFixed(1)} çift iksir şansı`,
+            badge: b => `+%${(b.idleBonus * 100).toFixed(1)} Gel. / +%${(b.doubleBrewBonus * 100).toFixed(1)} İksir`
+        },
+        pet_chameleon: {
+            title: 'Prizmatik Taklit',
+            desc: b => `+%${Math.round(b.orderBonus * 100)} sipariş altını ve +%${Math.round(b.idleBonus * 100)} pasif gelir`,
+            badge: b => `+%${Math.round(b.orderBonus * 100)} Sipariş / +%${Math.round(b.idleBonus * 100)} Gel.`
+        },
+        pet_axolotl: {
+            title: 'Yenilenme Hediyesi',
+            desc: b => `+%${Math.round(b.idleBonus * 100)} dükkan geliri ve +${b.offlineHoursBonus} saat çevrimdışı limit`,
+            badge: b => `+%${Math.round(b.idleBonus * 100)} Gel. / +${b.offlineHoursBonus}s Çevrimdışı`
+        },
+        pet_scarab: {
+            title: 'Değerli Kabuk',
+            desc: b => `+%${Math.round(b.clickBonus * 100)} tıklama gücü ve +%${Math.round(b.orderBonus * 100)} sipariş altını`,
+            badge: b => `+%${Math.round(b.clickBonus * 100)} Tık / +%${Math.round(b.orderBonus * 100)} Sipariş`
+        },
+        pet_pegasus: {
+            title: 'Fırtına Kanatları',
+            desc: b => `+%${Math.round(b.idleBonus * 100)} pasif gelir ve +%${Math.round(b.critBonus * 100)} kritik şansı (x5)`,
+            badge: b => `+%${Math.round(b.idleBonus * 100)} Gel. / +%${Math.round(b.critBonus * 100)} Kritik`
+        },
+        pet_basilisk: {
+            title: 'Taşlaştıran Altın',
+            desc: b => `+%${Math.round(b.orderBonus * 100)} sipariş altını, +%${Math.round(b.clickBonus * 100)} tıklama gücü ve +%${Math.round(b.doubleBrewBonus * 100)} çift iksir şansı`,
+            badge: b => `+%${Math.round(b.orderBonus * 100)} Sip. / +%${Math.round(b.clickBonus * 100)} Tık`
         }
     }
 };

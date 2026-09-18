@@ -20,15 +20,15 @@
     let overlayEl: HTMLElement;
 
     let activeFilter: 'all' | 'standalone' | string = 'all';
-    let activeSynergySetId: string = AVAILABLE_COLLECTIONS[0]?.id || 'archmage_set';
 
-    $: currentSynergySet = AVAILABLE_COLLECTIONS.find(c => c.id === activeSynergySetId) || AVAILABLE_COLLECTIONS[0];
+    $: currentSynergySet = AVAILABLE_COLLECTIONS.find(c => c.id === activeFilter) || null;
     $: setOwnedCount = currentSynergySet 
         ? currentSynergySet.requiredArtifactIds.filter(id => $gameStore.artifacts.includes(id)).length 
         : 0;
     $: setTotalCount = currentSynergySet?.requiredArtifactIds.length || 0;
     $: isSetComplete = setOwnedCount === setTotalCount && setTotalCount > 0;
     $: rewardPet = AVAILABLE_PETS.find(p => p.id === currentSynergySet?.rewardPetId);
+    $: standaloneOwnedCount = [0, 1, 2].filter(id => $gameStore.artifacts.includes(id)).length;
 
     $: filteredArtifacts = AVAILABLE_ARTIFACTS.filter(art => {
         if (activeFilter === 'all') return true;
@@ -102,84 +102,113 @@
             </div>
         {/if}
 
-        <!-- Synergy Set Selector Tabs -->
-        <div class="synergy-tabs-row">
+        <!-- Unified Category Filter Tabs -->
+        <div class="category-tabs-wrap">
+            <button 
+                type="button" 
+                class="category-tab-btn" 
+                class:active={activeFilter === 'all'} 
+                on:click={() => activeFilter = 'all'}
+            >
+                <span class="tab-label">{$t('rarity.all')}</span>
+                <span class="tab-badge">{AVAILABLE_ARTIFACTS.length}</span>
+            </button>
+
+            <button 
+                type="button" 
+                class="category-tab-btn" 
+                class:active={activeFilter === 'standalone'} 
+                on:click={() => activeFilter = 'standalone'}
+            >
+                <span class="tab-label">{$t('artifactsStore.basicFilter')}</span>
+                <span class="tab-badge">3</span>
+            </button>
+
             {#each AVAILABLE_COLLECTIONS as col}
                 {@const ownedInCol = col.requiredArtifactIds.filter(id => $gameStore.artifacts.includes(id)).length}
                 {@const isColDone = ownedInCol === col.requiredArtifactIds.length}
                 <button 
                     type="button" 
-                    class="synergy-tab-btn" 
-                    class:active={activeSynergySetId === col.id}
+                    class="category-tab-btn" 
+                    class:active={activeFilter === col.id} 
                     class:done={isColDone}
-                    style="--set-accent: {col.themeColor}"
-                    on:click={() => { activeSynergySetId = col.id; activeFilter = col.id; }}
+                    style="--col-accent: {col.themeColor}"
+                    on:click={() => activeFilter = col.id}
                 >
                     <span class="tab-dot" style="background: {col.themeColor}"></span>
-                    <span class="tab-col-name">{getCollectionName(col.id, $currentLang)}</span>
-                    <span class="tab-col-badge">{ownedInCol}/{col.requiredArtifactIds.length}</span>
+                    <span class="tab-label">{getCollectionName(col.id, $currentLang)}</span>
+                    <span class="tab-badge" class:done={isColDone}>{ownedInCol}/{col.requiredArtifactIds.length}</span>
                 </button>
             {/each}
         </div>
 
-        <!-- Dynamic Synergy Showcase Banner -->
-        <div class="synergy-banner" class:completed={isSetComplete} style="--accent-color: {currentSynergySet?.themeColor || '#f1c40f'}">
-            <div class="synergy-icon">
-                {#if rewardPet}
-                    <div class="mini-pet-icon">
-                        {@html rewardPet.icon}
-                    </div>
-                {:else}
-                    <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
-                        <circle cx="16" cy="16" r="14" stroke="#f1c40f" stroke-width="2" stroke-dasharray="3 2"/>
-                        <path d="M16 6 L19 13 L26 14 L21 19 L22 26 L16 22 L10 26 L11 19 L6 14 L13 13 Z" fill="#ffeaa7" stroke="#f39c12" stroke-width="1.2"/>
-                    </svg>
-                {/if}
-            </div>
-            <div class="synergy-info">
-                <div class="synergy-title-row">
-                    <span class="synergy-name">{currentSynergySet ? getCollectionName(currentSynergySet.id, $currentLang) : 'Artifacts'}</span>
-                    <span class="synergy-count" class:done={isSetComplete}>{setOwnedCount}/{setTotalCount}</span>
-                </div>
-                <div class="synergy-desc">
-                    {#if isSetComplete}
-                        {rewardPet ? $t('artifactsStore.setCompleted', { name: getPetName(rewardPet.id, $currentLang) }) : $t('artifactsStore.setCompletedAll')}
+        <!-- Dynamic Synergy / Context Showcase Banner -->
+        {#if currentSynergySet}
+            <div class="synergy-banner" class:completed={isSetComplete} style="--accent-color: {currentSynergySet.themeColor}">
+                <div class="synergy-icon">
+                    {#if rewardPet}
+                        <div class="mini-pet-icon">
+                            {@html rewardPet.icon}
+                        </div>
                     {:else}
-                        {currentSynergySet ? getCollectionDesc(currentSynergySet.id, $currentLang) : $t('artifactsStore.setHint')}
+                        <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+                            <circle cx="16" cy="16" r="14" stroke={currentSynergySet.themeColor} stroke-width="2" stroke-dasharray="3 2"/>
+                            <path d="M16 6 L19 13 L26 14 L21 19 L22 26 L16 22 L10 26 L11 19 L6 14 L13 13 Z" fill="#ffeaa7" stroke={currentSynergySet.themeColor} stroke-width="1.2"/>
+                        </svg>
                     {/if}
                 </div>
+                <div class="synergy-info">
+                    <div class="synergy-title-row">
+                        <span class="synergy-name">{getCollectionName(currentSynergySet.id, $currentLang)}</span>
+                        <span class="synergy-count" class:done={isSetComplete}>{setOwnedCount}/{setTotalCount}</span>
+                    </div>
+                    <div class="synergy-desc">
+                        {#if isSetComplete}
+                            {rewardPet ? $t('artifactsStore.setCompleted', { name: getPetName(rewardPet.id, $currentLang) }) : $t('artifactsStore.setCompletedAll')}
+                        {:else}
+                            {getCollectionDesc(currentSynergySet.id, $currentLang)}
+                        {/if}
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Filter Pills Row -->
-        <div class="filter-pills-wrap">
-            <button 
-                type="button" 
-                class="filter-pill" 
-                class:active={activeFilter === 'all'} 
-                on:click={() => activeFilter = 'all'}
-            >
-                {$t('rarity.all')} ({AVAILABLE_ARTIFACTS.length})
-            </button>
-            <button 
-                type="button" 
-                class="filter-pill" 
-                class:active={activeFilter === 'standalone'} 
-                on:click={() => activeFilter = 'standalone'}
-            >
-                {$t('artifactsStore.basicFilter')} (3)
-            </button>
-            {#each AVAILABLE_COLLECTIONS as col}
-                <button 
-                    type="button" 
-                    class="filter-pill" 
-                    class:active={activeFilter === col.id} 
-                    on:click={() => { activeFilter = col.id; activeSynergySetId = col.id; }}
-                >
-                    {getCollectionName(col.id, $currentLang)} ({col.requiredArtifactIds.length})
-                </button>
-            {/each}
-        </div>
+        {:else if activeFilter === 'standalone'}
+            <div class="synergy-banner standalone" style="--accent-color: #686de0">
+                <div class="synergy-icon">
+                    <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+                        <circle cx="16" cy="16" r="12" stroke="#686de0" stroke-width="2"/>
+                        <path d="M16 8 L18 14 L24 16 L18 18 L16 24 L14 18 L8 16 L14 14 Z" fill="#a29bfe"/>
+                    </svg>
+                </div>
+                <div class="synergy-info">
+                    <div class="synergy-title-row">
+                        <span class="synergy-name">{$t('artifactsStore.basicFilter')}</span>
+                        <span class="synergy-count">{standaloneOwnedCount}/3</span>
+                    </div>
+                    <div class="synergy-desc">
+                        {$t('artifactsStore.subtitle')}
+                    </div>
+                </div>
+            </div>
+        {:else}
+            <div class="synergy-banner all-relics" style="--accent-color: #f1c40f">
+                <div class="synergy-icon">
+                    <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+                        <circle cx="16" cy="16" r="13" stroke="#f1c40f" stroke-width="1.8" stroke-dasharray="4 2"/>
+                        <circle cx="16" cy="16" r="7" fill="#ffeaa7" fill-opacity="0.3"/>
+                        <path d="M16 5 L18 12 L25 12 L19.5 16 L21.5 23 L16 19 L10.5 23 L12.5 16 L7 12 L14 12 Z" fill="#ffeaa7" stroke="#f39c12" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="synergy-info">
+                    <div class="synergy-title-row">
+                        <span class="synergy-name">{$t('artifactsStore.title')}</span>
+                        <span class="synergy-count">{$gameStore.artifacts.length}/{AVAILABLE_ARTIFACTS.length}</span>
+                    </div>
+                    <div class="synergy-desc">
+                        {$t('artifactsStore.setHint')}
+                    </div>
+                </div>
+            </div>
+        {/if}
         
         <!-- Artifacts Grid -->
         <div class="artifact-list">
@@ -200,7 +229,7 @@
                     <div class="artifact-info">
                         <div class="art-header-line">
                             <h3>{getArtifactName(art.id, $currentLang)}</h3>
-                            {#if setInfo}
+                            {#if setInfo && activeFilter !== setInfo.id}
                                 <span class="badge-set" style="background: {setInfo.themeColor}">
                                     {getCollectionName(setInfo.id, $currentLang)}
                                 </span>
@@ -369,75 +398,73 @@
     }
     .close-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
 
-    /* Synergy Set Selector Tabs */
-    .synergy-tabs-row {
+    /* Unified Category Tabs */
+    .category-tabs-wrap {
         display: flex;
+        flex-wrap: wrap;
         gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        padding-right: 24px;
+        align-items: center;
         margin-bottom: 8px;
         flex-shrink: 0;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
     }
-    .synergy-tabs-row::-webkit-scrollbar { display: none; }
 
-    .synergy-tab-btn {
-        display: flex;
+    .category-tab-btn {
+        display: inline-flex;
         align-items: center;
         gap: 6px;
         padding: 5px 10px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
+        border-radius: 12px;
         color: #b2bec3;
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 700;
         cursor: pointer;
-        white-space: nowrap;
         transition: all 0.2s ease;
+        user-select: none;
+        white-space: nowrap;
     }
 
-    .synergy-tab-btn:hover {
+    .category-tab-btn:hover {
         background: rgba(255, 255, 255, 0.1);
         color: #fff;
+        border-color: rgba(255, 255, 255, 0.25);
     }
 
-    .synergy-tab-btn.active {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: var(--set-accent, #f1c40f);
+    .category-tab-btn.active {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: var(--col-accent, #f1c40f);
         color: #fff;
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 10px rgba(241, 196, 15, 0.2);
     }
 
     .tab-dot {
-        width: 8px;
-        height: 8px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
         flex-shrink: 0;
     }
 
-    .tab-col-badge {
-        font-size: 0.7rem;
+    .tab-badge {
+        font-size: 0.68rem;
         font-weight: 800;
         background: rgba(0, 0, 0, 0.4);
         padding: 1px 5px;
-        border-radius: 8px;
+        border-radius: 6px;
         color: #dfe6e9;
     }
 
-    .synergy-tab-btn.done .tab-col-badge {
+    .category-tab-btn.done .tab-badge {
         color: #2ecc71;
+        background: rgba(46, 204, 113, 0.2);
     }
 
-    /* Synergy Banner */
+    /* Synergy / Context Banner */
     .synergy-banner {
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 10px 14px;
+        padding: 9px 12px;
         background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(155, 89, 182, 0.12) 100%);
         border: 1px solid var(--accent-color, rgba(241, 196, 15, 0.3));
         border-radius: 12px;
@@ -449,6 +476,16 @@
     .synergy-banner.completed {
         background: linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(241, 196, 15, 0.2) 100%);
         border-color: rgba(46, 204, 113, 0.5);
+    }
+
+    .synergy-banner.all-relics {
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(108, 92, 231, 0.12) 100%);
+        border-color: rgba(241, 196, 15, 0.25);
+    }
+
+    .synergy-banner.standalone {
+        background: linear-gradient(135deg, rgba(104, 109, 224, 0.1) 0%, rgba(72, 52, 212, 0.15) 100%);
+        border-color: rgba(104, 109, 224, 0.35);
     }
 
     .synergy-icon {
@@ -508,43 +545,19 @@
         line-height: 1.3;
     }
 
-    /* Filter Pills */
-    .filter-pills-wrap {
-        display: flex;
-        gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 8px;
-        padding-right: 24px;
-        margin-bottom: 4px;
-        flex-shrink: 0;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
-    }
-    .filter-pills-wrap::-webkit-scrollbar { display: none; }
-
-    .filter-pill {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 4px 10px;
-        color: #a4b0be;
-        font-size: 0.75rem;
-        font-weight: 700;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: all 0.2s;
-    }
-
-    .filter-pill:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-    }
-
-    .filter-pill.active {
-        background: rgba(241, 196, 15, 0.15);
-        border-color: #f1c40f;
-        color: #ffd700;
+    @media (max-width: 520px) {
+        .category-tabs-wrap {
+            gap: 4px;
+        }
+        .category-tab-btn {
+            padding: 4px 7px;
+            font-size: 0.71rem;
+            border-radius: 10px;
+        }
+        .tab-badge {
+            font-size: 0.63rem;
+            padding: 1px 4px;
+        }
     }
 
     /* Artifacts Grid */

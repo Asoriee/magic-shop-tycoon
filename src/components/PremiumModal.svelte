@@ -149,7 +149,7 @@
                 {#if $isVip}
                     <div class="vip-status-chip" title="{$t('common.vip')}: {$vipDaysLeft}">
                         <ResourceIcon type="vip" size={14} />
-                        <span>{$t('common.vip')} {$vipDaysLeft}{$t('common.day')}</span>
+                        <span>{$t('common.vip')} {$vipDaysLeft} {$t('common.day')}</span>
                     </div>
                 {/if}
             </div>

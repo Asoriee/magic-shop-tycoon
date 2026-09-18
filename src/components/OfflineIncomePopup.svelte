@@ -218,7 +218,7 @@
                     <span class="storage-values">
                         {formatDuration(Math.min(offlineSeconds, maxOfflineSeconds))} / {formatCapacity(maxOfflineSeconds)}
                         {#if $isVip}
-                            <span class="vip-capacity-chip">+5{$t('common.hour')} {$t('common.vip')}</span>
+                            <span class="vip-capacity-chip">+5 {$t('common.hour')} {$t('common.vip')}</span>
                         {/if}
                     </span>
                 </div>

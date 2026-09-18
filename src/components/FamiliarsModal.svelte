@@ -80,8 +80,8 @@
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-        if (hours > 0) return `${hours}${get(t)('common.hour')} ${minutes}${get(t)('common.min')}`;
-        return `${minutes}${get(t)('common.min')} ${seconds}${get(t)('common.sec')}`;
+        if (hours > 0) return `${hours} ${get(t)('common.hour')} ${minutes} ${get(t)('common.min')}`;
+        return `${minutes} ${get(t)('common.min')} ${seconds} ${get(t)('common.sec')}`;
     }
 
     function rollGacha() {

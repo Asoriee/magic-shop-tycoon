@@ -150,12 +150,12 @@
 
                     <div class="curr-chip click-chip" title="{$t('shop.clickPower', { val: '' })}">
                         <ResourceIcon type="click" size={16} />
-                        <span class="curr-val">+{formatNumber($currentClickPower)}{$t('common.perClick')}</span>
+                        <span class="curr-val">+{formatNumber($currentClickPower)} {$t('common.perClick')}</span>
                     </div>
 
                     <div class="curr-chip idle-chip" title="{$t('shop.incomePerSec', { val: '' })}">
                         <ResourceIcon type="income" size={16} />
-                        <span class="curr-val">+{formatNumber($currentIdleIncome)}{$t('common.perSec')}</span>
+                        <span class="curr-val">+{formatNumber($currentIdleIncome)} {$t('common.perSec')}</span>
                     </div>
                 </div>
             </div>
@@ -298,8 +298,8 @@
 
                         <div class="effect-preview">
                             {#if upgrade.type === 'idle'}
-                                <span class="effect-current">+{formatNumber(upgrade.baseValue * upgrade.level)}{$t('common.perSec')}</span>
-                                <span class="effect-next">→ +{formatNumber(upgrade.baseValue * (upgrade.level + bulk.count))}{$t('common.perSec')}</span>
+                                <span class="effect-current">+{formatNumber(upgrade.baseValue * upgrade.level)} {$t('common.perSec')}</span>
+                                <span class="effect-next">→ +{formatNumber(upgrade.baseValue * (upgrade.level + bulk.count))} {$t('common.perSec')}</span>
                             {:else if upgrade.type === 'click'}
                                 <span class="effect-current">+{formatNumber(upgrade.baseValue * upgrade.level)}</span>
                                 <span class="effect-next">→ +{formatNumber(upgrade.baseValue * (upgrade.level + bulk.count))}</span>
@@ -310,8 +310,8 @@
                                 <span class="effect-current">+{upgrade.level}%</span>
                                 <span class="effect-next">→ +{upgrade.level + bulk.count}% (+{formatNumber($resonanceBonus)})</span>
                             {:else if isHearth}
-                                <span class="effect-current">+{upgrade.level}{$t('common.hour')} ({$maxOfflineTimeHours}{$t('common.hour')})</span>
-                                <span class="effect-next">→ +{upgrade.level + bulk.count}{$t('common.hour')}</span>
+                                <span class="effect-current">+{upgrade.level} {$t('common.hour')} ({$maxOfflineTimeHours} {$t('common.hour')})</span>
+                                <span class="effect-next">→ +{upgrade.level + bulk.count} {$t('common.hour')}</span>
                             {:else if isHeat}
                                 <span class="effect-current">+{upgrade.level * 25}%</span>
                                 <span class="effect-next">→ +{(upgrade.level + bulk.count) * 25}%</span>

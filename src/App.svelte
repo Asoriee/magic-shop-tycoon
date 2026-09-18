@@ -283,7 +283,7 @@
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="income" size={16} />
                 </span>
-                <span class="chip-val income-val">+{formatNumber($currentIdleIncome)}{$t('common.perSec')}</span>
+                <span class="chip-val income-val">+{formatNumber($currentIdleIncome)} {$t('common.perSec')}</span>
             </div>
 
             <!-- Crystals Chip -->
@@ -316,7 +316,7 @@
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="vip" size={18} />
                 </span>
-                <span class="chip-val vip-val">{$t('common.vip')} {$vipDaysLeft}{$t('common.day')}</span>
+                <span class="chip-val vip-val">{$t('common.vip')} {$vipDaysLeft} {$t('common.day')}</span>
                 {#if $isVipDailyRewardAvailable}
                     <span class="vip-reward-dot" title={$t('hud.vipRewardDot')}></span>
                 {/if}

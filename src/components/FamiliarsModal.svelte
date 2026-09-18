@@ -96,15 +96,6 @@
         return `${minutes} ${get(t)('common.min')} ${seconds} ${get(t)('common.sec')}`;
     }
 
-    function handleEggTap() {
-        if (isSummoning || showResult || !eggElement) return;
-        playCauldronBubble();
-        gsap.timeline()
-            .to(eggElement, { scale: 1.14, y: -10, duration: 0.12, ease: 'power2.out' })
-            .to(eggElement, { scale: 0.94, y: 4, rotation: -5, duration: 0.1 })
-            .to(eggElement, { scale: 1.04, y: -2, rotation: 4, duration: 0.1 })
-            .to(eggElement, { scale: 1, y: 0, rotation: 0, duration: 0.15, ease: 'bounce.out' });
-    }
 
     function rollGacha(count: 1 | 5 = 1) {
         if (isSummoning || showResult) return;
@@ -600,9 +591,7 @@
                         </div>
 
                         <!-- Sacred Altar of Summoning -->
-                        <!-- svelte-ignore a11y_click_events_have_key-events -->
-                        <!-- svelte-ignore a11y_no_static_element_interactions -->
-                        <div class="gacha-altar-stage" class:ritual-active={isSummoning} on:click={handleEggTap}>
+                        <div class="gacha-altar-stage" class:ritual-active={isSummoning}>
                             <!-- Outer Runic Orbit SVG -->
                             <div class="altar-orbit altar-orbit-outer" class:orbit-accelerate={isSummoning}>
                                 <svg viewBox="0 0 200 200" width="100%" height="100%">
@@ -694,9 +683,6 @@
                                     <circle cx="53" cy="42" r="1.8" fill="#ffffff" opacity="0.8" />
                                 </svg>
                             </div>
-                            <span class="altar-interact-hint" class:hint-summoning={isSummoning}>
-                                {isSummoning ? '✨ ' + ($t('common.active') || 'Ритуал...') : $t('familiars.altarHint')}
-                            </span>
                         </div>
 
                         <!-- Drop Rates Transparency Bar -->
@@ -1556,9 +1542,6 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
         margin: 4px 0;
     }
 
@@ -1595,20 +1578,6 @@
         z-index: 2;
         animation: eggFloat 3.8s ease-in-out infinite;
         filter: drop-shadow(0 10px 22px rgba(108, 92, 231, 0.55)) drop-shadow(0 0 12px rgba(241, 196, 15, 0.4));
-        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .gacha-altar-stage:hover .gacha-draconic-egg {
-        transform: scale(1.06) translateY(-4px);
-    }
-
-    .altar-interact-hint {
-        position: absolute;
-        bottom: -4px;
-        font-size: 0.7rem;
-        color: #a4b0be;
-        opacity: 0.85;
-        letter-spacing: 0.3px;
     }
 
     /* Ritual Active Effects on Sacred Altar */
@@ -1649,13 +1618,6 @@
         opacity: 0.35;
         pointer-events: none;
         transition: opacity 0.3s ease;
-    }
-
-    .altar-interact-hint.hint-summoning {
-        color: #ffd700;
-        font-weight: 800;
-        text-shadow: 0 0 8px rgba(241, 196, 15, 0.6);
-        animation: pulseBadge 1.2s infinite;
     }
 
     /* Drop Rates Transparency Bar */

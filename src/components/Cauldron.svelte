@@ -5,8 +5,12 @@
     import { playCauldronBubble, playOverheatSizzle } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
     import { t } from '../i18n';
+    import { ClickRateLimiter } from '../security';
     
     let cauldronGroup: SVGGElement;
+    let cauldronContainer: HTMLDivElement;
+
+    const clickLimiter = new ClickRateLimiter(16);
 
     let heat = 0; // 0 to 100
     let decayInterval: any;
@@ -36,13 +40,27 @@
         prevOverheated = isOverheated;
     }
 
-    // Use a localized array for tracking click effects
+    // Use a localized array for tracking click effects (capped to 8 elements for performance)
     let clickEffects: { id: number, x: number, y: number, value: number, offsetX: number, isCrystal: boolean, isCrit: boolean, isCombo: boolean }[] = [];
     let effectIdCounter = 0;
 
-    function handleCauldronClick(event: PointerEvent) {
-        const clientX = event.clientX;
-        const clientY = event.clientY;
+    function handleCauldronClick(event: PointerEvent | KeyboardEvent) {
+        // Anti-Cheat: Reject simulated / scripted events
+        if (event && !event.isTrusted) return;
+
+        // Anti-Cheat: Hardware / Autoclicker rate limiter (max 16 CPS)
+        if (!clickLimiter.canClick(Date.now())) return;
+
+        let clientX = 0;
+        let clientY = 0;
+        if ('clientX' in event && event.clientX > 0) {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        } else if (cauldronContainer) {
+            const rect = cauldronContainer.getBoundingClientRect();
+            clientX = rect.left + rect.width / 2;
+            clientY = rect.top + rect.height / 2;
+        }
 
         // Increase heat on click
         const heatGain = 10 + ($heatBonusLevel * 3);
@@ -72,11 +90,12 @@
             });
         }
 
-        // Add floating text
+        // Add floating text with pooling (keep max 8 active animations)
         const id = effectIdCounter++;
         const offsetX = (Math.random() - 0.5) * 40;
+        const trimmed = clickEffects.length >= 8 ? clickEffects.slice(-7) : clickEffects;
         
-        clickEffects = [...clickEffects, {
+        clickEffects = [...trimmed, {
             id,
             x: clientX,
             y: clientY,
@@ -139,10 +158,16 @@
 
     <div 
         class="cauldron-container" 
+        bind:this={cauldronContainer}
         on:pointerdown|preventDefault={handleCauldronClick} 
         role="button" 
         tabindex="0" 
-        on:keydown={(e) => e.key === 'Enter' && handleCauldronClick(new PointerEvent('pointerdown'))}
+        on:keydown={(e) => {
+            if (e.isTrusted && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                handleCauldronClick(e);
+            }
+        }}
     >
         <svg class="cauldron-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
             <!-- Alchemical Pedestal / Transmutation Circle (Pure SVG) -->

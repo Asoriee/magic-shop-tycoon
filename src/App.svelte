@@ -23,7 +23,8 @@
         showInterstitialAd,
         signalGameReady,
         notifyGameplayStart,
-        notifyGameplayStop
+        notifyGameplayStop,
+        getServerTime
     } from './yandex-sdk';
     import Cauldron from './components/Cauldron.svelte';
     import OfflineIncomePopup from './components/OfflineIncomePopup.svelte';
@@ -60,7 +61,7 @@
     let gameLoop: number;
     let hiddenTimestamp = 0;
     let autoSaveCounter = 0;
-    let nowTime = Date.now();
+    let nowTime = getServerTime();
 
     $: totalCityNotifications = $readyOrdersCount + $unclaimedQuestsCount;
     $: liveBuffs = ($gameStore?.activeBuffs || []).filter(b => b.expiresAt > nowTime);
@@ -83,8 +84,17 @@
     }
 
     function checkOfflineEarnings(forcedAwayMs?: number) {
-        const now = Date.now();
+        const now = getServerTime();
         const lastSave = $gameStore?.lastSaveTime || now;
+
+        // Anti-Cheat: Rollback detection (clock moved back by > 60s)
+        if (now < lastSave - 60000) {
+            console.warn('[Security] Time anomaly detected: local/server clock moved backwards.');
+            gameStore.setLastSaveTime(now);
+            saveGame();
+            return;
+        }
+
         const rawDiffMs = typeof forcedAwayMs === 'number' && forcedAwayMs > 0 
             ? forcedAwayMs 
             : Math.max(0, now - lastSave);
@@ -113,20 +123,21 @@
     let handleContextMenu: (e: MouseEvent) => void;
 
     function handleVisibilityChange() {
+        const now = getServerTime();
         if (document.hidden) {
-            hiddenTimestamp = Date.now();
+            hiddenTimestamp = now;
             gameStore.setLastSaveTime(hiddenTimestamp);
             saveGame();
             notifyGameplayStop();
         } else {
             notifyGameplayStart();
             if (hiddenTimestamp > 0) {
-                const awayMs = Date.now() - hiddenTimestamp;
+                const awayMs = now - hiddenTimestamp;
                 hiddenTimestamp = 0;
                 if (awayMs >= 60 * 1000) {
                     checkOfflineEarnings(awayMs);
                 } else {
-                    gameStore.setLastSaveTime(Date.now());
+                    gameStore.setLastSaveTime(now);
                 }
             }
         }
@@ -135,7 +146,7 @@
     function handleWindowFocus() {
         notifyGameplayStart();
         if (hiddenTimestamp > 0) {
-            const awayMs = Date.now() - hiddenTimestamp;
+            const awayMs = getServerTime() - hiddenTimestamp;
             hiddenTimestamp = 0;
             if (awayMs >= 60 * 1000) {
                 checkOfflineEarnings(awayMs);
@@ -165,7 +176,7 @@
 
         // Start idle loop with throttled auto-save
         gameLoop = setInterval(() => {
-            nowTime = Date.now();
+            nowTime = getServerTime();
             if (!isAdActive() && !document.hidden) {
                 gameStore.addGold($currentIdleIncome);
                 gameStore.checkOrderSpawns();

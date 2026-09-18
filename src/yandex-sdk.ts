@@ -24,6 +24,11 @@ import {
     getSecretUpgradeName,
     getSecretUpgradeDesc
 } from './i18n';
+import { 
+    packSaveData, 
+    unpackSaveData, 
+    sanitizeStateValues 
+} from './security';
 
 declare global {
     interface Window {
@@ -68,12 +73,27 @@ export async function initYandexSdk() {
         const initialLang = detectInitialLanguage(ysdkLang);
         setLanguage(initialLang);
         console.log('Language initialized:', initialLang, '(SDK environment:', ysdkLang, ')');
+
+        // Sync server time offset to defeat device clock tampering
+        updateServerTimeOffset();
     } catch (error) {
         console.error('Failed to init Yandex SDK', error);
     }
 
     await loadGame();
     await initPayments();
+
+    // Hook unload events for guaranteed final save flush
+    if (typeof window !== 'undefined') {
+        window.addEventListener('beforeunload', () => {
+            flushCloudSave();
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                flushCloudSave();
+            }
+        });
+    }
 }
 
 export function signalGameReady() {
@@ -211,13 +231,57 @@ export async function purchaseItem(itemId: string): Promise<void> {
     }
 }
 
-// --- Save / Load ---
+// --- Save / Load & Throttled Cloud Sync ---
+
+let cloudSaveTimeout: any = null;
+let pendingCloudState: any = null;
+let lastCloudSaveTime = 0;
+const MIN_CLOUD_SAVE_INTERVAL_MS = 8000; // 8 seconds cooldown between cloud saves
+
+let serverTimeOffset = 0;
+
+export function updateServerTimeOffset(): void {
+    if (ysdk?.serverTime && typeof ysdk.serverTime === 'function') {
+        try {
+            const serverMs = ysdk.serverTime();
+            if (serverMs > 0) {
+                serverTimeOffset = serverMs - Date.now();
+            }
+        } catch (e) {}
+    }
+}
+
+export function getServerTime(): number {
+    if (ysdk?.serverTime && typeof ysdk.serverTime === 'function') {
+        try {
+            const serverMs = ysdk.serverTime();
+            if (serverMs > 0) return serverMs;
+        } catch (e) {}
+    }
+    return Date.now() + serverTimeOffset;
+}
+
+export async function flushCloudSave(): Promise<void> {
+    if (!player || !pendingCloudState) return;
+    if (cloudSaveTimeout) {
+        clearTimeout(cloudSaveTimeout);
+        cloudSaveTimeout = null;
+    }
+    const stateToPush = pendingCloudState;
+    pendingCloudState = null;
+    lastCloudSaveTime = Date.now();
+    try {
+        await player.setData(stateToPush);
+    } catch (e) {
+        console.warn('[CloudSave] Failed to push to Yandex Player API', e);
+    }
+}
 
 export async function saveGame() {
     const state = get(gameStore);
     const stateToSave = {
         ...state,
-        lastSaveTime: Date.now(),
+        lastSaveTime: getServerTime(),
         crystals: get(crystals),
         isVip: get(isVip),
         vipExpiresAt: get(vipExpiresAt),
@@ -227,17 +291,29 @@ export async function saveGame() {
         unlockedRecipes: get(unlockedRecipes),
         failedBrewAttempts: get(failedBrewAttempts),
     };
-    
+
+    // 1. Immediate local save with obfuscation & cryptographic checksum
+    try {
+        const packed = packSaveData(stateToSave);
+        localStorage.setItem(LOCAL_STORAGE_KEY, packed);
+    } catch (e) {
+        console.warn('Failed to save to local storage', e);
+    }
+
+    // 2. Throttled Cloud Save (respecting Yandex quota limit)
     if (player) {
-        try {
-            await player.setData(stateToSave);
-            return;
-        } catch (e) {
-            console.warn('Failed to save to Yandex Player API, using localStorage', e);
+        pendingCloudState = stateToSave;
+        const now = Date.now();
+        const elapsed = now - lastCloudSaveTime;
+
+        if (elapsed >= MIN_CLOUD_SAVE_INTERVAL_MS) {
+            flushCloudSave();
+        } else if (!cloudSaveTimeout) {
+            cloudSaveTimeout = setTimeout(() => {
+                flushCloudSave();
+            }, MIN_CLOUD_SAVE_INTERVAL_MS - elapsed);
         }
     }
-    
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
 }
 
 export async function loadGame(): Promise<void> {
@@ -247,7 +323,7 @@ export async function loadGame(): Promise<void> {
         try {
             const data = await player.getData();
             if (Object.keys(data).length > 0) {
-                savedData = data;
+                savedData = sanitizeStateValues(data);
             }
         } catch (e) {
             console.warn('Failed to load from Yandex Player API, using localStorage', e);
@@ -255,13 +331,9 @@ export async function loadGame(): Promise<void> {
     }
 
     if (!savedData) {
-        const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (localData) {
-            try {
-                savedData = JSON.parse(localData);
-            } catch (e) {
-                console.error('Error parsing local save data', e);
-            }
+        const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localRaw) {
+            savedData = unpackSaveData(localRaw);
         }
     }
 
@@ -411,17 +483,26 @@ export function showRewardedAd(
     }
 
     if (!ysdk) {
-        // Fallback for testing
-        isAdPlaying = true;
-        setAdAudioMute(true);
-        try { (ysdk as any)?.features?.GameplayAPI?.stop(); } catch(e) {}
-        setTimeout(() => {
-            onReward();
-            isAdPlaying = false;
-            setAdAudioMute(false);
-            try { (ysdk as any)?.features?.GameplayAPI?.start(); } catch(e) {}
-            if (onClose) onClose();
-        }, 1000);
+        const isLocalDev = typeof window !== 'undefined' && 
+            (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+        if (isLocalDev) {
+            // Fallback strictly for local testing & development
+            isAdPlaying = true;
+            setAdAudioMute(true);
+            setTimeout(() => {
+                onReward();
+                isAdPlaying = false;
+                setAdAudioMute(false);
+                if (onClose) onClose();
+            }, 800);
+            return;
+        }
+
+        // In production, do not grant free reward if ad service is unreachable or blocked
+        console.warn('[AdSecurity] Rewarded ad requested but SDK is unavailable.');
+        if (onError) onError(new Error('Ad service unavailable'));
+        else if (onClose) onClose();
         return;
     }
 
@@ -525,16 +606,32 @@ export interface LeaderboardEntry {
 
 const LEADERBOARD_NAME = 'stardustmasters';
 let leaderboards: any = null;
+let lastLeaderboardSubmitTime = 0;
 
 export async function submitLeaderboardScore(score: number): Promise<void> {
     const numericScore = Math.floor(Math.max(0, score));
     if (numericScore <= 0) return;
 
+    // Security & Anti-Cheat: Validate score against total earned
+    const state = get(gameStore);
+    const verifiedTotal = state.totalStardustEarned || state.stardust || 0;
+    
+    // Score cannot exceed mathematically earned total stardust
+    const safeScore = Math.min(numericScore, Math.floor(verifiedTotal));
+    if (safeScore <= 0) return;
+
+    // Rate limiter: max 1 submission every 8 seconds
+    const now = Date.now();
+    if (now - lastLeaderboardSubmitTime < 8000) {
+        return;
+    }
+    lastLeaderboardSubmitTime = now;
+
     // Save locally always for fallback
     try {
         const currentSaved = parseInt(localStorage.getItem('localLeaderboardScore') || '0', 10);
-        if (numericScore > currentSaved) {
-            localStorage.setItem('localLeaderboardScore', String(numericScore));
+        if (safeScore > currentSaved) {
+            localStorage.setItem('localLeaderboardScore', String(safeScore));
         }
     } catch (e) {}
 
@@ -542,12 +639,12 @@ export async function submitLeaderboardScore(score: number): Promise<void> {
 
     try {
         if (ysdk.leaderboards?.setScore) {
-            await ysdk.leaderboards.setScore(LEADERBOARD_NAME, numericScore);
+            await ysdk.leaderboards.setScore(LEADERBOARD_NAME, safeScore);
         } else if (typeof ysdk.getLeaderboards === 'function') {
             if (!leaderboards) {
                 leaderboards = await ysdk.getLeaderboards();
             }
-            await leaderboards.setLeaderboardScore(LEADERBOARD_NAME, numericScore);
+            await leaderboards.setLeaderboardScore(LEADERBOARD_NAME, safeScore);
         }
     } catch (e) {
         console.warn('Failed to submit leaderboard score to Yandex SDK', e);

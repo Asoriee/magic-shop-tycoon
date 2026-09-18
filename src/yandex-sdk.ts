@@ -536,10 +536,14 @@ export async function submitLeaderboardScore(score: number): Promise<void> {
     if (!ysdk) return;
 
     try {
-        if (!leaderboards) {
-            leaderboards = await ysdk.getLeaderboards();
+        if (ysdk.leaderboards?.setScore) {
+            await ysdk.leaderboards.setScore(LEADERBOARD_NAME, numericScore);
+        } else if (typeof ysdk.getLeaderboards === 'function') {
+            if (!leaderboards) {
+                leaderboards = await ysdk.getLeaderboards();
+            }
+            await leaderboards.setLeaderboardScore(LEADERBOARD_NAME, numericScore);
         }
-        await leaderboards.setLeaderboardScore(LEADERBOARD_NAME, numericScore);
     } catch (e) {
         console.warn('Failed to submit leaderboard score to Yandex SDK', e);
     }
@@ -549,8 +553,7 @@ export async function getLeaderboardEntries(topCount: number = 10): Promise<{ en
     const youLabel = translate('leaderboard.you');
     const anonLabel = translate('leaderboard.anonymousMage');
 
-    if (!ysdk) {
-        // Mock fallback for local testing & preview
+    const getMockFallback = () => {
         const savedScore = parseInt(localStorage.getItem('localLeaderboardScore') || '0', 10);
         const mockEntries: LeaderboardEntry[] = [
             { rank: 1, name: 'Archmage Merlin', score: Math.max(125000, savedScore + 5000) },
@@ -565,17 +568,34 @@ export async function getLeaderboardEntries(topCount: number = 10): Promise<{ en
 
         const user = mockEntries.find(e => e.isUser) || null;
         return { entries: mockEntries.slice(0, topCount), userEntry: user };
+    };
+
+    if (!ysdk) {
+        return getMockFallback();
     }
 
     try {
-        if (!leaderboards) {
-            leaderboards = await ysdk.getLeaderboards();
+        let res: any = null;
+        if (ysdk.leaderboards?.getEntries) {
+            res = await ysdk.leaderboards.getEntries(LEADERBOARD_NAME, {
+                quantityTop: topCount,
+                includeUser: true,
+                quantityAround: 2
+            });
+        } else if (typeof ysdk.getLeaderboards === 'function') {
+            if (!leaderboards) {
+                leaderboards = await ysdk.getLeaderboards();
+            }
+            res = await leaderboards.getLeaderboardEntries(LEADERBOARD_NAME, {
+                quantityTop: topCount,
+                includeUser: true,
+                quantityAround: 2
+            });
         }
-        const res = await leaderboards.getLeaderboardEntries(LEADERBOARD_NAME, {
-            quantityTop: topCount,
-            includeUser: true,
-            quantityAround: 2
-        });
+
+        if (!res) {
+            return getMockFallback();
+        }
 
         const entries: LeaderboardEntry[] = (res.entries || []).map((e: any) => ({
             rank: e.rank,
@@ -597,8 +617,8 @@ export async function getLeaderboardEntries(topCount: number = 10): Promise<{ en
 
         return { entries, userEntry };
     } catch (e) {
-        console.warn('Failed to get leaderboard entries from Yandex SDK', e);
-        return { entries: [], userEntry: null };
+        console.warn('Failed to get leaderboard entries from Yandex SDK (using fallback)', e);
+        return getMockFallback();
     }
 }
 

@@ -361,6 +361,17 @@ export interface Translations {
         auraMaxNotice?: string;
         legendaryAuraBadge?: string;
         companionShopBadge?: string;
+        jackpotTitle?: string;
+        summon1Btn?: string;
+        summon5Btn?: string;
+        discountTag?: string;
+        ratesLegendary?: string;
+        ratesEpic?: string;
+        ratesRare?: string;
+        ratesCommon?: string;
+        altarHint?: string;
+        multiResultTitle?: string;
+        newBadge?: string;
         [key: string]: any;
     };
     leaderboard: {

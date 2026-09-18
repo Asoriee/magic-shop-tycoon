@@ -16,25 +16,34 @@
     import { t, currentLang, getPetName, getPetDesc } from '../i18n';
     import { getPetAuraDetails } from '../petBonuses';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
-    import { playSuccessSound, playLevelUpSound, playCoinSound } from '../audio';
+    import { playSuccessSound, playLevelUpSound, playCoinSound, playCauldronBubble } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
     export let isEmbedded = false;
     export let onClose: () => void;
 
+    interface RollOutcome {
+        pet: Pet;
+        type: 'new' | 'upgrade' | 'max_refund';
+        level: number;
+    }
+
     let activeTab: 'pets' | 'gacha' = 'pets';
     let gachaAnimating = false;
     let rolledPet: Pet | null = null;
     let rollType: 'new' | 'upgrade' | 'max_refund' = 'new';
     let newLevelReached = 1;
+    let isMultiRoll = false;
+    let multiResults: RollOutcome[] = [];
     let eggElement: HTMLElement;
     let resultElement: HTMLElement;
 
     let toastMessage: string | null = null;
     let toastTimer: number;
 
-    const GACHA_COST = 100;
+    const GACHA_COST_1 = 100;
+    const GACHA_COST_5 = 450;
 
     function showToast(msg: string) {
         toastMessage = msg;
@@ -48,6 +57,7 @@
     $: rollablePets = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
     $: lockedPets = rollablePets.filter(p => !$gameStore.unlockedPets.includes(p.id));
     $: activeExps = $gameStore.activeExpeditions;
+    $: jackpotPets = AVAILABLE_PETS.filter(p => p.id === 'pet_dragon' || p.id === 'pet_manticore');
 
     // Timers update
     let now = Date.now();
@@ -85,88 +95,135 @@
         return `${minutes} ${get(t)('common.min')} ${seconds} ${get(t)('common.sec')}`;
     }
 
-    function rollGacha() {
-        if ($crystals < GACHA_COST) {
+    function handleEggTap() {
+        if (gachaAnimating || !eggElement) return;
+        playCauldronBubble();
+        gsap.timeline()
+            .to(eggElement, { scale: 1.14, y: -10, duration: 0.12, ease: 'power2.out' })
+            .to(eggElement, { scale: 0.94, y: 4, rotation: -5, duration: 0.1 })
+            .to(eggElement, { scale: 1.04, y: -2, rotation: 4, duration: 0.1 })
+            .to(eggElement, { scale: 1, y: 0, rotation: 0, duration: 0.15, ease: 'bounce.out' });
+    }
+
+    function rollGacha(count: 1 | 5 = 1) {
+        const cost = count === 5 ? GACHA_COST_5 : GACHA_COST_1;
+        if ($crystals < cost) {
             showToast(get(t)('familiars.notEnoughCrystalsSummon'));
-            const gachaBtn = document.querySelector('.gacha-btn');
-            if (gachaBtn) {
-                gsap.fromTo(gachaBtn, 
+            const btnSelector = count === 5 ? '.cta-multi' : '.cta-single';
+            const targetBtn = document.querySelector(btnSelector);
+            if (targetBtn) {
+                gsap.fromTo(targetBtn, 
                     { x: -10 }, 
-                    { x: 10, duration: 0.08, yoyo: true, repeat: 5, onComplete: () => gsap.set(gachaBtn, { x: 0 }) }
+                    { x: 10, duration: 0.08, yoyo: true, repeat: 5, onComplete: () => gsap.set(targetBtn, { x: 0 }) }
                 );
             }
             return;
         }
 
-        // Available rollable pets ONLY (collection exclusive pets can NEVER be rolled)
         const rollablePool = AVAILABLE_PETS.filter(p => !p.isCollectionExclusive);
         if (rollablePool.length === 0) return;
 
         // Deduct crystals
-        crystals.update(c => c - GACHA_COST);
+        crystals.update(c => c - cost);
 
-        // Weighted roll: Common 55%, Rare 28%, Epic 13%, Legendary 4%
-        const rand = Math.random() * 100;
-        let targetRarity: 'common' | 'rare' | 'epic' | 'legendary' = 'common';
-        if (rand < 4) {
-            targetRarity = 'legendary';
-        } else if (rand < 17) {
-            targetRarity = 'epic';
-        } else if (rand < 45) {
-            targetRarity = 'rare';
-        } else {
-            targetRarity = 'common';
-        }
+        // Track simulated state for sequential rolls
+        const simUnlocked = new Set($gameStore.unlockedPets);
+        const simLevels: Record<string, number> = { ...($gameStore.petLevels || {}) };
 
-        let candidates = rollablePool.filter(p => p.rarity === targetRarity);
-        if (candidates.length === 0) candidates = rollablePool;
-        const newPet = candidates[Math.floor(Math.random() * candidates.length)];
+        const outcomes: RollOutcome[] = [];
 
-        const isUnlocked = $gameStore.unlockedPets.includes(newPet.id);
-        const currentLvl = ($gameStore.petLevels && $gameStore.petLevels[newPet.id]) || (isUnlocked ? 1 : 0);
+        for (let i = 0; i < count; i++) {
+            // Weighted roll: Common 55%, Rare 28%, Epic 13%, Legendary 4%
+            const rand = Math.random() * 100;
+            let targetRarity: 'common' | 'rare' | 'epic' | 'legendary' = 'common';
+            if (rand < 4) {
+                targetRarity = 'legendary';
+            } else if (rand < 17) {
+                targetRarity = 'epic';
+            } else if (rand < 45) {
+                targetRarity = 'rare';
+            } else {
+                targetRarity = 'common';
+            }
 
-        if (!isUnlocked) {
-            rollType = 'new';
-            newLevelReached = 1;
-        } else if (currentLvl < 10) {
-            rollType = 'upgrade';
-            newLevelReached = currentLvl + 1;
-        } else {
-            rollType = 'max_refund';
-            newLevelReached = 10;
+            let candidates = rollablePool.filter(p => p.rarity === targetRarity);
+            if (candidates.length === 0) candidates = rollablePool;
+            const pet = candidates[Math.floor(Math.random() * candidates.length)];
+
+            const isUnlocked = simUnlocked.has(pet.id);
+            const curLvl = simLevels[pet.id] || (isUnlocked ? 1 : 0);
+
+            let outcomeType: 'new' | 'upgrade' | 'max_refund';
+            let resLvl: number;
+
+            if (!isUnlocked) {
+                outcomeType = 'new';
+                resLvl = 1;
+                simUnlocked.add(pet.id);
+                simLevels[pet.id] = 1;
+            } else if (curLvl < 10) {
+                outcomeType = 'upgrade';
+                resLvl = curLvl + 1;
+                simLevels[pet.id] = resLvl;
+            } else {
+                outcomeType = 'max_refund';
+                resLvl = 10;
+            }
+
+            outcomes.push({ pet, type: outcomeType, level: resLvl });
         }
 
         gachaAnimating = true;
+        isMultiRoll = (count === 5);
         rolledPet = null;
+        multiResults = [];
 
-        // Egg animation
+        // Egg ritual animation
         setTimeout(() => {
             if (eggElement) {
                 gsap.timeline()
                     .set(eggElement, { scale: 1, rotation: 0, opacity: 1 })
-                    .to(eggElement, { rotation: 15, duration: 0.1, yoyo: true, repeat: 5 })
-                    .to(eggElement, { rotation: -15, duration: 0.1, yoyo: true, repeat: 5 })
-                    .to(eggElement, { scale: 1.5, duration: 0.2 })
-                    .to(eggElement, { scale: 0, duration: 0.1, ease: 'back.in(2)', onComplete: () => {
-                        rolledPet = newPet;
-                        
-                        if (rollType === 'new') {
-                            gameStore.unlockPet(newPet.id);
+                    .to(eggElement, { rotation: 18, duration: 0.08, yoyo: true, repeat: 6 })
+                    .to(eggElement, { scale: 1.45, duration: 0.22, ease: 'power1.in' })
+                    .to(eggElement, { scale: 0, opacity: 0, duration: 0.15, ease: 'back.in(2)', onComplete: () => {
+                        // Apply mutations
+                        let hasLegendary = false;
+                        let hasUpgrade = false;
+
+                        for (const out of outcomes) {
+                            if (out.pet.rarity === 'legendary') hasLegendary = true;
+                            if (out.type === 'new') {
+                                gameStore.unlockPet(out.pet.id);
+                            } else if (out.type === 'upgrade') {
+                                gameStore.upgradePet(out.pet.id);
+                                hasUpgrade = true;
+                            } else if (out.type === 'max_refund') {
+                                crystals.update(c => c + 50);
+                            }
+                        }
+
+                        if (hasLegendary) {
                             playSuccessSound();
-                        } else if (rollType === 'upgrade') {
-                            gameStore.upgradePet(newPet.id);
+                        } else if (hasUpgrade) {
                             playLevelUpSound();
                         } else {
-                            crystals.update(c => c + 50);
-                            playCoinSound();
+                            playSuccessSound();
                         }
                         saveGame();
-                        
+
+                        if (count === 1) {
+                            rolledPet = outcomes[0].pet;
+                            rollType = outcomes[0].type;
+                            newLevelReached = outcomes[0].level;
+                        } else {
+                            multiResults = outcomes;
+                        }
+
                         setTimeout(() => {
                             if (resultElement) {
                                 gsap.fromTo(resultElement, 
-                                    { scale: 0, opacity: 0, rotation: -180 },
-                                    { scale: 1, opacity: 1, rotation: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' }
+                                    { scale: 0.3, opacity: 0, y: 30 },
+                                    { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' }
                                 );
                             }
                         }, 50);
@@ -178,6 +235,8 @@
     function closeGachaResult() {
         gachaAnimating = false;
         rolledPet = null;
+        multiResults = [];
+        isMultiRoll = false;
     }
 
     function startExpedition(petId: string) {
@@ -325,11 +384,6 @@
                     <path d="M12 7v10M7 12h10"/>
                 </svg>
                 <span>{$t('familiars.magicSummon')}</span>
-                {#if lockedPets.length > 0}
-                    <span class="sub-pill gold-pill">{$t('familiars.newPetsTag', { count: lockedPets.length })}</span>
-                {:else}
-                    <span class="sub-pill ok-pill">{$t('familiars.levelingTag')}</span>
-                {/if}
             </button>
         </div>
 
@@ -503,60 +557,214 @@
             {:else if activeTab === 'gacha'}
                 <div class="gacha-container">
                     {#if !gachaAnimating}
-                        <div class="gacha-info">
-                            <h3 class="gacha-headline">{$t('familiars.magicSummon')}</h3>
-                            <p class="gacha-desc">
-                                {$t('familiars.summonNotice')}
-                            </p>
-                            
-                            <div class="cost-badge">
-                                <span>{$t('familiars.summonCostLabel')}:</span>
-                                <div class="cost-crystal">
-                                    <ResourceIcon type="crystals" size={18} />
-                                    <span class="cost-num">{GACHA_COST}</span>
-                                </div>
-                            </div>
-
-                            <button class="gacha-btn" on:click={rollGacha}>
-                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        <!-- Grand Jackpot Showcase -->
+                        <div class="gacha-jackpot-showcase">
+                            <div class="jackpot-header">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class="jackpot-crown-icon" fill="#ffd700">
+                                    <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V17H19V19Z"/>
                                 </svg>
-                                {$t('familiars.magicSummon')}
-                            </button>
+                                <span class="jackpot-title">{$t('familiars.jackpotTitle')}</span>
+                            </div>
+                            <div class="jackpot-cards-row">
+                                {#each jackpotPets as jpPet (jpPet.id)}
+                                    {@const jpAura = getPetAuraDetails(jpPet.id, 1, $currentLang)}
+                                    <div class="jackpot-card">
+                                        <div class="jackpot-icon-wrap">
+                                            <div class="jackpot-svg">{@html jpPet.icon}</div>
+                                            <span class="jackpot-badge">{RARITY_NAMES[jpPet.rarity]}</span>
+                                        </div>
+                                        <div class="jackpot-info">
+                                            <div class="jackpot-name">{getPetName(jpPet.id, $currentLang)}</div>
+                                            <div class="jackpot-aura-desc">
+                                                <span class="aura-icon-star">✦</span>
+                                                <span>{jpAura.title}: {jpAura.description}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
                         </div>
-                        
-                        <div class="gacha-egg">
-                            <svg viewBox="0 0 100 100" width="130" height="130">
-                                <defs>
-                                    <linearGradient id="eggGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#a29bfe"/>
-                                        <stop offset="50%" stop-color="#6c5ce7"/>
-                                        <stop offset="100%" stop-color="#fd79a8"/>
-                                    </linearGradient>
-                                    <radialGradient id="eggShine" cx="30%" cy="30%" r="70%">
-                                        <stop offset="0%" stop-color="#fff" stop-opacity="0.6"/>
-                                        <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
-                                    </radialGradient>
-                                </defs>
-                                <ellipse cx="50" cy="52" rx="36" ry="46" fill="url(#eggGrad)" stroke="#f1c40f" stroke-width="2"/>
-                                <ellipse cx="44" cy="40" rx="20" ry="28" fill="url(#eggShine)"/>
-                                <circle cx="38" cy="32" r="5" fill="white" opacity="0.6"/>
-                            </svg>
-                        </div>
-                    {:else}
-                        {#if !rolledPet}
-                            <div class="gacha-egg animating" bind:this={eggElement}>
-                                <svg viewBox="0 0 100 100" width="140" height="140">
+
+                        <!-- Sacred Altar of Summoning -->
+                        <!-- svelte-ignore a11y_click_events_have_key-events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <div class="gacha-altar-stage" on:click={handleEggTap}>
+                            <!-- Outer Runic Orbit SVG -->
+                            <div class="altar-orbit altar-orbit-outer">
+                                <svg viewBox="0 0 200 200" width="100%" height="100%">
                                     <defs>
-                                        <linearGradient id="eggGradActive" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stop-color="#fd79a8"/>
-                                            <stop offset="100%" stop-color="#f1c40f"/>
+                                        <linearGradient id="orbitGradOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#fd79a8" stop-opacity="0.8"/>
+                                            <stop offset="50%" stop-color="#a29bfe" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#00cec9" stop-opacity="0.9"/>
                                         </linearGradient>
                                     </defs>
-                                    <ellipse cx="50" cy="50" rx="36" ry="46" fill="url(#eggGradActive)" stroke="#fff" stroke-width="3"/>
+                                    <circle cx="100" cy="100" r="92" fill="none" stroke="url(#orbitGradOuter)" stroke-width="1.8" stroke-dasharray="8, 6, 2, 6"/>
+                                    <!-- Orbit Glyphs -->
+                                    <circle cx="100" cy="8" r="3.5" fill="#f1c40f"/>
+                                    <circle cx="192" cy="100" r="3.5" fill="#00cec9"/>
+                                    <circle cx="100" cy="192" r="3.5" fill="#fd79a8"/>
+                                    <circle cx="8" cy="100" r="3.5" fill="#a29bfe"/>
                                 </svg>
                             </div>
-                        {:else}
+
+                            <!-- Inner Counter-rotating Orbit SVG -->
+                            <div class="altar-orbit altar-orbit-inner">
+                                <svg viewBox="0 0 160 160" width="100%" height="100%">
+                                    <defs>
+                                        <linearGradient id="orbitGradInner" x1="100%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#f1c40f" stop-opacity="0.7"/>
+                                            <stop offset="50%" stop-color="#e056fd" stop-opacity="0.3"/>
+                                            <stop offset="100%" stop-color="#74b9ff" stop-opacity="0.8"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <circle cx="80" cy="80" r="72" fill="none" stroke="url(#orbitGradInner)" stroke-width="1.5" stroke-dasharray="14, 8"/>
+                                    <polygon points="80,10 83,16 77,16" fill="#f1c40f"/>
+                                    <polygon points="150,80 144,83 144,77" fill="#f1c40f"/>
+                                    <polygon points="80,150 77,144 83,144" fill="#f1c40f"/>
+                                    <polygon points="10,80 16,77 16,83" fill="#f1c40f"/>
+                                </svg>
+                            </div>
+
+                            <!-- Altar Pedestal Base -->
+                            <div class="altar-pedestal">
+                                <svg viewBox="0 0 140 32" width="140" height="32">
+                                    <defs>
+                                        <linearGradient id="pedestalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#2c1a4d"/>
+                                            <stop offset="100%" stop-color="#0f071e"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <ellipse cx="70" cy="16" rx="66" ry="12" fill="url(#pedestalGrad)" stroke="rgba(241, 196, 15, 0.4)" stroke-width="1.5"/>
+                                    <ellipse cx="70" cy="14" rx="52" ry="8" fill="rgba(108, 92, 231, 0.25)" stroke="rgba(162, 155, 254, 0.3)" stroke-width="1"/>
+                                </svg>
+                            </div>
+
+                            <!-- Draconic Elemental Egg -->
+                            <div class="gacha-draconic-egg" bind:this={eggElement}>
+                                <svg viewBox="0 0 120 140" width="120" height="140">
+                                    <defs>
+                                        <radialGradient id="eggShellGlow" cx="42%" cy="36%" r="65%">
+                                            <stop offset="0%" stop-color="#ffd56b"/>
+                                            <stop offset="25%" stop-color="#e056fd"/>
+                                            <stop offset="65%" stop-color="#4834d4"/>
+                                            <stop offset="100%" stop-color="#130f40"/>
+                                        </radialGradient>
+                                        <linearGradient id="eggGoldTrim" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#ffeaa7"/>
+                                            <stop offset="50%" stop-color="#fdcb6e"/>
+                                            <stop offset="100%" stop-color="#e17055"/>
+                                        </linearGradient>
+                                        <filter id="eggAuraGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feGaussianBlur stdDeviation="5" result="blur"/>
+                                            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                                        </filter>
+                                    </defs>
+                                    <!-- Egg Glow Aura -->
+                                    <path d="M 60 14 C 90 14, 106 54, 102 90 C 98 116, 82 128, 60 128 C 38 128, 22 116, 18 90 C 14 54, 30 14, 60 14 Z"
+                                          fill="rgba(162, 155, 254, 0.22)" filter="url(#eggAuraGlow)" />
+                                    <!-- Egg Body -->
+                                    <path d="M 60 14 C 90 14, 106 54, 102 90 C 98 116, 82 128, 60 128 C 38 128, 22 116, 18 90 C 14 54, 30 14, 60 14 Z"
+                                          fill="url(#eggShellGlow)" stroke="url(#eggGoldTrim)" stroke-width="2.5" />
+                                    <!-- Draconic Runes & Scale Veins -->
+                                    <path d="M 60 22 Q 68 45 54 70 T 66 110" fill="none" stroke="#ffeaa7" stroke-width="2" stroke-linecap="round" opacity="0.85" />
+                                    <path d="M 54 70 Q 38 78 30 96" fill="none" stroke="#00cec9" stroke-width="1.8" stroke-linecap="round" opacity="0.8" />
+                                    <path d="M 54 70 Q 76 80 88 100" fill="none" stroke="#fd79a8" stroke-width="1.8" stroke-linecap="round" opacity="0.8" />
+                                    <path d="M 44 40 Q 58 50 68 42" fill="none" stroke="#ffeaa7" stroke-width="1.5" opacity="0.75" />
+                                    <!-- Shimmer Star -->
+                                    <circle cx="48" cy="38" r="10" fill="#ffffff" opacity="0.35" filter="url(#eggAuraGlow)" />
+                                    <circle cx="44" cy="34" r="3.5" fill="#ffffff" opacity="0.9" />
+                                    <circle cx="53" cy="42" r="1.8" fill="#ffffff" opacity="0.8" />
+                                </svg>
+                            </div>
+                            <span class="altar-interact-hint">{$t('familiars.altarHint')}</span>
+                        </div>
+
+                        <!-- Drop Rates Transparency Bar -->
+                        <div class="gacha-odds-bar">
+                            <span class="odd-pill leg-pill">{$t('familiars.ratesLegendary')}</span>
+                            <span class="odd-pill epic-pill">{$t('familiars.ratesEpic')}</span>
+                            <span class="odd-pill rare-pill">{$t('familiars.ratesRare')}</span>
+                            <span class="odd-pill com-pill">{$t('familiars.ratesCommon')}</span>
+                        </div>
+
+                        <!-- Dual Summon CTA Buttons Row -->
+                        <div class="gacha-actions-row">
+                            <button class="gacha-cta-btn cta-single" on:click={() => rollGacha(1)}>
+                                <span class="cta-label">{$t('familiars.summon1Btn')}</span>
+                                <div class="cta-price">
+                                    <ResourceIcon type="crystals" size={17} />
+                                    <span class="price-val">{GACHA_COST_1}</span>
+                                </div>
+                            </button>
+                            
+                            <button class="gacha-cta-btn cta-multi" on:click={() => rollGacha(5)}>
+                                <span class="cta-discount-tag">{$t('familiars.discountTag')}</span>
+                                <span class="cta-label">{$t('familiars.summon5Btn')}</span>
+                                <div class="cta-price">
+                                    <span class="old-price">500</span>
+                                    <ResourceIcon type="crystals" size={17} />
+                                    <span class="price-val gold-val">{GACHA_COST_5}</span>
+                                </div>
+                            </button>
+                        </div>
+                    {:else}
+                        <!-- Animating Egg Ritual State -->
+                        {#if !rolledPet && multiResults.length === 0}
+                            <div class="gacha-egg-animating-wrap" bind:this={eggElement}>
+                                <div class="ritual-flare-ring"></div>
+                                <svg viewBox="0 0 120 140" width="130" height="150">
+                                    <defs>
+                                        <radialGradient id="eggActiveBurst" cx="45%" cy="38%" r="65%">
+                                            <stop offset="0%" stop-color="#fff"/>
+                                            <stop offset="30%" stop-color="#ffd56b"/>
+                                            <stop offset="70%" stop-color="#fd79a8"/>
+                                            <stop offset="100%" stop-color="#6c5ce7"/>
+                                        </radialGradient>
+                                    </defs>
+                                    <path d="M 60 14 C 90 14, 106 54, 102 90 C 98 116, 82 128, 60 128 C 38 128, 22 116, 18 90 C 14 54, 30 14, 60 14 Z"
+                                          fill="url(#eggActiveBurst)" stroke="#fff" stroke-width="3" />
+                                </svg>
+                            </div>
+                        {:else if isMultiRoll && multiResults.length > 0}
+                            <!-- 5-Card Multi-Summon Results Celebration Grid -->
+                            <div class="gacha-multi-result" bind:this={resultElement}>
+                                <div class="multi-header">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffd700">
+                                        <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.3 9,8.5"/>
+                                    </svg>
+                                    <h2 class="multi-title">{$t('familiars.multiResultTitle')}</h2>
+                                </div>
+
+                                <div class="multi-grid">
+                                    {#each multiResults as item, idx}
+                                        {@const itemAura = getPetAuraDetails(item.pet.id, item.level, $currentLang)}
+                                        <div class="multi-card {item.pet.rarity}">
+                                            <div class="multi-card-icon">{@html item.pet.icon}</div>
+                                            <div class="multi-card-name">{getPetName(item.pet.id, $currentLang)}</div>
+                                            <div class="multi-card-rarity {item.pet.rarity}">
+                                                {RARITY_NAMES[item.pet.rarity]}
+                                            </div>
+                                            {#if item.type === 'new'}
+                                                <span class="multi-badge new-badge">{$t('familiars.newBadge') || 'NEW!'}</span>
+                                            {:else if item.type === 'upgrade'}
+                                                <span class="multi-badge up-badge">{$t('common.levelShort')} {item.level}</span>
+                                            {:else}
+                                                <span class="multi-badge refund-badge">+50 💎</span>
+                                            {/if}
+                                            <div class="multi-card-aura" title="{itemAura.title}: {itemAura.description}">
+                                                ✦ {itemAura.title}
+                                            </div>
+                                        </div>
+                                    {/each}
+                                </div>
+
+                                <button class="action-btn claim-btn celebrate-btn" on:click={closeGachaResult}>
+                                    {$t('common.ready')}
+                                </button>
+                            </div>
+                        {:else if rolledPet}
+                            <!-- Single Result Celebration View -->
                             {@const resAura = getPetAuraDetails(rolledPet.id, newLevelReached, $currentLang)}
                             <div class="gacha-result {rolledPet.rarity}" bind:this={resultElement}>
                                 {#if rollType === 'new'}
@@ -1209,94 +1417,500 @@
         font-weight: 600;
     }
 
-    /* Gacha */
+    /* Gacha Container */
     .gacha-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 20px 10px;
+        padding: 12px 6px;
         text-align: center;
-        gap: 16px;
+        gap: 14px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .gacha-info {
+    /* Grand Jackpot Showcase */
+    .gacha-jackpot-showcase {
+        width: 100%;
+        max-width: 520px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.09), rgba(108, 92, 231, 0.12));
+        border: 1px solid rgba(241, 196, 15, 0.35);
+        border-radius: 16px;
+        padding: 10px 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(241, 196, 15, 0.08);
+        box-sizing: border-box;
+    }
+
+    .jackpot-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .jackpot-crown-icon {
+        filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
+    }
+
+    .jackpot-title {
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 1px;
+        color: #ffd700;
+        text-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+        text-transform: uppercase;
+    }
+
+    .jackpot-cards-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 8px;
+        width: 100%;
+    }
+
+    .jackpot-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(18, 12, 34, 0.75);
+        border: 1px solid rgba(241, 196, 15, 0.25);
+        border-radius: 12px;
+        padding: 6px 10px;
+        text-align: left;
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .jackpot-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(241, 196, 15, 0.6);
+        box-shadow: 0 4px 14px rgba(241, 196, 15, 0.2);
+    }
+
+    .jackpot-icon-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .jackpot-svg {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 50%;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+    }
+
+    .jackpot-badge {
+        font-size: 0.55rem;
+        font-weight: 800;
+        color: #ffd700;
+        text-transform: uppercase;
+        background: rgba(241, 196, 15, 0.15);
+        padding: 1px 4px;
+        border-radius: 4px;
+    }
+
+    .jackpot-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .jackpot-name {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+        margin-bottom: 2px;
+    }
+
+    .jackpot-aura-desc {
+        font-size: 0.68rem;
+        color: #ffeaa7;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .aura-icon-star {
+        color: #ffd700;
+        font-weight: bold;
+    }
+
+    /* Sacred Altar Stage */
+    .gacha-altar-stage {
+        position: relative;
+        width: 220px;
+        height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        margin: 4px 0;
+    }
+
+    .altar-orbit {
+        position: absolute;
+        top: 48%;
+        left: 50%;
+        pointer-events: none;
+    }
+
+    .altar-orbit-outer {
+        width: 190px;
+        height: 190px;
+        animation: rotateClockwise 26s linear infinite;
+    }
+
+    .altar-orbit-inner {
+        width: 145px;
+        height: 145px;
+        animation: rotateCounter 18s linear infinite;
+    }
+
+    .altar-pedestal {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: none;
+        filter: drop-shadow(0 0 12px rgba(241, 196, 15, 0.3));
+    }
+
+    .gacha-draconic-egg {
+        position: relative;
+        z-index: 2;
+        animation: eggFloat 3.8s ease-in-out infinite;
+        filter: drop-shadow(0 10px 22px rgba(108, 92, 231, 0.55)) drop-shadow(0 0 12px rgba(241, 196, 15, 0.4));
+        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .gacha-altar-stage:hover .gacha-draconic-egg {
+        transform: scale(1.06) translateY(-4px);
+    }
+
+    .altar-interact-hint {
+        position: absolute;
+        bottom: -4px;
+        font-size: 0.7rem;
+        color: #a4b0be;
+        opacity: 0.85;
+        letter-spacing: 0.3px;
+    }
+
+    /* Animating egg burst */
+    .gacha-egg-animating-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+    }
+
+    .ritual-flare-ring {
+        position: absolute;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        border: 2px dashed #ffd700;
+        animation: rotateClockwise 4s linear infinite;
+        box-shadow: 0 0 25px rgba(241, 196, 15, 0.5);
+    }
+
+    /* Drop Rates Transparency Bar */
+    .gacha-odds-bar {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 5px 12px;
+        max-width: 480px;
+    }
+
+    .odd-pill {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 8px;
+    }
+
+    .odd-pill.leg-pill {
+        background: rgba(241, 196, 15, 0.16);
+        color: #ffd700;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+    }
+
+    .odd-pill.epic-pill {
+        background: rgba(162, 155, 254, 0.16);
+        color: #a29bfe;
+        border: 1px solid rgba(162, 155, 254, 0.4);
+    }
+
+    .odd-pill.rare-pill {
+        background: rgba(116, 185, 255, 0.16);
+        color: #74b9ff;
+        border: 1px solid rgba(116, 185, 255, 0.4);
+    }
+
+    .odd-pill.com-pill {
+        background: rgba(178, 190, 195, 0.12);
+        color: #b2bec3;
+        border: 1px solid rgba(178, 190, 195, 0.3);
+    }
+
+    /* Dual Action CTA Buttons */
+    .gacha-actions-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        width: 100%;
+        max-width: 460px;
+    }
+
+    .gacha-cta-btn {
+        flex: 1;
+        min-width: 130px;
+        padding: 10px 14px;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        cursor: pointer;
+        position: relative;
+        font-weight: 800;
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .gacha-cta-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .gacha-cta-btn.cta-single {
+        background: linear-gradient(135deg, #4834d4, #686de0);
+        box-shadow: 0 4px 16px rgba(72, 52, 212, 0.4);
+        border: 1.5px solid rgba(162, 155, 254, 0.45);
+        color: #ffffff;
+    }
+
+    .gacha-cta-btn.cta-single:hover {
+        box-shadow: 0 6px 20px rgba(72, 52, 212, 0.6);
+    }
+
+    .gacha-cta-btn.cta-multi {
+        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+        box-shadow: 0 5px 20px rgba(108, 92, 231, 0.5);
+        border: 1.5px solid rgba(241, 196, 15, 0.65);
+        color: #ffffff;
+    }
+
+    .gacha-cta-btn.cta-multi:hover {
+        box-shadow: 0 8px 25px rgba(108, 92, 231, 0.7);
+    }
+
+    .cta-discount-tag {
+        position: absolute;
+        top: -9px;
+        right: 8px;
+        background: linear-gradient(90deg, #f1c40f, #e67e22);
+        color: #0f071e;
+        font-size: 0.6rem;
+        font-weight: 900;
+        padding: 2px 7px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        animation: pulseBadge 2.2s infinite;
+    }
+
+    .cta-label {
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+
+    .cta-price {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.95rem;
+    }
+
+    .old-price {
+        text-decoration: line-through;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.75rem;
+        margin-right: 2px;
+    }
+
+    .price-val {
+        font-weight: 900;
+        color: #74b9ff;
+    }
+
+    .price-val.gold-val {
+        color: #ffd700;
+        text-shadow: 0 0 6px rgba(241, 196, 15, 0.5);
+    }
+
+    /* Multi-Result Celebration View */
+    .gacha-multi-result {
         display: flex;
         flex-direction: column;
         align-items: center;
         width: 100%;
-    }
-
-    .gacha-headline {
-        margin: 0 0 6px;
-        font-size: 1.3rem;
-        color: #ffd700;
-        font-weight: 900;
-    }
-
-    .gacha-desc {
-        margin: 0 auto;
-        font-size: 0.85rem;
-        color: #a4b0be;
-        max-width: 420px;
-        line-height: 1.4;
-    }
-
-    .cost-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(0, 0, 0, 0.35);
-        padding: 6px 14px;
+        max-width: 540px;
+        background: linear-gradient(160deg, rgba(26, 14, 46, 0.96), rgba(15, 7, 28, 0.98));
+        padding: 18px 14px;
         border-radius: 20px;
-        border: 1px solid rgba(116, 185, 255, 0.3);
-        margin-top: 8px;
-        font-size: 0.85rem;
+        border: 2px solid rgba(241, 196, 15, 0.5);
+        box-shadow: 0 0 35px rgba(241, 196, 15, 0.3);
+        box-sizing: border-box;
     }
 
-    .cost-crystal {
+    .multi-header {
         display: flex;
         align-items: center;
-        gap: 4px;
-        color: #74b9ff;
-        font-weight: 800;
+        gap: 8px;
+        margin-bottom: 12px;
     }
 
-    .gacha-btn {
-        display: inline-flex;
+    .multi-title {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #ffd700;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+    }
+
+    .multi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 8px;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .multi-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(10, 6, 20, 0.65);
+        border: 1.5px solid;
+        border-radius: 12px;
+        padding: 8px 4px;
+        text-align: center;
+        gap: 3px;
+        box-sizing: border-box;
+    }
+
+    .multi-card.common { border-color: #b2bec3; }
+    .multi-card.rare { border-color: #74b9ff; box-shadow: 0 0 10px rgba(116, 185, 255, 0.25); }
+    .multi-card.epic { border-color: #a29bfe; box-shadow: 0 0 12px rgba(162, 155, 254, 0.3); }
+    .multi-card.legendary { border-color: #f1c40f; box-shadow: 0 0 16px rgba(241, 196, 15, 0.45); }
+
+    .multi-card-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-        border: none;
-        border-radius: 16px;
-        padding: 12px 28px;
-        font-size: 1.05rem;
-        color: white;
-        font-weight: 800;
-        cursor: pointer;
-        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
-        transition: transform 0.2s, box-shadow 0.2s;
-        margin: 14px auto 0;
-    }
-    .gacha-btn:hover:not(:disabled) {
-        transform: scale(1.05);
-        box-shadow: 0 8px 25px rgba(108, 92, 231, 0.7);
-    }
-    .gacha-btn:disabled {
-        background: rgba(255,255,255,0.1);
-        color: #8395a7;
-        cursor: not-allowed;
-        box-shadow: none;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
     }
 
-    .gacha-egg {
-        filter: drop-shadow(0 10px 20px rgba(108, 92, 231, 0.4));
-        cursor: pointer;
-        transition: transform 0.2s;
+    .multi-card-icon :global(svg) {
+        width: 32px;
+        height: 32px;
     }
-    .gacha-egg:hover {
-        transform: scale(1.05);
+
+    .multi-card-name {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.15;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 82px;
+    }
+
+    .multi-card-rarity {
+        font-size: 0.58rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .multi-card-rarity.common { color: #b2bec3; }
+    .multi-card-rarity.rare { color: #74b9ff; }
+    .multi-card-rarity.epic { color: #a29bfe; }
+    .multi-card-rarity.legendary { color: #ffd700; }
+
+    .multi-badge {
+        font-size: 0.58rem;
+        font-weight: 900;
+        padding: 1px 5px;
+        border-radius: 6px;
+    }
+
+    .multi-badge.new-badge {
+        background: #2ed573;
+        color: #0b1f13;
+    }
+
+    .multi-badge.up-badge {
+        background: #f1c40f;
+        color: #211905;
+    }
+
+    .multi-badge.refund-badge {
+        background: #74b9ff;
+        color: #071929;
+    }
+
+    .multi-card-aura {
+        font-size: 0.58rem;
+        color: #ffeaa7;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 82px;
+        opacity: 0.9;
+    }
+
+    /* Keyframes */
+    @keyframes rotateClockwise {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes rotateCounter {
+        from { transform: translate(-50%, -50%) rotate(360deg); }
+        to { transform: translate(-50%, -50%) rotate(0deg); }
+    }
+
+    @keyframes eggFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-7px); }
+    }
+
+    @keyframes pulseBadge {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.07); }
     }
 
     .gacha-result {

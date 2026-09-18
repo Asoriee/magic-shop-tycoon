@@ -10,6 +10,7 @@ import {
     potionsCount, 
     unlockedRecipes, 
     failedBrewAttempts, 
+    sanitizeOrders,
     type GameState 
 } from './store';
 
@@ -274,7 +275,11 @@ export async function loadGame(): Promise<void> {
             if (merged.dailyBonusClaimed === undefined) merged.dailyBonusClaimed = false;
             if (merged.unlockedPets === undefined) merged.unlockedPets = ['pet_rat'];
             if (merged.activeExpeditions === undefined) merged.activeExpeditions = [];
-            if (merged.activeOrders === undefined || !Array.isArray(merged.activeOrders)) merged.activeOrders = state.activeOrders;
+            if (merged.activeOrders === undefined || !Array.isArray(merged.activeOrders)) {
+                merged.activeOrders = state.activeOrders;
+            } else {
+                merged.activeOrders = sanitizeOrders(merged.activeOrders);
+            }
             if (merged.lastOrderSpawnTime === undefined) merged.lastOrderSpawnTime = Date.now();
             if (merged.activeBuffs === undefined) merged.activeBuffs = [];
             if (merged.unlockedCollections === undefined) merged.unlockedCollections = [];

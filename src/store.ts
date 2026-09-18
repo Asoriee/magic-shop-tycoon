@@ -1778,7 +1778,7 @@ export function createStarterOrders(): CustomerOrder[] {
             icon: 'mage',
             orderType: 'common',
             requirements: [
-                { type: 'ingredient', id: 'fire_flower', count: 2 }
+                { type: 'ingredient', id: 'herb_mundane', count: 2 }
             ],
             goldSeconds: 120,
             minGold: 1500,
@@ -1794,7 +1794,7 @@ export function createStarterOrders(): CustomerOrder[] {
             icon: 'mage',
             orderType: 'common',
             requirements: [
-                { type: 'ingredient', id: 'water_lily', count: 2 }
+                { type: 'ingredient', id: 'mushroom_gray', count: 2 }
             ],
             goldSeconds: 120,
             minGold: 2000,
@@ -1805,6 +1805,48 @@ export function createStarterOrders(): CustomerOrder[] {
             isVip: false
         }
     ];
+}
+
+export function sanitizeOrders(orders: CustomerOrder[]): CustomerOrder[] {
+    if (!Array.isArray(orders) || orders.length === 0) return createStarterOrders();
+
+    return orders.map(order => {
+        if (!order) return generateSingleOrder();
+
+        const fixedReqs: OrderRequirement[] = [];
+        const rawReqs = Array.isArray(order.requirements) ? order.requirements : [];
+
+        for (const req of rawReqs) {
+            if (!req) continue;
+            if (req.type === 'ingredient') {
+                if (req.id === 'fire_flower' || req.id === 'herb_fire') {
+                    fixedReqs.push({ ...req, id: 'herb_mundane', count: req.count || 2 });
+                } else if (req.id === 'water_lily' || req.id === 'herb_water') {
+                    fixedReqs.push({ ...req, id: 'mushroom_gray', count: req.count || 2 });
+                } else if (AVAILABLE_INGREDIENTS.some(i => i.id === req.id)) {
+                    fixedReqs.push(req);
+                } else {
+                    fixedReqs.push({ type: 'ingredient', id: 'herb_mundane', count: req.count || 2 });
+                }
+            } else if (req.type === 'potion') {
+                if (AVAILABLE_POTIONS.some(p => p.id === req.id)) {
+                    fixedReqs.push(req);
+                } else {
+                    const fallbackPot = AVAILABLE_POTIONS[0]?.id || 'heal_small';
+                    fixedReqs.push({ type: 'potion', id: fallbackPot, count: req.count || 1 });
+                }
+            }
+        }
+
+        if (fixedReqs.length === 0) {
+            fixedReqs.push({ type: 'ingredient', id: 'herb_mundane', count: 2 });
+        }
+
+        return {
+            ...order,
+            requirements: fixedReqs
+        };
+    });
 }
 
 const defaultState: GameState = {
@@ -2316,16 +2358,19 @@ function createGameStore() {
             const newOrder = generateSingleOrder();
             return {
                 ...state,
-                activeOrders: [...state.activeOrders, newOrder],
+                activeOrders: sanitizeOrders([...state.activeOrders, newOrder]),
                 lastOrderSpawnTime: Date.now()
             };
         }),
         checkOrderSpawns: () => update(state => {
             const now = Date.now();
-            const orders = state.activeOrders || [];
+            const orders = sanitizeOrders(state.activeOrders || []);
 
             if (orders.length >= 4) {
-                return state;
+                return {
+                    ...state,
+                    activeOrders: orders
+                };
             }
 
             const lastSpawn = state.lastOrderSpawnTime || now;
@@ -2341,13 +2386,16 @@ function createGameStore() {
                     const newLastSpawn = lastSpawn + (countToSpawn * ORDER_SPAWN_INTERVAL_MS);
                     return {
                         ...state,
-                        activeOrders: [...orders, ...newOrders],
+                        activeOrders: sanitizeOrders([...orders, ...newOrders]),
                         lastOrderSpawnTime: newLastSpawn
                     };
                 }
             }
 
-            return state;
+            return {
+                ...state,
+                activeOrders: orders
+            };
         }),
         completeOrder: (orderId: string) => update(state => {
             const order = state.activeOrders.find(o => o.id === orderId);

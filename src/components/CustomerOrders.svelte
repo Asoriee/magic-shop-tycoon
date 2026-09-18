@@ -331,9 +331,7 @@
                             {#if order.isVip}
                                 <span class="order-badge vip-badge">{$t('orders.vipOrder').toUpperCase()}</span>
                             {:else if order.orderType === 'potion' || order.requirements.some(r => r.type === 'potion')}
-                                <span class="order-badge potion-badge">{$t('alchemy.title').toUpperCase()}</span>
-                            {:else}
-                                <span class="order-badge common-badge">{$t('city.tabOrders').toUpperCase()}</span>
+                                <span class="order-badge potion-badge">{$t('alchemy.tabBrew').toUpperCase()}</span>
                             {/if}
                         </div>
                     </div>
@@ -349,15 +347,17 @@
                             {@const isEnough = current >= req.count}
                             {@const itemName = req.type === 'ingredient' ? getIngredientName(req.id, $currentLang) : getPotionName(req.id, $currentLang)}
                             
-                            {#if item}
-                                <div class="req-chip" class:enough={isEnough} class:missing={!isEnough} title="{itemName}">
-                                    <div class="req-icon">
+                            <div class="req-chip" class:enough={isEnough} class:missing={!isEnough} title="{itemName}">
+                                <div class="req-icon">
+                                    {#if item}
                                         {@html item.icon}
-                                    </div>
-                                    <span class="req-name">{itemName}</span>
-                                    <span class="req-qty">{current} / {req.count}</span>
+                                    {:else}
+                                        <ResourceIcon type="ingredients" size={16} />
+                                    {/if}
                                 </div>
-                            {/if}
+                                <span class="req-name">{itemName}</span>
+                                <span class="req-qty">{current} / {req.count}</span>
+                            </div>
                         {/each}
                     </div>
                 </div>

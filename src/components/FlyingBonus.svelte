@@ -5,6 +5,7 @@
     import { 
         gameStore, 
         currentIdleIncome, 
+        currentClickPower,
         formatNumber, 
         crystals, 
         isVip, 
@@ -87,12 +88,16 @@
 
     function rollBlessing(): SparkBlessing {
         const roll = Math.random();
-        const baseIncome = $currentIdleIncome || 0;
+        const idle = $currentIdleIncome || 0;
+        const clickPower = $currentClickPower || 1;
+        // Гибридный расчет дохода лавки: берем максимум между чистым секундным пассивным доходом
+        // и активной силой клика (~2.5 клика в сек), чтобы игроки с упором в клики получали соразмерную награду
+        const baseIncome = Math.max(idle, clickPower * 2.5);
 
         if (roll < 0.20) {
             // 20% Эпический дар: 180с дохода + редкое зелье ИЛИ горсть кристаллов
             const givesPotion = Math.random() < 0.5 && AVAILABLE_POTIONS.length > 0;
-            const epicGold = Math.max(120, Math.floor(baseIncome * 180));
+            const epicGold = Math.max(300, Math.floor(baseIncome * 180));
             if (givesPotion) {
                 const potion = AVAILABLE_POTIONS[Math.floor(Math.random() * AVAILABLE_POTIONS.length)];
                 return {
@@ -117,7 +122,7 @@
                 };
             }
         } else if (roll < 0.50) {
-            const rareGold = Math.max(80, Math.floor(baseIncome * 120));
+            const rareGold = Math.max(200, Math.floor(baseIncome * 120));
             const crystalAmount = Math.floor(Math.random() * 2) + 2;
             return {
                 type: 'crystals',
@@ -129,7 +134,7 @@
                 crystals: crystalAmount
             };
         } else {
-            const commonGold = Math.max(50, Math.floor(baseIncome * 90));
+            const commonGold = Math.max(150, Math.floor(baseIncome * 90));
             return {
                 type: 'gold',
                 get title() { return get(t)('flyingBonus.sparkGoldTitle'); },

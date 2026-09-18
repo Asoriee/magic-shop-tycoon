@@ -354,6 +354,13 @@ export interface Translations {
         efficiencyBonusDesc?: string;
         maxLevelReachedDesc?: string;
         compensationDesc?: string;
+        auraTitle?: string;
+        auraActive?: string;
+        auraInactive?: string;
+        auraLevelNext?: string;
+        auraMaxNotice?: string;
+        legendaryAuraBadge?: string;
+        companionShopBadge?: string;
         [key: string]: any;
     };
     leaderboard: {

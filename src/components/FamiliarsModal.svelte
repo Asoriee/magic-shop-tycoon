@@ -14,6 +14,7 @@
         currentIdleIncome
     } from '../store';
     import { t, currentLang, getPetName, getPetDesc } from '../i18n';
+    import { getPetAuraDetails } from '../petBonuses';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playSuccessSound, playLevelUpSound, playCoinSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
@@ -352,6 +353,7 @@
                             {@const isExpDone = isExpActive && timeRem <= 0}
                             {@const progress = exp ? getExpeditionProgress(exp) : 0}
                             {@const petLevel = ($gameStore.petLevels && $gameStore.petLevels[pet.id]) || 1}
+                            {@const aura = getPetAuraDetails(pet.id, petLevel, $currentLang)}
                             
                             <div class="pet-card {pet.rarity}">
                                 <div class="pet-icon-box">
@@ -379,6 +381,41 @@
                                         <span class="pet-perk-tag time-tag">{$t('familiars.timeBonus', { pct: Math.min(36, (petLevel - 1) * 4) })}</span>
                                         {#if petLevel >= 10}
                                             <span class="pet-perk-tag max-tag">{$t('familiars.maxLevel')}</span>
+                                        {/if}
+                                    </div>
+
+                                    <!-- Companion Passive Aura Box -->
+                                    <div class="companion-aura-box" class:legendary-aura={aura.isLegendary} class:aura-active={$gameStore.activeCompanionId === pet.id}>
+                                        <div class="aura-top-line">
+                                            <div class="aura-tag-group">
+                                                <svg viewBox="0 0 24 24" width="13" height="13" class="aura-sparkle-icon" fill="currentColor">
+                                                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z"/>
+                                                </svg>
+                                                <span class="aura-type-label">{$t('familiars.auraTitle')}</span>
+                                                {#if aura.isLegendary}
+                                                    <span class="aura-legendary-pill">{$t('familiars.legendaryAuraBadge')}</span>
+                                                {/if}
+                                            </div>
+                                            {#if $gameStore.activeCompanionId === pet.id}
+                                                <span class="aura-status-badge active-status">{$t('familiars.auraActive')}</span>
+                                            {:else}
+                                                <span class="aura-status-badge inactive-status">{$t('familiars.auraInactive')}</span>
+                                            {/if}
+                                        </div>
+
+                                        <div class="aura-main-info">
+                                            <div class="aura-name-title">{aura.title}</div>
+                                            <div class="aura-current-effect">{aura.description}</div>
+                                        </div>
+
+                                        {#if petLevel < 10 && aura.nextLevelDescription}
+                                            <div class="aura-next-scaling">
+                                                <span class="aura-next-label">{$t('familiars.auraLevelNext', { lvl: petLevel + 1, bonus: aura.nextLevelDescription })}</span>
+                                            </div>
+                                        {:else if petLevel >= 10}
+                                            <div class="aura-max-reached">
+                                                <span>✨ {$t('familiars.auraMaxNotice')}</span>
+                                            </div>
                                         {/if}
                                     </div>
 
@@ -520,6 +557,7 @@
                                 </svg>
                             </div>
                         {:else}
+                            {@const resAura = getPetAuraDetails(rolledPet.id, newLevelReached, $currentLang)}
                             <div class="gacha-result {rolledPet.rarity}" bind:this={resultElement}>
                                 {#if rollType === 'new'}
                                     <span class="result-celebration">{$t('familiars.newCompanionSummoned')}</span>
@@ -545,6 +583,16 @@
                                 {:else}
                                     <p class="result-desc">{rolledPet.description}</p>
                                 {/if}
+
+                                <div class="gacha-aura-preview" class:legendary={resAura.isLegendary}>
+                                    <div class="gacha-aura-head">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                                            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z"/>
+                                        </svg>
+                                        <span>{$t('familiars.auraTitle')}: <strong>{resAura.title}</strong></span>
+                                    </div>
+                                    <div class="gacha-aura-desc">{resAura.description}</div>
+                                </div>
 
                                 <button class="action-btn claim-btn celebrate-btn" on:click={closeGachaResult}>
                                     {rollType === 'new' ? $t('common.confirm') : $t('common.ready')}
@@ -1004,6 +1052,161 @@
         color: #2ed573;
         cursor: default;
         opacity: 0.9;
+    }
+
+    /* Companion Aura Box */
+    .companion-aura-box {
+        background: rgba(16, 12, 38, 0.7);
+        border: 1px solid rgba(162, 155, 254, 0.22);
+        border-radius: 12px;
+        padding: 9px 12px;
+        margin: 4px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        transition: all 0.25s ease;
+    }
+    .companion-aura-box.aura-active {
+        background: rgba(46, 213, 115, 0.08);
+        border-color: rgba(46, 213, 115, 0.55);
+        box-shadow: 0 0 16px rgba(46, 213, 115, 0.15), inset 0 0 12px rgba(46, 213, 115, 0.05);
+    }
+    .companion-aura-box.legendary-aura {
+        background: linear-gradient(135deg, rgba(35, 18, 55, 0.85), rgba(58, 28, 90, 0.75));
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 15px rgba(241, 196, 15, 0.12);
+    }
+    .companion-aura-box.legendary-aura.aura-active {
+        border-color: #f1c40f;
+        background: linear-gradient(135deg, rgba(46, 213, 115, 0.12), rgba(241, 196, 15, 0.15));
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.3), inset 0 0 12px rgba(241, 196, 15, 0.1);
+    }
+
+    .aura-top-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .aura-tag-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .aura-sparkle-icon {
+        color: #f1c40f;
+        filter: drop-shadow(0 0 4px rgba(241, 196, 15, 0.7));
+    }
+    .aura-type-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #a29bfe;
+    }
+    .legendary-aura .aura-type-label {
+        color: #ffeaa7;
+    }
+    .aura-legendary-pill {
+        background: linear-gradient(90deg, #f1c40f, #e67e22);
+        color: #120524;
+        font-size: 0.58rem;
+        font-weight: 900;
+        padding: 1px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 1px 6px rgba(241, 196, 15, 0.4);
+    }
+
+    .aura-status-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+    }
+    .aura-status-badge.active-status {
+        color: #2ed573;
+        background: rgba(46, 213, 115, 0.18);
+        border: 1px solid rgba(46, 213, 115, 0.45);
+        padding: 2px 7px;
+        border-radius: 12px;
+        animation: auraPulse 2s infinite ease-in-out;
+    }
+    .aura-status-badge.inactive-status {
+        color: #747d8c;
+        font-style: italic;
+    }
+
+    @keyframes auraPulse {
+        0%, 100% { opacity: 0.85; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.03); filter: drop-shadow(0 0 5px rgba(46, 213, 115, 0.6)); }
+    }
+
+    .aura-main-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .aura-name-title {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: #ffeaa7;
+        line-height: 1.2;
+    }
+    .legendary-aura .aura-name-title {
+        color: #ffd700;
+        text-shadow: 0 0 8px rgba(241, 196, 15, 0.35);
+    }
+    .aura-current-effect {
+        font-size: 0.78rem;
+        color: #ffffff;
+        line-height: 1.35;
+        font-weight: 600;
+    }
+
+    .aura-next-scaling {
+        font-size: 0.7rem;
+        color: #74b9ff;
+        padding-top: 4px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    .aura-next-label {
+        opacity: 0.9;
+    }
+    .aura-max-reached {
+        font-size: 0.68rem;
+        color: #f1c40f;
+        font-weight: 700;
+        padding-top: 3px;
+        border-top: 1px dashed rgba(241, 196, 15, 0.25);
+    }
+
+    /* Gacha Aura Preview */
+    .gacha-aura-preview {
+        margin: 10px 0;
+        background: rgba(16, 12, 38, 0.8);
+        border: 1px solid rgba(162, 155, 254, 0.3);
+        border-radius: 12px;
+        padding: 8px 12px;
+        text-align: left;
+    }
+    .gacha-aura-preview.legendary {
+        border-color: #f1c40f;
+        background: linear-gradient(135deg, rgba(35, 18, 55, 0.9), rgba(58, 28, 90, 0.85));
+        box-shadow: 0 0 16px rgba(241, 196, 15, 0.25);
+    }
+    .gacha-aura-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: #f1c40f;
+        margin-bottom: 3px;
+    }
+    .gacha-aura-desc {
+        font-size: 0.8rem;
+        color: #ffffff;
+        font-weight: 600;
     }
 
     /* Gacha */

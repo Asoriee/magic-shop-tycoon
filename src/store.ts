@@ -18,6 +18,9 @@ import {
     getCollectionPerks,
     getCustomerName
 } from './i18n';
+import { type PetBonusData, getPetBonusValues } from './petBonuses';
+export type { PetBonusData };
+export { getPetBonusValues };
 
 // ============================================================
 // UTILS
@@ -2416,6 +2419,14 @@ function createGameStore() {
             if (state.artifacts?.includes(8)) goldMultiplier += 0.40;
             // Phoenix Set Grand Bonus: +30% золота за заказы
             if (state.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
+            // Active Companion Bonus: order gold boost
+            if (state.activeCompanionId) {
+                const compLvl = state.petLevels?.[state.activeCompanionId] || 1;
+                const compBonus = getPetBonusValues(state.activeCompanionId, compLvl);
+                if (compBonus.orderBonus > 0) {
+                    goldMultiplier += compBonus.orderBonus;
+                }
+            }
 
             const finalGold = Math.floor(baseGold * goldMultiplier);
 
@@ -2439,12 +2450,14 @@ function createGameStore() {
             let totalOrderCrystals = order.rewardCrystals || 0;
 
             // Secret Upgrade: Трансмутация Кристаллов (8% шанс за уровень получить 1–2 кристалла за заказ)
+            // Moon Witch Set Grand Bonus: +25% шанс кристаллов за заказы
             const transmuteLevel = state.secretUpgrades.find(u => u.id === 'crystal_transmute' || (u.id as string) === 'magnet')?.level || 0;
-            if (transmuteLevel > 0) {
-                const transmuteChance = Math.min(0.75, transmuteLevel * 0.08 * boostMult);
-                if (Math.random() < transmuteChance) {
-                    totalOrderCrystals += (Math.random() < 0.25 ? 2 : 1);
-                }
+            let transmuteChance = transmuteLevel > 0 ? Math.min(0.75, transmuteLevel * 0.08 * boostMult) : 0;
+            if (state.unlockedCollections?.includes('moon_witch_set')) {
+                transmuteChance += 0.25;
+            }
+            if (transmuteChance > 0 && Math.random() < transmuteChance) {
+                totalOrderCrystals += (Math.random() < 0.25 ? 2 : 1);
             }
 
             if (totalOrderCrystals > 0) {
@@ -2563,6 +2576,16 @@ export const heatBonusLevel = derived(gameStore, $gameStore => {
     return $gameStore.upgrades.find(u => u.id === 'click_heat')?.level || 0;
 });
 
+export const activeCompanionBonus = derived(gameStore, $gameStore => {
+    if (!$gameStore?.activeCompanionId) return null;
+    const lvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
+    return {
+        petId: $gameStore.activeCompanionId,
+        level: lvl,
+        bonuses: getPetBonusValues($gameStore.activeCompanionId, lvl)
+    };
+});
+
 export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
     let multiplier = 1 * ($milestone?.multiplier || 1);
     const arts = $gameStore?.artifacts || [];
@@ -2583,11 +2606,19 @@ export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
     
     // Set Completion Bonuses
     if (colls.includes('archmage_set')) multiplier += 1.50;
+    if (colls.includes('moon_witch_set')) multiplier += 1.00;
     if (colls.includes('phoenix_set')) multiplier += 2.50;
     if (colls.includes('titan_set')) multiplier += 4.00;
     
     // VIP Bonus: +50% passive income
     if ($isVip) multiplier += 0.50;
+
+    // Active Companion Bonus (Idle Income Aura)
+    if ($gameStore?.activeCompanionId) {
+        const compLvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
+        const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
+        if (compBonus.idleBonus > 0) multiplier += compBonus.idleBonus;
+    }
     
     // Apply active buffs
     for (const buff of buffs) {
@@ -2624,6 +2655,13 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     // VIP Bonus: +50% click power
     if ($isVip) multiplier += 0.50;
 
+    // Active Companion Bonus (Click Power Aura)
+    if ($gameStore?.activeCompanionId) {
+        const compLvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
+        const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
+        if (compBonus.clickBonus > 0) multiplier += compBonus.clickBonus;
+    }
+
     // Apply active buffs
     for (const buff of buffs) {
         if (buff.effect === 'click_multiplier') multiplier += buff.value;
@@ -2636,7 +2674,7 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     return Math.max(1, multiplier);
 });
 
-// Update max offline time to account for new artifacts, hearth upgrade, and VIP (+5 hours)
+// Update max offline time to account for new artifacts, hearth upgrade, companion bonus, and VIP (+5 hours)
 export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $isVip]) => {
     let hours = 2; // base
     const upgs = $gameStore?.upgrades || [];
@@ -2650,6 +2688,13 @@ export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $is
     if (arts.includes(11)) hours += 3; // Plume of Rebirth (+3 hours)
     if (arts.includes(12)) hours += 4; // Chronometer of Eternity (+4 hours)
     if ($isVip) hours += 5; // VIP Bonus: +5 hours offline limit
+
+    // Active Companion Bonus (e.g. Void Titan offline hours aura)
+    if ($gameStore?.activeCompanionId) {
+        const compLvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
+        const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
+        if (compBonus.offlineHoursBonus > 0) hours += compBonus.offlineHoursBonus;
+    }
     return hours;
 });
 
@@ -2671,10 +2716,19 @@ export const currentIdleIncome = derived([gameStore, globalIdleMultiplier], ([$g
 });
 
 export const critChance = derived(gameStore, ($gameStore) => {
+    let chance = 0;
     const critUpgrade = $gameStore.upgrades.find(u => u.id === 'click_crit');
-    if (!critUpgrade || critUpgrade.level <= 0) return 0;
-    // 3% chance per level, capped at 50%
-    return Math.min(0.50, critUpgrade.level * 0.03);
+    if (critUpgrade && critUpgrade.level > 0) {
+        // 3% chance per level
+        chance += critUpgrade.level * 0.03;
+    }
+    // Active Companion Bonus (e.g. Manticore crit aura)
+    if ($gameStore?.activeCompanionId) {
+        const compLvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
+        const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
+        if (compBonus.critBonus > 0) chance += compBonus.critBonus;
+    }
+    return Math.min(0.75, chance);
 });
 
 export const resonanceBonus = derived([gameStore, currentIdleIncome], ([$gameStore, $idleIncome]) => {
@@ -3044,6 +3098,21 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
             doubleChance = Math.min(0.70, doubleChance + (essenceLvl * 0.06 * (isBoosted ? 1.5 : 1)));
         }
 
+        // Moon Witch Set Grand Bonus: +30% шанс удвоения зелий
+        if (state.unlockedCollections?.includes('moon_witch_set')) {
+            doubleChance += 0.30;
+        }
+
+        // Active Companion Bonus (e.g. Moon Cat: +20%..+38%)
+        if (state.activeCompanionId) {
+            const compLvl = state.petLevels?.[state.activeCompanionId] || 1;
+            const compBonus = getPetBonusValues(state.activeCompanionId, compLvl);
+            if (compBonus.doubleBrewBonus > 0) {
+                doubleChance += compBonus.doubleBrewBonus;
+            }
+        }
+        doubleChance = Math.min(0.85, doubleChance);
+
         const isDouble = Math.random() < doubleChance;
         const yieldCount = isDouble ? 2 : 1;
 
@@ -3178,6 +3247,22 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
     if (essenceLvl > 0) {
         doubleChance = Math.min(0.70, doubleChance + (essenceLvl * 0.06 * (isBoosted ? 1.5 : 1)));
     }
+
+    // Moon Witch Set Grand Bonus: +30% шанс удвоения зелий
+    if (state.unlockedCollections?.includes('moon_witch_set')) {
+        doubleChance += 0.30;
+    }
+
+    // Active Companion Bonus (e.g. Moon Cat: +20%..+38%)
+    if (state.activeCompanionId) {
+        const compLvl = state.petLevels?.[state.activeCompanionId] || 1;
+        const compBonus = getPetBonusValues(state.activeCompanionId, compLvl);
+        if (compBonus.doubleBrewBonus > 0) {
+            doubleChance += compBonus.doubleBrewBonus;
+        }
+    }
+    doubleChance = Math.min(0.85, doubleChance);
+
     const isDouble = Math.random() < doubleChance;
     const yieldCount = isDouble ? 2 : 1;
 

@@ -455,6 +455,13 @@ export const ru: Translations = {
         efficiencyBonusDesc: '+15% к добыче • -4% ко времени',
         maxLevelReachedDesc: 'Фамильяр достиг максимума (Ур. 10)!',
         compensationDesc: '+50 кристаллов компенсации получено',
+        auraTitle: 'Пассивная Аура Спутника',
+        auraActive: '● АУРА АКТИВНА В ЛАВКЕ',
+        auraInactive: 'Активируется при выборе спутником',
+        auraLevelNext: 'На ур. {lvl}: {bonus}',
+        auraMaxNotice: 'Максимальная мощь ауры достигнута',
+        legendaryAuraBadge: 'ЛЕГЕНДАРНАЯ АУРА',
+        companionShopBadge: 'Спутник в лавке',
     },
     leaderboard: {
         title: 'Зал Славы Архимагов',

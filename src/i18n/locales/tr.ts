@@ -455,6 +455,13 @@ export const tr: Translations = {
         efficiencyBonusDesc: '+%15 ganimet • -%4 süre',
         maxLevelReachedDesc: 'Yoldaş maksimuma ulaştı (Seviye 10)!',
         compensationDesc: '+50 kristal telafi alındı',
+        auraTitle: 'Yoldaş Pasif Aurası',
+        auraActive: '● AURA DÜKKANDA AKTİF',
+        auraInactive: 'Yoldaş olarak seçildiğinde aktif olur',
+        auraLevelNext: 'Sv. {lvl}\'de: {bonus}',
+        auraMaxNotice: 'Maksimum aura gücüne ulaşıldı',
+        legendaryAuraBadge: 'EFSANEVİ AURA',
+        companionShopBadge: 'Dükkan Yoldaşı',
     },
     leaderboard: {
         title: 'Başbüyücüler Salonu',

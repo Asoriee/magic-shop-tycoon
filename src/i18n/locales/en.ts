@@ -455,6 +455,13 @@ export const en: Translations = {
         efficiencyBonusDesc: '+15% loot • -4% time',
         maxLevelReachedDesc: 'Familiar reached maximum (Lv. 10)!',
         compensationDesc: '+50 crystals compensation granted',
+        auraTitle: 'Companion Passive Aura',
+        auraActive: '● AURA ACTIVE IN SHOP',
+        auraInactive: 'Activates when set as companion',
+        auraLevelNext: 'At Lv. {lvl}: {bonus}',
+        auraMaxNotice: 'Maximum aura power reached',
+        legendaryAuraBadge: 'LEGENDARY AURA',
+        companionShopBadge: 'Shop Companion',
     },
     leaderboard: {
         title: 'Hall of Archmages',

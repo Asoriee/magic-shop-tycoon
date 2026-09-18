@@ -4,7 +4,7 @@
     import { gameStore, currentIdleIncome, AVAILABLE_PETS } from '../store';
     import { playCauldronBubble } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
-    import { currentLang, getPetName, t } from '../i18n';
+    import { currentLang, getPetName } from '../i18n';
     import { getPetAuraDetails } from '../petBonuses';
 
     let petNode: SVGGElement;
@@ -172,17 +172,6 @@
                 </g>
             </g>
         </svg>
-
-        <!-- Companion Floating Aura Pill with Tooltip -->
-        <div class="companion-aura-pill" class:legendary={activeAura.isLegendary}>
-            <span class="pill-sparkle">✦</span>
-            <span class="pill-badge">{activeAura.badge}</span>
-            
-            <div class="pill-tooltip">
-                <div class="tooltip-title">{activeAura.title} ({$t('common.levelShort')} {petLevel})</div>
-                <div class="tooltip-desc">{activeAura.description}</div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -253,85 +242,5 @@
             transform: translate(-100px, -150px);
             scale: 0.85;
         }
-    }
-
-    /* Companion Floating Aura Pill */
-    .companion-aura-pill {
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(18, 10, 36, 0.88);
-        border: 1px solid rgba(162, 155, 254, 0.35);
-        backdrop-filter: blur(6px);
-        padding: 2px 9px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        white-space: nowrap;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
-        transition: transform 0.2s, background 0.2s, border-color 0.2s;
-        cursor: pointer;
-        user-select: none;
-    }
-    .companion-aura-pill.legendary {
-        background: linear-gradient(135deg, rgba(35, 18, 55, 0.95), rgba(58, 28, 90, 0.9));
-        border-color: rgba(241, 196, 15, 0.6);
-        box-shadow: 0 0 12px rgba(241, 196, 15, 0.28);
-    }
-    .companion-aura-pill:hover {
-        transform: translateX(-50%) scale(1.05);
-    }
-    .pill-sparkle {
-        font-size: 0.65rem;
-        color: #f1c40f;
-    }
-    .pill-badge {
-        font-size: 0.68rem;
-        font-weight: 800;
-        color: #ffffff;
-        letter-spacing: 0.3px;
-    }
-    .companion-aura-pill.legendary .pill-badge {
-        color: #ffeaa7;
-    }
-
-    /* Tooltip on hover/focus */
-    .pill-tooltip {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-6px);
-        background: rgba(15, 8, 30, 0.95);
-        border: 1px solid rgba(241, 196, 15, 0.4);
-        box-shadow: 0 4px 18px rgba(0,0,0,0.8);
-        border-radius: 8px;
-        padding: 6px 10px;
-        pointer-events: none;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.2s, transform 0.2s;
-        z-index: 120;
-        width: max-content;
-        max-width: 200px;
-        text-align: center;
-    }
-    .pet-clickable:hover .pill-tooltip,
-    .companion-aura-pill:hover .pill-tooltip {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(-10px);
-    }
-    .tooltip-title {
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: #ffd700;
-        margin-bottom: 2px;
-    }
-    .tooltip-desc {
-        font-size: 0.68rem;
-        color: #dfe6e9;
-        line-height: 1.25;
     }
 </style>

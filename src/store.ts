@@ -2795,6 +2795,16 @@ export const currentClickPower = derived([gameStore, globalClickMultiplier, reso
     return Math.max(1, Math.floor((totalClick + $resonanceBonus) * $clickMult));
 });
 
+export const effectiveOfflineRate = derived([currentIdleIncome, currentClickPower], ([$idleIncome, $clickPower]) => {
+    const idle = $idleIncome || 0;
+    const click = $clickPower || 1;
+    // Гибридный расчет оффлайн-дохода лавки:
+    // берем максимум между чистым секундным пассивным доходом лавки
+    // и активной силой клика (~1.0 клик/сек автономного тления котла в оффлайне),
+    // чтобы игроки с упором в клики получали соразмерную оффлайн-награду
+    return Math.max(idle, Math.round(click * 1.0));
+});
+
 export const readyOrdersCount = derived(
     [gameStore, ingredientsCount, potionsCount],
     ([$gameStore, $ingCounts, $potCounts]) => {

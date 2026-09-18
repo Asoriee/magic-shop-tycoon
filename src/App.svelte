@@ -3,6 +3,7 @@
     import { 
         gameStore, 
         currentIdleIncome, 
+        effectiveOfflineRate,
         maxOfflineTimeHours, 
         formatNumber, 
         crystals, 
@@ -104,13 +105,13 @@
         const cappedDiffMs = Math.min(rawDiffMs, maxOfflineMs);
         const cappedSeconds = Math.floor(cappedDiffMs / 1000);
         const awaySeconds = Math.floor(rawDiffMs / 1000);
-        const idleRate = $currentIdleIncome || 0;
+        const effectiveRate = $effectiveOfflineRate || 0;
 
-        if (cappedSeconds >= 60 && idleRate > 0) {
-            offlineGoldAmount = Math.floor(cappedSeconds * idleRate);
+        if (cappedSeconds >= 60 && effectiveRate > 0) {
+            offlineGoldAmount = Math.floor(cappedSeconds * effectiveRate);
             offlineSecondsCount = awaySeconds;
             maxOfflineSecondsCount = maxHours * 3600;
-            offlineRatePerSec = idleRate;
+            offlineRatePerSec = effectiveRate;
             if (offlineGoldAmount > 0) {
                 isOfflinePopupOpen = true;
             }

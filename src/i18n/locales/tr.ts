@@ -582,6 +582,7 @@ export const tr: Translations = {
         sacrGold: 'Mevcut tüm altın',
         sacrUpgrades: 'Standart dükkan geliştirmeleri',
         sacrPotions: 'Envanterdeki demlenmiş iksirler',
+        sacrQuestsOrders: 'Şehir siparişleri ve günlük görevler',
         keptVip: 'VIP durumu ve tüm Kristaller',
         keptDust: 'Yıldız Tozu ve Gizli Bilgiler',
         keptPets: 'Tüm açık Yoldaşlar ve Kalıntılar',

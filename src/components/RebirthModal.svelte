@@ -177,6 +177,7 @@
                         <li>{$t('rebirth.sacrGold')}</li>
                         <li>{$t('rebirth.sacrUpgrades')}</li>
                         <li>{$t('rebirth.sacrPotions')}</li>
+                        <li>{$t('rebirth.sacrQuestsOrders')}</li>
                     </ul>
                 </div>
 

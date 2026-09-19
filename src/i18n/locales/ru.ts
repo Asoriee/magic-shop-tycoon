@@ -582,6 +582,7 @@ export const ru: Translations = {
         sacrGold: 'Всё текущее золото',
         sacrUpgrades: 'Обычные улучшения лавки',
         sacrPotions: 'Сваренные зелья в инвентаре',
+        sacrQuestsOrders: 'Городские заказы и квесты',
         keptVip: 'ВИП-статус и все Кристаллы',
         keptDust: 'Звёздная Пыль и Тайные Знания',
         keptPets: 'Все открытые Питомцы и Артефакты',

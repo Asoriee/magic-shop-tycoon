@@ -2413,13 +2413,21 @@ function createGameStore() {
             // Leaderboard submission:
             import('./yandex-sdk').then(sdk => sdk.submitLeaderboardScore(newTotalStardustEarned)).catch(() => {});
 
+            // Сброс сваренных зелий согласно правилам Ритуала
+            potionsCount.set({});
+
             return {
                 ...state,
                 gold: startingGold,
                 upgrades: state.upgrades.map(u => updateUpgradeLevel(u, 0)),
                 // Тайные знания не сбрасываются!
                 stardust: state.stardust + earnedStardust,
-                totalStardustEarned: newTotalStardustEarned
+                totalStardustEarned: newTotalStardustEarned,
+                // Сброс квестов и заказов после ритуала
+                quests: generateQuests(),
+                dailyBonusClaimed: false,
+                activeOrders: createStarterOrders(),
+                lastOrderSpawnTime: Date.now()
             };
         }),
         buyArtifact: (artifactId: number, cost: number) => {

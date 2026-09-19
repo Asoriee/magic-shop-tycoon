@@ -582,6 +582,7 @@ export const en: Translations = {
         sacrGold: 'All current gold',
         sacrUpgrades: 'Standard shop upgrades',
         sacrPotions: 'Brewed potions in inventory',
+        sacrQuestsOrders: 'Active orders and daily quests',
         keptVip: 'VIP status and all Crystals',
         keptDust: 'Stardust and Secret Arts',
         keptPets: 'All unlocked Pets & Artifacts',

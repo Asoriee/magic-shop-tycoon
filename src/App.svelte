@@ -328,7 +328,9 @@
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="income" size={16} />
                 </span>
-                <span class="chip-val income-val">+{formatNumber($currentIdleIncome)} {$t('common.perSec')}</span>
+                <span class="chip-val income-val">
+                    +{formatNumber($currentIdleIncome)}&nbsp;<span class="unit-full">{$t('common.perSec')}</span><span class="unit-short">{$t('common.perSecShort')}</span>
+                </span>
             </div>
 
             <!-- Crystals Chip -->
@@ -361,7 +363,9 @@
                 <span class="chip-svg-wrap">
                     <ResourceIcon type="vip" size={18} />
                 </span>
-                <span class="chip-val vip-val">{$t('common.vip')} {$vipDaysLeft} {$t('common.day')}</span>
+                <span class="chip-val vip-val">
+                    {$t('common.vip')} {$vipDaysLeft}&nbsp;<span class="unit-full">{$t('common.day')}</span><span class="unit-short">{$t('common.dayShort')}</span>
+                </span>
                 {#if $isVipDailyRewardAvailable}
                     <span class="vip-reward-dot" title={$t('hud.vipRewardDot')}></span>
                 {/if}
@@ -819,6 +823,13 @@
         letter-spacing: 0.3px;
     }
 
+    .unit-short {
+        display: none;
+    }
+    .unit-full {
+        display: inline;
+    }
+
     /* Specific Chip Themes */
     .gold-chip {
         border-color: rgba(241, 196, 15, 0.35);
@@ -1213,10 +1224,10 @@
     @media (max-width: 680px) {
         .master-hud-panel {
             padding-top: max(6px, env(safe-area-inset-top));
-            padding-left: max(8px, env(safe-area-inset-left));
-            padding-right: max(8px, env(safe-area-inset-right));
+            padding-left: max(6px, env(safe-area-inset-left));
+            padding-right: max(6px, env(safe-area-inset-right));
             padding-bottom: 6px;
-            gap: 6px;
+            gap: 5px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
@@ -1226,29 +1237,59 @@
         .hud-crest-box {
             padding: 3px 6px;
             order: 1;
+            flex-shrink: 1;
+            min-width: 0;
+            max-width: 48%;
+        }
+
+        .crest-tier {
+            font-size: 0.72rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .crest-bonus {
+            font-size: 0.65rem;
+            flex-shrink: 0;
         }
 
         .hud-controls-cluster {
-            gap: 5px;
+            gap: 4px;
             order: 2;
+            flex-shrink: 0;
         }
 
         .hud-icon-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
+        }
+
+        .hud-icon-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .lang-label {
+            font-size: 0.70rem;
+            font-weight: 800;
         }
 
         .hud-chips-row {
             width: 100%;
             order: 3;
-            justify-content: center;
-            gap: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            justify-content: safe center;
+            gap: 4px;
             flex-wrap: nowrap;
             overflow-x: auto;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
-            padding: 1px 0;
+            padding: 2px 4px;
+            box-sizing: border-box;
         }
 
         .hud-chips-row::-webkit-scrollbar {
@@ -1256,20 +1297,35 @@
         }
 
         .hud-chip {
-            padding: 3px 6px;
+            padding: 2px 6px;
             gap: 3px;
             flex-shrink: 0;
-            border-radius: 9px;
+            border-radius: 8px;
+        }
+
+        .chip-svg-wrap :global(svg) {
+            width: 14px !important;
+            height: 14px !important;
         }
 
         .chip-val {
-            font-size: 0.82rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .unit-full {
+            display: none;
+        }
+
+        .unit-short {
+            display: inline;
         }
 
         .active-buffs-dock {
-            top: 82px;
+            top: 76px;
             left: 8px;
-            gap: 5px;
+            gap: 4px;
         }
 
         .buff-capsule {
@@ -1277,23 +1333,30 @@
         }
 
         .master-hub-dock {
-            bottom: max(12px, env(safe-area-inset-bottom));
-            width: calc(100% - 16px);
-            max-width: 440px;
-            padding: 5px 4px;
-            gap: 3px;
+            bottom: max(10px, env(safe-area-inset-bottom));
+            width: calc(100% - 12px);
+            max-width: 420px;
+            padding: 4px 3px;
+            gap: 2px;
             border-radius: 16px;
+            box-sizing: border-box;
         }
 
         .hub-portal-btn {
             padding: 4px 1px;
             min-width: 0;
-            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .portal-icon-box svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
+        }
+
+        .portal-texts {
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .portal-name-full {
@@ -1302,10 +1365,10 @@
 
         .portal-name-short {
             display: block;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 800;
             color: #dfe6e9;
-            letter-spacing: 0.2px;
+            letter-spacing: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1319,6 +1382,48 @@
 
         .center-area {
             padding-bottom: 60px;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .master-hud-panel {
+            padding-left: max(4px, env(safe-area-inset-left));
+            padding-right: max(4px, env(safe-area-inset-right));
+            gap: 4px;
+        }
+
+        .hud-chips-row {
+            gap: 2px;
+            padding: 1px 2px;
+        }
+
+        .hud-chip {
+            padding: 2px 4px;
+            gap: 2px;
+        }
+
+        .chip-val {
+            font-size: 0.68rem;
+        }
+
+        .master-hub-dock {
+            width: calc(100% - 8px);
+            padding: 3px 2px;
+            gap: 1px;
+            border-radius: 14px;
+        }
+
+        .hub-portal-btn {
+            padding: 3px 0;
+        }
+
+        .portal-icon-box svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .portal-name-short {
+            font-size: 0.60rem;
         }
     }
     .shortcut-btn {

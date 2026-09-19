@@ -4,7 +4,7 @@
     import { 
         crystals, 
         gameStore, 
-        currentIdleIncome,
+        stableIdleIncome,
         openChest, 
         type ChestType, 
         type ChestDropItem,
@@ -186,7 +186,7 @@
     }
 
     function getChestGoldCost(mult: 1 | 5): number {
-        const base = Math.max(5000, Math.round(($currentIdleIncome || 0) * 600));
+        const base = Math.max(5000, Math.round(($stableIdleIncome || 0) * 300));
         if (mult === 1) return base;
         return Math.floor(base * 5 * 0.95); // 5% скидка на опт
     }

@@ -4,14 +4,15 @@
     import gsap from 'gsap';
     import { 
         gameStore, 
-        currentIdleIncome,
+        stableIdleIncome,
         ingredientsCount, 
         potionsCount, 
         AVAILABLE_INGREDIENTS, 
         AVAILABLE_POTIONS, 
         type CustomerOrder, 
         formatNumber,
-        ORDER_SPAWN_INTERVAL_MS
+        ORDER_SPAWN_INTERVAL_MS,
+        getPetBonusValues
     } from '../store';
     import { showRewardedAd, saveGame } from '../yandex-sdk';
     import { playCoinSound, playSuccessSound } from '../audio';
@@ -33,14 +34,27 @@
     }
 
     export function getDynamicOrderGold(order: CustomerOrder, idleIncome: number): number {
-        const goldSecs = order.goldSeconds || (order.isVip ? 1200 : (order.requirements.some(r => r.type === 'potion') ? 480 : 120));
-        const minFloor = order.minGold || (order.isVip ? 50000 : (order.requirements.some(r => r.type === 'potion') ? 10000 : 1500));
-        const base = Math.max(minFloor, Math.round((idleIncome || 0) * goldSecs), order.rewardGold || 0);
+        const goldSecs = order.goldSeconds
+            ? Math.min(order.goldSeconds, order.isVip ? 120 : (order.requirements.some(r => r.type === 'potion') ? 60 : 30))
+            : (order.isVip ? 120 : (order.requirements.some(r => r.type === 'potion') ? 60 : 30));
+        const minFloor = order.minGold
+            ? Math.min(order.minGold, order.isVip ? 25000 : (order.requirements.some(r => r.type === 'potion') ? 5000 : 1000))
+            : (order.isVip ? 25000 : (order.requirements.some(r => r.type === 'potion') ? 5000 : 1000));
+        const base = Math.max(minFloor, Math.round((idleIncome || 0) * goldSecs));
 
         const ordersLevel = $gameStore.secretUpgrades?.find(u => u.id === 'orders')?.level || 0;
-        let goldMultiplier = 1 + (ordersLevel * 0.20);
+        const isBoosted = ($gameStore.secretKnowledgeBoostUntil || 0) > Date.now();
+        const boostMult = isBoosted ? 1.5 : 1;
+        let goldMultiplier = 1 + (ordersLevel * 0.15 * boostMult);
         if ($gameStore.artifacts?.includes(8)) goldMultiplier += 0.40;
         if ($gameStore.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
+        if ($gameStore.activeCompanionId) {
+            const compLvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
+            const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
+            if (compBonus.orderBonus > 0) {
+                goldMultiplier += compBonus.orderBonus;
+            }
+        }
 
         return Math.floor(base * goldMultiplier);
     }
@@ -131,7 +145,7 @@
                 }
             }
 
-            const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0);
+            const dynGold = getDynamicOrderGold(order, $stableIdleIncome || 0);
             const localizedCustName = getCustomerName(order.name, get(currentLang));
             const crystalTxt = order.rewardCrystals ? `, ${get(t)('orders.crystalsReward', { count: order.rewardCrystals })}` : '';
             let chestName = '';
@@ -289,7 +303,7 @@
     <div class="orders-grid">
         {#each $gameStore.activeOrders as order (order.id)}
             {@const canFulfill = checkCanFulfill(order)}
-            {@const dynGold = getDynamicOrderGold(order, $currentIdleIncome || 0)}
+            {@const dynGold = getDynamicOrderGold(order, $stableIdleIncome || 0)}
             {@const localizedCustName = getCustomerName(order.name, $currentLang)}
             {@const archetype = getCustomerArchetype(order.name, order.isVip, order.orderType)}
             <div class="order-card" class:vip={order.isVip} id="order-{order.id}">

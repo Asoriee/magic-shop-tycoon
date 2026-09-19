@@ -696,7 +696,7 @@ export const POTIONS_CATALOGUE = AVAILABLE_POTIONS;
  */
 export function openChest(chestType: ChestType = 'wooden', count: number = 1): ChestResult {
     const validCount = Math.max(1, Math.min(10, count || 1));
-    const idle = get(currentIdleIncome) || 0;
+    const idle = get(stableIdleIncome) || 0;
     const currentResonance = get(gameStore).chestResonanceProgress || 0;
     const isDoubleResonance = currentResonance >= 100;
     const multiplier = isDoubleResonance ? 2 : 1;
@@ -843,33 +843,34 @@ export function openChest(chestType: ChestType = 'wooden', count: number = 1): C
 
         if (chestType === 'wooden') {
             goldChance = 0.30;
-            goldSeconds = 180; // 3 min
-            minGoldFloor = 1000;
+            goldSeconds = 20; // 20 sec (was 180 sec)
+            minGoldFloor = 500;
             goldKey = 'vagabondPouch';
         } else if (chestType === 'alchemist') {
-            goldChance = 0.40;
-            goldSeconds = 480; // 8 min
-            minGoldFloor = 5000;
+            goldChance = 0.35;
+            goldSeconds = 45; // 45 sec (was 480 sec)
+            minGoldFloor = 2000;
             goldKey = 'alchemistPouch';
         } else if (chestType === 'magical') {
-            goldChance = 0.50;
-            goldSeconds = 900; // 15 min
-            minGoldFloor = 15000;
+            goldChance = 0.40;
+            goldSeconds = 90; // 1.5 min (was 900 sec)
+            minGoldFloor = 6000;
             goldKey = 'sorcererSack';
         } else if (chestType === 'astral') {
-            goldChance = 0.70;
-            goldSeconds = 1800; // 30 min
-            minGoldFloor = 50000;
+            goldChance = 0.50;
+            goldSeconds = 180; // 3 min (was 1800 sec)
+            minGoldFloor = 20000;
             goldKey = 'etherTreasury';
         } else if (chestType === 'titan') {
-            goldChance = 1.00; // 100% guaranteed
-            goldSeconds = 3600; // 60 min
-            minGoldFloor = 150000;
+            goldChance = 0.75;
+            goldSeconds = 300; // 5 min (was 3600 sec)
+            minGoldFloor = 50000;
             goldKey = 'titanCoffer';
         }
 
         if (Math.random() < goldChance) {
-            const rawGold = Math.max(minGoldFloor, Math.round(idle * goldSeconds));
+            const rewardIdle = idle;
+            const rawGold = Math.max(minGoldFloor, Math.round(rewardIdle * goldSeconds));
             const goldAward = rawGold * multiplier;
             totalGold += goldAward;
             drops.push({
@@ -1863,7 +1864,7 @@ function generateQuests(): Quest[] {
             target: clickTarget, 
             current: 0, 
             rewardType: 'gold', 
-            rewardAmount: 150, 
+            rewardAmount: 30, // 30 sec (was 150)
             isCompleted: false, 
             isClaimed: false 
         },
@@ -1874,7 +1875,7 @@ function generateQuests(): Quest[] {
             target: upgradesTarget, 
             current: 0, 
             rewardType: 'gold', 
-            rewardAmount: 180, 
+            rewardAmount: 30, // 30 sec (was 180)
             isCompleted: false, 
             isClaimed: false 
         },
@@ -1886,7 +1887,7 @@ function generateQuests(): Quest[] {
             target: brewTarget, 
             current: 0, 
             rewardType: 'gold', 
-            rewardAmount: 300, 
+            rewardAmount: 45, // 45 sec (was 300)
             isCompleted: false, 
             isClaimed: false 
         },
@@ -1908,7 +1909,7 @@ function generateQuests(): Quest[] {
             target: expTarget, 
             current: 0, 
             rewardType: 'gold', 
-            rewardAmount: 350, 
+            rewardAmount: 45, // 45 sec (was 350)
             isCompleted: false, 
             isClaimed: false 
         },
@@ -1940,9 +1941,9 @@ export function createStarterOrders(): CustomerOrder[] {
             requirements: [
                 { type: 'ingredient', id: 'herb_mundane', count: 2 }
             ],
-            goldSeconds: 120,
-            minGold: 1500,
-            rewardGold: 1500,
+            goldSeconds: 30, // 30 sec (was 120)
+            minGold: 1000,
+            rewardGold: 1000,
             rewardCrystals: 1,
             rewardChest: null,
             rewardStardust: 0,
@@ -1956,9 +1957,9 @@ export function createStarterOrders(): CustomerOrder[] {
             requirements: [
                 { type: 'ingredient', id: 'mushroom_gray', count: 2 }
             ],
-            goldSeconds: 120,
-            minGold: 2000,
-            rewardGold: 2000,
+            goldSeconds: 30, // 30 sec (was 120)
+            minGold: 1500,
+            rewardGold: 1500,
             rewardCrystals: 2,
             rewardChest: 'wooden',
             rewardStardust: 0,
@@ -2105,24 +2106,24 @@ export function claimVipDailyReward(): boolean {
 }
 
 /**
- * Dynamic gold reward scaling with current idle income.
- * @param secondsFactor Number of seconds of passive income to reward (default 150s).
+ * Dynamic gold reward scaling with stable idle income.
+ * @param secondsFactor Number of seconds of passive income to reward (default 30s).
  */
-export function calculateQuestGoldReward(secondsFactor: number = 150): number {
+export function calculateQuestGoldReward(secondsFactor: number = 30): number {
     try {
-        const factor = (typeof secondsFactor === 'number' && !isNaN(secondsFactor) && secondsFactor > 0) ? secondsFactor : 150;
-        const idle = get(currentIdleIncome);
+        const factor = (typeof secondsFactor === 'number' && !isNaN(secondsFactor) && secondsFactor > 0) ? Math.min(60, secondsFactor) : 30;
+        const idle = get(stableIdleIncome);
         const validIdle = (typeof idle === 'number' && !isNaN(idle) && isFinite(idle)) ? idle : 0;
-        return Math.max(3000, Math.round(validIdle * factor));
+        return Math.max(1000, Math.round(validIdle * factor));
     } catch {
-        return 3000;
+        return 1000;
     }
 }
 
 export function generateSingleOrder(): CustomerOrder {
     const roll = Math.random();
     const reqs: OrderRequirement[] = [];
-    const idle = get(currentIdleIncome) || 0;
+    const idle = get(stableIdleIncome) || 0;
 
     if (roll < 0.20) {
         // 1. Королевский VIP-заказ (20% шанс, за просмотр рекламы)
@@ -2138,8 +2139,8 @@ export function generateSingleOrder(): CustomerOrder {
         }
 
         const vipNames = ['Королевский Казначей', 'Архимаг Совета', 'Посланник Принцессы', 'Богатый Вельможа'];
-        const goldSeconds = 1200; // 20 минут пассивного дохода!
-        const minGold = 50000;
+        const goldSeconds = 120; // 2 минуты стабильного дохода (было 1200)
+        const minGold = 25000;
         const rewardGold = Math.max(minGold, Math.round(idle * goldSeconds));
         const rewardCrystals = Math.floor(Math.random() * 6) + 10; // 10..15 кристаллов
         const rewardChest: ChestType = Math.random() < 0.20 ? 'astral' : 'magical'; // 100% сундук!
@@ -2164,8 +2165,8 @@ export function generateSingleOrder(): CustomerOrder {
         reqs.push({ type: 'potion', id: pot.id, count: 1 });
 
         const potionNames = ['Боевой Маг', 'Рыцарь Ордена', 'Странствующий Чародей', 'Ведьма Пустошей'];
-        const goldSeconds = 480; // 8 минут пассивного дохода
-        const minGold = 10000;
+        const goldSeconds = 60; // 1 минута стабильного дохода (было 480)
+        const minGold = 5000;
         const rewardGold = Math.max(minGold, Math.round(idle * goldSeconds));
         const rewardCrystals = Math.floor(Math.random() * 3) + 3; // 3..5 кристаллов
         // 40% шанс на сундук (из них 25% на магический, 75% на деревянный)
@@ -2195,8 +2196,8 @@ export function generateSingleOrder(): CustomerOrder {
         }
 
         const commonNames = ['Ученик Мага', 'Травник', 'Горожанин', 'Страж Ворот'];
-        const goldSeconds = 120; // 2 минуты пассивного дохода
-        const minGold = 1500;
+        const goldSeconds = 30; // 30 секунд стабильного дохода (было 120)
+        const minGold = 1000;
         const rewardGold = Math.max(minGold, Math.round(idle * goldSeconds));
         const rewardCrystals = Math.floor(Math.random() * 2) + 1; // 1..2 кристалла
         const rewardChest: ChestType | null = Math.random() < 0.15 ? 'wooden' : null; // 15% шанс на деревянный сундук
@@ -2309,12 +2310,12 @@ function createGameStore() {
                 let nextGold = state.gold;
 
                 if (quest.rewardType === 'gold') {
-                    nextGold += calculateQuestGoldReward(quest.rewardAmount || 150);
+                    nextGold += calculateQuestGoldReward(quest.rewardAmount || 30);
                 } else if (quest.rewardType === 'crystals') {
                     crystals.update(c => c + (quest.rewardAmount || 5));
                 } else {
                     // Fallback for legacy quests
-                    nextGold += calculateQuestGoldReward(200);
+                    nextGold += calculateQuestGoldReward(45);
                 }
 
                 return {
@@ -2572,11 +2573,15 @@ function createGameStore() {
             const order = state.activeOrders.find(o => o.id === orderId);
             if (!order) return state;
 
-            // Динамический пересчёт золота по текущему доходу лавки
-            const idle = get(currentIdleIncome) || 0;
-            const goldSecs = order.goldSeconds || (order.isVip ? 1200 : (order.requirements.some(r => r.type === 'potion') ? 480 : 120));
-            const minFloor = order.minGold || (order.isVip ? 50000 : (order.requirements.some(r => r.type === 'potion') ? 10000 : 1500));
-            const baseGold = Math.max(minFloor, Math.round(idle * goldSecs), order.rewardGold || 0);
+            // Динамический пересчёт золота по стабильному доходу лавки (без учета временных зелий)
+            const idle = get(stableIdleIncome) || 0;
+            const goldSecs = order.goldSeconds
+                ? Math.min(order.goldSeconds, order.isVip ? 120 : (order.requirements.some(r => r.type === 'potion') ? 60 : 30))
+                : (order.isVip ? 120 : (order.requirements.some(r => r.type === 'potion') ? 60 : 30));
+            const minFloor = order.minGold
+                ? Math.min(order.minGold, order.isVip ? 25000 : (order.requirements.some(r => r.type === 'potion') ? 5000 : 1000))
+                : (order.isVip ? 25000 : (order.requirements.some(r => r.type === 'potion') ? 5000 : 1000));
+            const baseGold = Math.max(minFloor, Math.round(idle * goldSecs));
 
             // Secret Upgrade: Королевские Контракты (+15% gold per level)
             const ordersLevel = state.secretUpgrades.find(u => u.id === 'orders')?.level || 0;
@@ -2829,11 +2834,10 @@ export const activeCompanionBonus = derived(gameStore, $gameStore => {
     };
 });
 
-export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
+export const stableIdleMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {
     let multiplier = 1 * ($milestone?.multiplier || 1);
     const arts = $gameStore?.artifacts || [];
     const colls = $gameStore?.unlockedCollections || [];
-    const buffs = $gameStore?.activeBuffs || [];
     
     // Original artifacts
     if (arts.includes(0)) multiplier += 0.20; // Scroll of Greed
@@ -2863,16 +2867,37 @@ export const globalIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
         if (compBonus.idleBonus > 0) multiplier += compBonus.idleBonus;
     }
     
-    // Apply active buffs
-    for (const buff of buffs) {
-        if (buff.effect === 'idle_multiplier') multiplier += buff.value;
-        if (buff.effect === 'gold_multiplier') multiplier += buff.value;
-    }
-    
     // Apply stardust prestige multiplier (+1% per stardust)
     multiplier += ($gameStore?.stardust || 0) * 0.01;
     
     return Math.max(1, multiplier);
+});
+
+export const globalIdleMultiplier = derived([stableIdleMultiplier, gameStore], ([$stableMult, $gameStore]) => {
+    let multiplier = $stableMult;
+    const buffs = $gameStore?.activeBuffs || [];
+    for (const buff of buffs) {
+        if (buff.effect === 'idle_multiplier') multiplier += buff.value;
+        if (buff.effect === 'gold_multiplier') multiplier += buff.value;
+    }
+    return Math.max(1, multiplier);
+});
+
+export const stableIdleIncome = derived([gameStore, stableIdleMultiplier], ([$gameStore, $stableMult]) => {
+    let totalIdle = 0;
+    const upgs = $gameStore?.upgrades || [];
+    const secUpgs = $gameStore?.secretUpgrades || [];
+
+    upgs.forEach(u => {
+        if (u.type === 'idle') totalIdle += (u.baseValue || 0) * (u.level || 0);
+    });
+
+    // Secret Upgrade: Аура Фамильяра (+15% passive income per level)
+    const familiarLevel = secUpgs.find(u => u.id === 'familiar')?.level || 0;
+    const familiarMultiplier = 1 + (familiarLevel * 0.15);
+    const mult = (typeof $stableMult === 'number' && !isNaN($stableMult)) ? $stableMult : 1;
+
+    return Math.max(0, totalIdle * mult * familiarMultiplier);
 });
 
 export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], ([$gameStore, $isVip, $milestone]) => {

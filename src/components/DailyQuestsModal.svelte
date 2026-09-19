@@ -3,7 +3,6 @@
     import { 
         gameStore, 
         crystals, 
-        currentIdleIncome, 
         calculateQuestGoldReward, 
         formatNumber, 
         type QuestType, 
@@ -299,10 +298,10 @@
                                 <span class="quest-title">{getTypeLabel(quest.type)}: {quest.target}</span>
                             </div>
                             {#if quest.rewardType === 'gold'}
-                                {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 150)}
+                                {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 30)}
                                 <div class="reward-pill gold-pill" title={$t('common.gold')}>
                                     <ResourceIcon type="gold" size={14} />
-                                    <span>+{formatNumber(dynGold || 3000)}</span>
+                                    <span>+{formatNumber(dynGold || 1000)}</span>
                                 </div>
                             {:else if quest.rewardType === 'crystals'}
                                 <div class="reward-pill crystal-pill" title={$t('common.crystals')}>

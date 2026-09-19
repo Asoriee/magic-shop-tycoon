@@ -11,7 +11,7 @@
         openChest, 
         formatNumber,
         getExpeditionSkipCost,
-        currentIdleIncome
+        stableIdleIncome
     } from '../store';
     import { t, currentLang, getPetName, getPetDesc } from '../i18n';
     import { getPetAuraDetails } from '../petBonuses';
@@ -296,10 +296,10 @@
         const bonusCrystals = Math.floor((petLevel - 1) * 0.5);
         const totalCrystals = crystalGain + bonusCrystals;
 
-        // Dynamic gold reward based on shop's idle income, expedition length, and +15% per pet level:
-        const idle = get(currentIdleIncome) || 0;
+        // Dynamic gold reward based on shop's stable idle income, expedition length, and +15% per pet level:
+        const idle = get(stableIdleIncome) || 0;
         const expHours = pet?.expeditionHours || 2;
-        const baseGold = Math.max(5000, Math.round(idle * expHours * 300));
+        const baseGold = Math.max(5000, Math.round(idle * expHours * 60));
         const lootMult = 1 + (petLevel - 1) * 0.15;
         const awardedGold = Math.round(baseGold * lootMult);
         gameStore.addGold(awardedGold);

@@ -29,7 +29,9 @@
         level: number;
     }
 
-    let activeTab: 'pets' | 'gacha' = 'pets';
+    export let initialTab: 'pets' | 'gacha' = 
+        (typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('subtab') as any) || 'pets';
+    let activeTab: 'pets' | 'gacha' = initialTab;
     let isSummoning = false;
     let showResult = false;
     let rolledPet: Pet | null = null;
@@ -573,7 +575,7 @@
                             <div class="jackpot-cards-row">
                                 {#each jackpotPets as jpPet (jpPet.id)}
                                     {@const jpAura = getPetAuraDetails(jpPet.id, 1, $currentLang)}
-                                    <div class="jackpot-card">
+                                    <div class="jackpot-card" title="{getPetName(jpPet.id, $currentLang)} — {jpAura.title}: {jpAura.description}">
                                         <div class="jackpot-icon-wrap">
                                             <div class="jackpot-svg">{@html jpPet.icon}</div>
                                             <span class="jackpot-badge">{RARITY_NAMES[jpPet.rarity]}</span>
@@ -582,7 +584,7 @@
                                             <div class="jackpot-name">{getPetName(jpPet.id, $currentLang)}</div>
                                             <div class="jackpot-aura-desc">
                                                 <span class="aura-icon-star">✦</span>
-                                                <span>{jpAura.title}: {jpAura.description}</span>
+                                                <span class="aura-text">{jpAura.badge || jpAura.description}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -931,6 +933,9 @@
         flex-shrink: 0;
         background: rgba(0,0,0,0.2);
         border-bottom: 1px solid rgba(255,255,255,0.06);
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
     }
 
     .sub-tab {
@@ -949,6 +954,14 @@
         font-size: 0.85rem;
         font-weight: 700;
         transition: all 0.2s ease;
+        box-sizing: border-box;
+        min-width: 0;
+    }
+
+    .sub-tab span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .sub-tab:hover {
@@ -1453,85 +1466,131 @@
 
     .jackpot-cards-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         width: 100%;
+        box-sizing: border-box;
     }
 
     .jackpot-card {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        background: rgba(18, 12, 34, 0.75);
-        border: 1px solid rgba(241, 196, 15, 0.25);
+        justify-content: flex-start;
+        gap: 6px;
+        background: linear-gradient(180deg, rgba(28, 18, 48, 0.85) 0%, rgba(14, 9, 26, 0.92) 100%);
+        border: 1px solid rgba(241, 196, 15, 0.35);
         border-radius: 12px;
-        padding: 6px 10px;
-        text-align: left;
+        padding: 8px 6px 7px;
+        text-align: center;
         transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        overflow: hidden;
+        position: relative;
+        min-width: 0;
     }
 
     .jackpot-card:hover {
         transform: translateY(-2px);
-        border-color: rgba(241, 196, 15, 0.6);
-        box-shadow: 0 4px 14px rgba(241, 196, 15, 0.2);
+        border-color: rgba(241, 196, 15, 0.7);
+        box-shadow: 0 4px 16px rgba(241, 196, 15, 0.25);
     }
 
     .jackpot-icon-wrap {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
+        gap: 4px;
         flex-shrink: 0;
+        width: 100%;
     }
 
     .jackpot-svg {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.4);
+        background: radial-gradient(circle, rgba(241, 196, 15, 0.2) 0%, rgba(0, 0, 0, 0.5) 80%);
         border-radius: 50%;
-        border: 1px solid rgba(241, 196, 15, 0.4);
+        border: 1.5px solid rgba(241, 196, 15, 0.5);
+        box-shadow: 0 0 10px rgba(241, 196, 15, 0.2);
     }
 
     .jackpot-badge {
-        font-size: 0.55rem;
+        font-size: 0.54rem;
         font-weight: 800;
+        letter-spacing: 0.3px;
         color: #ffd700;
         text-transform: uppercase;
         background: rgba(241, 196, 15, 0.15);
-        padding: 1px 4px;
-        border-radius: 4px;
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        padding: 1px 5px;
+        border-radius: 5px;
+        white-space: nowrap;
+        max-width: 95%;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 
     .jackpot-info {
-        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
         min-width: 0;
+        gap: 3px;
     }
 
     .jackpot-name {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 800;
         color: #fff;
-        line-height: 1.2;
-        margin-bottom: 2px;
-    }
-
-    .jackpot-aura-desc {
-        font-size: 0.68rem;
-        color: #ffeaa7;
-        line-height: 1.25;
+        line-height: 1.15;
+        text-align: center;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: break-word;
+        width: 100%;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        min-height: 1.8rem;
+    }
+
+    .jackpot-aura-desc {
+        font-size: 0.62rem;
+        color: #ffeaa7;
+        line-height: 1.2;
+        background: rgba(241, 196, 15, 0.12);
+        border: 1px solid rgba(241, 196, 15, 0.2);
+        border-radius: 6px;
+        padding: 2px 4px;
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        text-align: center;
+        min-width: 0;
     }
 
     .aura-icon-star {
         color: #ffd700;
+        font-size: 0.65rem;
         font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .aura-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+        min-width: 0;
     }
 
     /* Sacred Altar Stage */
@@ -2046,7 +2105,7 @@
         color: #ffeaa7;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
         .pet-card {
             gap: 12px;
             padding: 12px;
@@ -2058,6 +2117,62 @@
         .action-btn {
             width: 100%;
             justify-content: center;
+        }
+        .tab-content {
+            padding: 8px 4px;
+        }
+        .sub-tabs {
+            padding: 8px 6px 0;
+            gap: 4px;
+        }
+        .sub-tab {
+            padding: 7px 6px;
+            font-size: 0.74rem;
+            gap: 4px;
+        }
+        .sub-pill {
+            font-size: 0.65rem;
+            padding: 1px 4px;
+        }
+        .gacha-container {
+            padding: 8px 2px;
+            gap: 10px;
+        }
+        .gacha-jackpot-showcase {
+            padding: 8px 6px;
+        }
+        .jackpot-cards-row {
+            gap: 4px;
+        }
+        .jackpot-card {
+            padding: 6px 3px 5px;
+            gap: 3px;
+            border-radius: 10px;
+        }
+        .jackpot-svg {
+            width: 32px;
+            height: 32px;
+        }
+        .jackpot-badge {
+            font-size: 0.44rem;
+            padding: 1px 3px;
+        }
+        .jackpot-name {
+            font-size: 0.65rem;
+            min-height: 1.5rem;
+        }
+        .jackpot-aura-desc {
+            font-size: 0.52rem;
+            padding: 2px 2px;
+        }
+        .gacha-actions-row {
+            width: 100%;
+            gap: 8px;
+            box-sizing: border-box;
+        }
+        .gacha-cta-btn {
+            min-width: 0;
+            padding: 8px 10px;
         }
     }
 </style>

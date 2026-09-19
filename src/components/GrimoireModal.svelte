@@ -24,7 +24,9 @@
     export let isOpen = false;
     export let onClose: () => void;
 
-    let activeTab: 'inventory' | 'alchemy' | 'pets' | 'collections' = 'inventory';
+    export let initialTab: 'inventory' | 'alchemy' | 'pets' | 'collections' = 
+        (typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('tab') as any) || 'inventory';
+    let activeTab: 'inventory' | 'alchemy' | 'pets' | 'collections' = initialTab;
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
     let contentEl: HTMLElement;
@@ -333,6 +335,8 @@
         overflow: hidden;
         color: #f5f6fa;
         font-family: inherit;
+        box-sizing: border-box;
+        min-width: 0;
     }
 
     .modal-bg-glow {
@@ -357,6 +361,9 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
     }
 
     .close-btn {
@@ -483,12 +490,15 @@
     /* Tabs Navigation */
     .master-tabs {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         background: rgba(10, 4, 20, 0.75);
         border-bottom: 2px solid rgba(162, 155, 254, 0.18);
         padding: 4px 8px 0;
         gap: 4px;
         z-index: 1;
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
     }
 
     .tab-btn {
@@ -508,6 +518,8 @@
         font-weight: 700;
         cursor: pointer;
         transition: all 0.22s ease;
+        box-sizing: border-box;
+        min-width: 0;
     }
 
     .tab-btn:hover {
@@ -617,17 +629,21 @@
     }
 
     /* Mobile Responsiveness */
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
         .overlay {
             padding: 4px;
         }
         .grimoire-modal {
             max-height: 96vh;
             border-radius: 16px;
+            width: 100%;
+            box-sizing: border-box;
         }
         .master-header {
             padding: 12px 14px 10px;
             gap: 8px;
+            box-sizing: border-box;
+            width: 100%;
         }
         .grimoire-svg {
             width: 38px;
@@ -647,24 +663,32 @@
             font-size: 0.75rem;
         }
         .master-tabs {
-            padding: 2px 4px 0;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            padding: 2px 2px 0;
             gap: 2px;
+            box-sizing: border-box;
+            width: 100%;
         }
         .tab-btn {
-            padding: 8px 2px 6px;
+            padding: 8px 1px 6px;
+            min-width: 0;
         }
         .tab-label {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
         }
         .tab-icon-box {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
         .tab-badge {
             top: 2px;
             right: 2px;
-            font-size: 0.62rem;
-            padding: 1px 4px;
+            font-size: 0.6rem;
+            padding: 1px 3px;
         }
     }
 </style>

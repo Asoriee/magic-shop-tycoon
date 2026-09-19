@@ -154,7 +154,7 @@
                 </div>
                 {#if !$isVip && onOpenVip}
                     <button class="vip-activate-btn" on:click={onOpenVip}>
-                        VIP
+                        {$t('common.vip')}
                     </button>
                 {/if}
             </div>

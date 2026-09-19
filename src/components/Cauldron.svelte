@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
-    import { gameStore, currentClickPower, critChance, heatBonusLevel, crystals, formatNumber } from '../store';
+    import { gameStore, currentClickPower, critChance, critMultiplier, heatBonusLevel, crystals, formatNumber } from '../store';
     import { playCauldronBubble, playOverheatSizzle } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
     import { t } from '../i18n';
@@ -68,8 +68,8 @@
 
         // Check for crit
         const isCrit = Math.random() < $critChance;
-        const critMultiplier = isCrit ? 5 : 1;
-        const clickValue = Math.max(1, Math.floor($currentClickPower * critMultiplier * comboMultiplier));
+        const critMult = isCrit ? $critMultiplier : 1;
+        const clickValue = Math.max(1, Math.floor($currentClickPower * critMult * comboMultiplier));
 
         gameStore.addGold(clickValue);
         gameStore.updateQuestProgress('clicks', 1);

@@ -280,6 +280,8 @@
                 {@const isResonance = upgrade.type === 'resonance'}
                 {@const isHearth = upgrade.type === 'hearth'}
                 {@const isHeat = upgrade.type === 'heat'}
+                {@const isResFlow = upgrade.type === 'resonance_flow'}
+                {@const isCritDmg = upgrade.type === 'crit_dmg'}
                 {@const upgName = getUpgradeName(upgrade.id, $currentLang)}
                 {@const upgDesc = getUpgradeDesc(upgrade.id, $currentLang)}
                 
@@ -304,6 +306,10 @@
                                     <span class="type-badge mastery">{$t('common.min')}</span>
                                 {:else if isHeat}
                                     <span class="type-badge heat">{$t('cauldron.combo')}</span>
+                                {:else if isResFlow}
+                                    <span class="type-badge resonance">% {$t('shop.tabClick')}</span>
+                                {:else if isCritDmg}
+                                    <span class="type-badge crit">x{$t('shop.critDmg')}</span>
                                 {/if}
                                 <span class="level-badge">{$t('common.levelShort')} {upgrade.level}</span>
                             </div>
@@ -337,6 +343,12 @@
                             {:else if isHeat}
                                 <span class="effect-current">+{upgrade.level * 25}%</span>
                                 <span class="effect-next">→ +{(upgrade.level + bulk.count) * 25}%</span>
+                            {:else if isResFlow}
+                                <span class="effect-current">+{(upgrade.level * 0.5).toFixed(1)}% {$t('shop.tabProduction')}</span>
+                                <span class="effect-next">→ +{((upgrade.level + bulk.count) * 0.5).toFixed(1)}%</span>
+                            {:else if isCritDmg}
+                                <span class="effect-current">x{(5 + upgrade.level * 0.5).toFixed(1)}</span>
+                                <span class="effect-next">→ x{(5 + (upgrade.level + bulk.count) * 0.5).toFixed(1)}</span>
                             {/if}
                         </div>
                     </div>

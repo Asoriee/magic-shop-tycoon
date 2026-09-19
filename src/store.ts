@@ -58,7 +58,7 @@ export interface Quest {
     isClaimed: boolean;
 }
 
-export type UpgradeType = 'click' | 'idle' | 'crit' | 'resonance' | 'heat' | 'hearth';
+export type UpgradeType = 'click' | 'idle' | 'crit' | 'resonance' | 'heat' | 'hearth' | 'resonance_flow' | 'crit_dmg';
 export type UpgradeCategory = 'production' | 'click' | 'mastery';
 
 export interface Upgrade {
@@ -1156,6 +1156,18 @@ const defaultUpgrades: Upgrade[] = [
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><ellipse cx="20" cy="20" rx="18" ry="8" stroke="#fd79a8" stroke-width="2" transform="rotate(-30 20 20)"/><ellipse cx="20" cy="20" rx="14" ry="6" stroke="#a29bfe" stroke-width="2" transform="rotate(30 20 20)"/><circle cx="20" cy="20" r="5" fill="#2d1b4e" stroke="#ffeaa7" stroke-width="1.5"/><circle cx="20" cy="20" r="2" fill="#ffeaa7"/></svg>`
     },
     {
+        id: 'click_rune_blade',
+        get name() { return getUpgradeName('click_rune_blade'); },
+        get description() { return getUpgradeDesc('click_rune_blade'); },
+        type: 'click',
+        category: 'click',
+        baseCost: 5000000,
+        costMultiplier: 1.18,
+        baseValue: 120000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><linearGradient id="runeBladeGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#74b9ff"/><stop offset="50%" stop-color="#0984e3"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M10 32 L16 32 L34 10 L28 4 L6 26 L6 32 Z" fill="url(#runeBladeGrad)" stroke="#81ecec" stroke-width="1.5"/><line x1="12" y1="28" x2="28" y2="12" stroke="#fff" stroke-width="1.5"/><circle cx="18" cy="22" r="1.5" fill="#ffeaa7"/><circle cx="22" cy="18" r="1.5" fill="#ffeaa7"/><rect x="4" y="32" width="6" height="4" rx="1" fill="#636e72" stroke="#2d3436" stroke-width="1.2"/></svg>`
+    },
+    {
         id: 'idle_observatory',
         get name() { return getUpgradeName('idle_observatory'); },
         get description() { return getUpgradeDesc('idle_observatory'); },
@@ -1252,6 +1264,78 @@ const defaultUpgrades: Upgrade[] = [
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="cosmosSun" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="35%" stop-color="#ffeaa7"/><stop offset="70%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#d35400"/></radialGradient></defs><ellipse cx="20" cy="20" rx="18" ry="6" stroke="#00cec9" stroke-width="1.8" transform="rotate(-25 20 20)"/><ellipse cx="20" cy="20" rx="18" ry="6" stroke="#a29bfe" stroke-width="1.8" transform="rotate(35 20 20)"/><circle cx="20" cy="20" r="8" fill="url(#cosmosSun)" stroke="#fff" stroke-width="1.5"/><polygon points="20,2 22,10 20,8 18,10" fill="#f1c40f"/><polygon points="20,38 22,30 20,32 18,30" fill="#f1c40f"/><polygon points="2,20 10,22 8,20 10,18" fill="#f1c40f"/><polygon points="38,20 30,22 32,20 30,18" fill="#f1c40f"/></svg>`
     },
     {
+        id: 'click_void_hammer',
+        get name() { return getUpgradeName('click_void_hammer'); },
+        get description() { return getUpgradeDesc('click_void_hammer'); },
+        type: 'click',
+        category: 'click',
+        baseCost: 5000000000000,
+        costMultiplier: 1.21,
+        baseValue: 1500000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="voidHammerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a29bfe"/><stop offset="100%" stop-color="#6c5ce7"/></radialGradient></defs><rect x="18" y="16" width="4" height="20" rx="1.5" fill="#2d3436" stroke="#a29bfe" stroke-width="1.5"/><path d="M8 8 L32 8 L30 20 L10 20 Z" fill="#1e1035" stroke="#a29bfe" stroke-width="2"/><circle cx="20" cy="14" r="4" fill="url(#voidHammerGlow)"/><polygon points="12,14 10,11 14,11" fill="#00cec9"/><polygon points="28,14 26,11 30,11" fill="#00cec9"/></svg>`
+    },
+    {
+        id: 'idle_astral_weaver',
+        get name() { return getUpgradeName('idle_astral_weaver'); },
+        get description() { return getUpgradeDesc('idle_astral_weaver'); },
+        type: 'idle',
+        category: 'production',
+        baseCost: 25000000000000,
+        costMultiplier: 1.20,
+        baseValue: 450000000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><linearGradient id="astralWeave" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a29bfe"/><stop offset="100%" stop-color="#fd79a8"/></linearGradient></defs><ellipse cx="20" cy="20" rx="16" ry="12" stroke="url(#astralWeave)" stroke-width="2" stroke-dasharray="2 2"/><ellipse cx="20" cy="20" rx="12" ry="16" stroke="#81ecec" stroke-width="1.8" transform="rotate(45 20 20)"/><circle cx="20" cy="20" r="5" fill="#2d1b4e" stroke="#ffeaa7" stroke-width="1.5"/><circle cx="20" cy="20" r="2.5" fill="#ffeaa7"/><line x1="8" y1="12" x2="32" y2="28" stroke="#fd79a8" stroke-width="1.2" opacity="0.8"/><line x1="8" y1="28" x2="32" y2="12" stroke="#81ecec" stroke-width="1.2" opacity="0.8"/></svg>`
+    },
+    {
+        id: 'idle_aether_collider',
+        get name() { return getUpgradeName('idle_aether_collider'); },
+        get description() { return getUpgradeDesc('idle_aether_collider'); },
+        type: 'idle',
+        category: 'production',
+        baseCost: 500000000000000,
+        costMultiplier: 1.21,
+        baseValue: 12000000000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="collVoid" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00cec9"/><stop offset="70%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#0f0c29"/></radialGradient></defs><circle cx="20" cy="20" r="16" fill="url(#collVoid)" stroke="#00cec9" stroke-width="2"/><circle cx="20" cy="20" r="10" fill="none" stroke="#fd79a8" stroke-width="2" stroke-dasharray="4 2"/><circle cx="20" cy="20" r="4" fill="#fff" stroke="#ffeaa7" stroke-width="1.5"/><circle cx="10" cy="14" r="2" fill="#00cec9"/><circle cx="30" cy="26" r="2" fill="#fd79a8"/></svg>`
+    },
+    {
+        id: 'idle_genesis_tome',
+        get name() { return getUpgradeName('idle_genesis_tome'); },
+        get description() { return getUpgradeDesc('idle_genesis_tome'); },
+        type: 'idle',
+        category: 'production',
+        baseCost: 15000000000000000,
+        costMultiplier: 1.22,
+        baseValue: 400000000000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><linearGradient id="genesisCover" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#2d1b4e"/></linearGradient></defs><rect x="8" y="8" width="24" height="26" rx="3" fill="url(#genesisCover)" stroke="#ffeaa7" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="34" stroke="#ffeaa7" stroke-width="2"/><circle cx="22" cy="21" r="5" fill="#2d1b4e" stroke="#f1c40f" stroke-width="1.5"/><polygon points="22,17 23,20 26,21 23,22 22,25 21,22 18,21 21,20" fill="#f1c40f"/><path d="M16 12 L28 12 M16 30 L28 30" stroke="#a29bfe" stroke-width="1.2"/></svg>`
+    },
+    {
+        id: 'click_creator_gauntlet',
+        get name() { return getUpgradeName('click_creator_gauntlet'); },
+        get description() { return getUpgradeDesc('click_creator_gauntlet'); },
+        type: 'click',
+        category: 'click',
+        baseCost: 100000000000000000,
+        costMultiplier: 1.23,
+        baseValue: 25000000000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><linearGradient id="creatorGlove" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffeaa7"/><stop offset="50%" stop-color="#f1c40f"/><stop offset="100%" stop-color="#d35400"/></linearGradient></defs><path d="M12 14 C12 10 16 8 20 8 C24 8 28 10 28 14 L28 32 C28 35 25 36 20 36 C15 36 12 35 12 32 Z" fill="url(#creatorGlove)" stroke="#b7791f" stroke-width="2"/><circle cx="16" cy="16" r="2" fill="#e74c3c"/><circle cx="20" cy="14" r="2.2" fill="#00cec9"/><circle cx="24" cy="16" r="2" fill="#9b59b6"/><circle cx="20" cy="23" r="3" fill="#2ecc71" stroke="#fff" stroke-width="1"/></svg>`
+    },
+    {
+        id: 'idle_sphere_absolute',
+        get name() { return getUpgradeName('idle_sphere_absolute'); },
+        get description() { return getUpgradeDesc('idle_sphere_absolute'); },
+        type: 'idle',
+        category: 'production',
+        baseCost: 500000000000000000,
+        costMultiplier: 1.23,
+        baseValue: 15000000000000000,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><defs><radialGradient id="sphereAbs" cx="40%" cy="40%" r="60%"><stop offset="0%" stop-color="#ffffff"/><stop offset="30%" stop-color="#ffeaa7"/><stop offset="60%" stop-color="#fd79a8"/><stop offset="100%" stop-color="#6c5ce7"/></radialGradient></defs><ellipse cx="20" cy="20" rx="19" ry="7" stroke="#00cec9" stroke-width="1.8" transform="rotate(-30 20 20)"/><ellipse cx="20" cy="20" rx="19" ry="7" stroke="#ffeaa7" stroke-width="1.8" transform="rotate(30 20 20)"/><circle cx="20" cy="20" r="10" fill="url(#sphereAbs)" stroke="#fff" stroke-width="1.5"/><circle cx="20" cy="20" r="4" fill="#fff"/></svg>`
+    },
+    {
         id: 'idle_hearth',
         get name() { return getUpgradeName('idle_hearth'); },
         get description() { return getUpgradeDesc('idle_hearth'); },
@@ -1274,6 +1358,30 @@ const defaultUpgrades: Upgrade[] = [
         baseValue: 1,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M20 4 C16 12 10 16 10 24 C10 30 14 36 20 36 C26 36 30 30 30 24 C30 18 26 12 20 4 Z" fill="#ff7675" stroke="#d63031" stroke-width="2"/><path d="M20 14 C17 19 14 22 14 27 C14 30 17 33 20 33 C23 33 26 30 26 27 C26 23 23 19 20 14 Z" fill="#f1c40f"/><circle cx="20" cy="28" r="3" fill="#fff"/></svg>`
+    },
+    {
+        id: 'mastery_resonance_flow',
+        get name() { return getUpgradeName('mastery_resonance_flow'); },
+        get description() { return getUpgradeDesc('mastery_resonance_flow'); },
+        type: 'resonance_flow',
+        category: 'mastery',
+        baseCost: 50000000,
+        costMultiplier: 1.30,
+        baseValue: 1,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M6 20 C10 12 16 12 20 20 C24 28 30 28 34 20" stroke="#00cec9" stroke-width="3" stroke-linecap="round"/><path d="M6 20 C10 28 16 28 20 20 C24 12 30 12 34 20" stroke="#a29bfe" stroke-width="2" stroke-linecap="round" opacity="0.85"/><circle cx="20" cy="20" r="3.5" fill="#ffeaa7" stroke="#fd79a8" stroke-width="1.5"/><circle cx="8" cy="20" r="2" fill="#00cec9"/><circle cx="32" cy="20" r="2" fill="#a29bfe"/></svg>`
+    },
+    {
+        id: 'mastery_crit_dmg',
+        get name() { return getUpgradeName('mastery_crit_dmg'); },
+        get description() { return getUpgradeDesc('mastery_crit_dmg'); },
+        type: 'crit_dmg',
+        category: 'mastery',
+        baseCost: 500000000,
+        costMultiplier: 1.35,
+        baseValue: 0.5,
+        level: 0,
+        iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><polygon points="20,2 23,13 34,7 28,17 38,20 28,23 34,33 23,27 20,38 17,27 6,33 12,23 2,20 12,17 6,7 17,13" fill="#ff7675" stroke="#d63031" stroke-width="1.5"/><circle cx="20" cy="20" r="6" fill="#f1c40f" stroke="#fff" stroke-width="1.5"/><circle cx="20" cy="20" r="2.5" fill="#fff"/></svg>`
     }
 ];
 
@@ -2866,12 +2974,29 @@ export const critChance = derived(gameStore, ($gameStore) => {
     return Math.min(0.75, chance);
 });
 
+export const critMultiplier = derived(gameStore, ($gameStore) => {
+    let mult = 5.0;
+    const critDmgUpgrade = $gameStore?.upgrades?.find(u => u.id === 'mastery_crit_dmg');
+    if (critDmgUpgrade && critDmgUpgrade.level > 0) {
+        mult += critDmgUpgrade.level * 0.5;
+    }
+    return mult;
+});
+
 export const resonanceBonus = derived([gameStore, currentIdleIncome], ([$gameStore, $idleIncome]) => {
     const resUpgrade = $gameStore.upgrades.find(u => u.id === 'click_resonance');
-    if (!resUpgrade || resUpgrade.level <= 0) return 0;
-    // +0.2% of current idle income per level, capped at 10%
-    const pct = Math.min(0.10, resUpgrade.level * 0.002);
-    return Math.floor($idleIncome * pct);
+    const flowUpgrade = $gameStore.upgrades.find(u => u.id === 'mastery_resonance_flow');
+    
+    const baseLvl = resUpgrade?.level || 0;
+    const flowLvl = flowUpgrade?.level || 0;
+    if (baseLvl <= 0 && flowLvl <= 0) return 0;
+
+    // +0.2% per level capped at 10% from basic resonance
+    const basePct = Math.min(0.10, baseLvl * 0.002);
+    // +0.5% per level without hardcap from mastery resonance flow
+    const flowPct = flowLvl * 0.005;
+
+    return Math.floor($idleIncome * (basePct + flowPct));
 });
 
 export const currentClickPower = derived([gameStore, globalClickMultiplier, resonanceBonus], ([$gameStore, $clickMult, $resonanceBonus]) => {

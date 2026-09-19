@@ -143,6 +143,7 @@ export const tr: Translations = {
         bulkBuy10: 'x10',
         bulkBuyMax: 'MAKS',
         multiplier: 'Çarpan',
+        critDmg: 'Kritik',
     },
     alchemy: {
         title: 'Simya Masası',
@@ -659,6 +660,15 @@ export const tr: Translations = {
         idle_cosmos_heart: { name: 'Kozmosun Kalbi', description: 'İlksel büyünün mutlak kaynağı. Dükkânınız evrenin merkezine dönüşür.' },
         idle_hearth: { name: 'Güçlendirilmiş Ocak', description: 'Büyülü ocak sıcaklığı korur: çevrimdışı süreyi artırır (seviye başına +10 dk).' },
         click_heat: { name: 'Büyülü Isınma', description: 'Hızlı tıklar kazanı alevlendirir: kombo çarpanını +%150’ye kadar artırır!' },
+        click_rune_blade: { name: 'Rünik Rüzgar Bıçağı', description: 'Efsunlu namlu esiri yarar, tık gücünü muazzam ölçüde artırır.' },
+        click_void_hammer: { name: 'Hiçlik Çekici', description: 'Uçurumun devasa demirhanesi her tıklamaya ezici bir kuvvet katar.' },
+        click_creator_gauntlet: { name: 'Yaratıcı Eldiveni', description: 'Varoluşun ilksel yadigarı: her dokunuşu yeni dünyaların doğumuna çevirir.' },
+        idle_astral_weaver: { name: 'Astral Dokumacı', description: 'Kozmik madde ipliklerini doğrudan büyü dükkânınızın gelirine dokur.' },
+        idle_aether_collider: { name: 'Esir Çarpıştırıcısı', description: 'İlksel mana parçacıklarını ışık hızına yakın hızlara çıkarır.' },
+        idle_genesis_tome: { name: 'Yaratılış Kitabı', description: 'Sayfaları koca çağların servetini üreten kadim büyü kitabı.' },
+        idle_sphere_absolute: { name: 'Mutlak Küre', description: 'Tükenmez altın akımları üreten saf enerji tekilliği.' },
+        mastery_resonance_flow: { name: 'Astral Akış', description: 'Arayı dengeler: seviye başına pasif gelirin +%0.5’ini tık gücüne aktarır!' },
+        mastery_crit_dmg: { name: 'Element Odaklaması', description: 'Büyülü patlamayı yoğunlaştırır: kritik vuruş çarpanını seviye başına +0.5x artırır!' },
     },
     secretUpgrades: {
         stardust_extractor: { name: 'Astral Çıkarıcı', description: 'Yükseliş Ritüeli başına +%5 Yıldız Tozu' },

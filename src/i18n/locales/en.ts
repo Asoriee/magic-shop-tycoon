@@ -143,6 +143,7 @@ export const en: Translations = {
         bulkBuy10: 'x10',
         bulkBuyMax: 'MAX',
         multiplier: 'Multiplier',
+        critDmg: 'Crit',
     },
     alchemy: {
         title: 'Alchemy Table',
@@ -659,6 +660,15 @@ export const en: Translations = {
         idle_cosmos_heart: { name: 'Heart of the Cosmos', description: 'The absolute fountain of primal magic. Your shop becomes the center of reality.' },
         idle_hearth: { name: 'Reinforced Hearth', description: 'Magical hearth preserves heat: increases offline capacity (+10 min per level).' },
         click_heat: { name: 'Magic Heat-up', description: 'Fast clicks heat up the cauldron: boosts combo multiplier up to +150%!' },
+        click_rune_blade: { name: 'Rune Wind Blade', description: 'Enchanted edge slices the ether, vastly boosting click power.' },
+        click_void_hammer: { name: 'Void Hammer', description: 'Titanic forge of the Abyss bestows clicks with crushing power.' },
+        click_creator_gauntlet: { name: "Creator's Gauntlet", description: 'Primal relic of genesis: turns every touch into the birth of new worlds.' },
+        idle_astral_weaver: { name: 'Astral Weaver', description: 'Weaves cosmic matter threads directly into your shop revenue.' },
+        idle_aether_collider: { name: 'Aether Collider', description: 'Accelerates primordial mana particles to near-light speed.' },
+        idle_genesis_tome: { name: 'Genesis Tome', description: 'Ancient grimoire whose pages generate the wealth of entire eras.' },
+        idle_sphere_absolute: { name: 'Sphere of the Absolute', description: 'Pure energy singularity channeling inexhaustible streams of gold.' },
+        mastery_resonance_flow: { name: 'Astral Flow', description: 'Harmonizes aura: transfers +0.5% of passive income into click power per level!' },
+        mastery_crit_dmg: { name: 'Elemental Focus', description: 'Concentrates magical blast: increases critical strike multiplier by +0.5x per level!' },
     },
     secretUpgrades: {
         stardust_extractor: { name: 'Astral Extractor', description: '+5% Stardust per Ascension Ritual' },

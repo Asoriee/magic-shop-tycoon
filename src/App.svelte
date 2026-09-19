@@ -45,15 +45,15 @@
     import { t, currentLang, setLanguage, getRankTitle } from './i18n';
 
     let isOfflinePopupOpen = false;
-    let isGrimoireOpen = false;
-    let isCityOpen = false;
-    let isPremiumOpen = false;
+    let isGrimoireOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'grimoire';
+    let isCityOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'city';
+    let isPremiumOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'premium';
 
     function cycleLanguage() {
         const next = $currentLang === 'ru' ? 'en' : ($currentLang === 'en' ? 'tr' : 'ru');
         setLanguage(next);
     }
-    let isShopOpen = false;
+    let isShopOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'shop';
     let isLeaderboardOpen = false;
     
     let offlineGoldAmount = 0;

@@ -657,7 +657,7 @@ export const tr: Translations = {
         click_infinity_eye: { name: 'Sonsuzluk Gözü', description: 'Yaratıcı bakışı odaklar, tık gücünü katlar.' },
         idle_chronos_gate: { name: 'Kronos Kapısı', description: 'Geçmiş ve gelecek çağlar arasında ticaret yolları açar.' },
         idle_cosmos_heart: { name: 'Kozmosun Kalbi', description: 'İlksel büyünün mutlak kaynağı. Dükkânınız evrenin merkezine dönüşür.' },
-        idle_hearth: { name: 'Güçlendirilmiş Ocak', description: 'Büyülü ocak sıcaklığı korur: çevrimdışı süreyi artırır (seviye başına +1 saat).' },
+        idle_hearth: { name: 'Güçlendirilmiş Ocak', description: 'Büyülü ocak sıcaklığı korur: çevrimdışı süreyi artırır (seviye başına +10 dk).' },
         click_heat: { name: 'Büyülü Isınma', description: 'Hızlı tıklar kazanı alevlendirir: kombo çarpanını +%150’ye kadar artırır!' },
     },
     secretUpgrades: {

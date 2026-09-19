@@ -657,7 +657,7 @@ export const en: Translations = {
         click_infinity_eye: { name: 'Eye of Infinity', description: 'Focuses a demiurge gaze, vastly multiplying click power.' },
         idle_chronos_gate: { name: 'Chronos Gate', description: 'Opens trade routes across past and future eras and civilizations.' },
         idle_cosmos_heart: { name: 'Heart of the Cosmos', description: 'The absolute fountain of primal magic. Your shop becomes the center of reality.' },
-        idle_hearth: { name: 'Reinforced Hearth', description: 'Magical hearth preserves heat: increases offline capacity (+1 hour per level).' },
+        idle_hearth: { name: 'Reinforced Hearth', description: 'Magical hearth preserves heat: increases offline capacity (+10 min per level).' },
         click_heat: { name: 'Magic Heat-up', description: 'Fast clicks heat up the cauldron: boosts combo multiplier up to +150%!' },
     },
     secretUpgrades: {

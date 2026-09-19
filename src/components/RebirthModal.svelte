@@ -1,6 +1,6 @@
 <script lang="ts">
     import { tick } from 'svelte';
-    import { gameStore, formatNumber, calculateEarnedStardust } from '../store';
+    import { gameStore, formatNumber, calculateEarnedStardust, getRawStardust, getStardustThreshold } from '../store';
     import { saveGame } from '../yandex-sdk';
     import { playLevelUpSound } from '../audio';
     import gsap from 'gsap';
@@ -18,9 +18,9 @@
     $: earnedStardust = calculateEarnedStardust($gameStore);
     $: hasTitanBonus = $gameStore?.unlockedCollections?.includes('titan_set') || false;
     $: extractorLevel = $gameStore?.secretUpgrades?.find(u => u.id === 'stardust_extractor')?.level || 0;
-    $: rawStardust = Math.floor(Math.sqrt(($gameStore?.gold || 0) / 1_000_000));
-    $: currentThreshold = Math.pow(rawStardust, 2) * 1_000_000;
-    $: nextThreshold = Math.pow(rawStardust + 1, 2) * 1_000_000;
+    $: rawStardust = getRawStardust($gameStore?.gold || 0);
+    $: currentThreshold = getStardustThreshold(rawStardust);
+    $: nextThreshold = getStardustThreshold(rawStardust + 1);
     $: goldNeededForNext = Math.max(0, nextThreshold - ($gameStore?.gold || 0));
     $: progressToNext = Math.min(100, Math.max(0, ((($gameStore?.gold || 0) - currentThreshold) / Math.max(1, nextThreshold - currentThreshold)) * 100));
 

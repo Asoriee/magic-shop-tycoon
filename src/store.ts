@@ -1259,7 +1259,7 @@ const defaultUpgrades: Upgrade[] = [
         category: 'mastery',
         baseCost: 12000,
         costMultiplier: 1.22,
-        baseValue: 1,
+        baseValue: 10,
         level: 0,
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="8" y="24" width="24" height="12" rx="3" fill="#636e72" stroke="#2d3436" stroke-width="2"/><path d="M14 24 Q20 12 26 24" fill="#2d3436"/><path d="M16 26 Q20 16 24 26" fill="#e17055"/><circle cx="20" cy="24" r="3" fill="#f1c40f"/><path d="M12 12 Q20 4 28 12" stroke="#e67e22" stroke-width="2" stroke-linecap="round" fill="none"/></svg>`
     },
@@ -2110,6 +2110,16 @@ export function generateSingleOrder(): CustomerOrder {
     }
 }
 
+export function getStardustThreshold(rawDust: number): number {
+    if (rawDust <= 0) return 0;
+    return 1_000_000 * Math.pow(rawDust, 4);
+}
+
+export function getRawStardust(gold: number): number {
+    if (!gold || gold < 1_000_000) return 0;
+    return Math.floor(Math.pow(gold / 1_000_000, 0.25));
+}
+
 export function calculateEarnedStardust(state: GameState): number {
     if (!state || !state.gold || state.gold < 1_000_000) return 0;
     let stardustMultiplier = 1;
@@ -2120,7 +2130,7 @@ export function calculateEarnedStardust(state: GameState): number {
     const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
     stardustMultiplier += extractorLevel * 0.05 * (isBoosted ? 1.5 : 1);
 
-    const rawStardust = Math.floor(Math.sqrt((state.gold || 0) / 1_000_000));
+    const rawStardust = getRawStardust(state.gold);
     return Math.floor(rawStardust * stardustMultiplier);
 }
 
@@ -2806,7 +2816,7 @@ export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $is
     const arts = $gameStore?.artifacts || [];
     const hearthUpgrade = upgs.find(u => u.id === 'idle_hearth');
     if (hearthUpgrade && hearthUpgrade.level > 0) {
-        hours += hearthUpgrade.level; // +1 hour per level
+        hours += hearthUpgrade.level * (10 / 60); // +10 minutes per level
     }
     if (arts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
     if (arts.includes(5)) hours += 2; // Archmage Hat (+2 hours)

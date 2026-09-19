@@ -21,7 +21,8 @@
     export let onClose: () => void;
     export let isEmbedded = false;
 
-    let activeCategory: 'all' | 'production' | 'click' | 'mastery' = 'all';
+    let activeCategory: 'all' | 'production' | 'click' | 'mastery' = 
+        (typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('cat') as any) || 'all';
     let buyMode: '1' | '10' | 'max' = '1';
 
     $: currentGuideId = activeCategory === 'click' 
@@ -300,7 +301,7 @@
                                 {:else if isResonance}
                                     <span class="type-badge resonance">%</span>
                                 {:else if isHearth}
-                                    <span class="type-badge mastery">{$t('common.hour')}</span>
+                                    <span class="type-badge mastery">{$t('common.min')}</span>
                                 {:else if isHeat}
                                     <span class="type-badge heat">{$t('cauldron.combo')}</span>
                                 {/if}
@@ -324,8 +325,15 @@
                                 <span class="effect-current">+{upgrade.level}%</span>
                                 <span class="effect-next">→ +{upgrade.level + bulk.count}% (+{formatNumber($resonanceBonus)})</span>
                             {:else if isHearth}
-                                <span class="effect-current">+{upgrade.level} {$t('common.hour')} ({$maxOfflineTimeHours} {$t('common.hour')})</span>
-                                <span class="effect-next">→ +{upgrade.level + bulk.count} {$t('common.hour')}</span>
+                                {@const curMins = upgrade.level * 10}
+                                {@const nextMins = (upgrade.level + bulk.count) * 10}
+                                <span class="effect-current">
+                                    +{curMins >= 60 ? (curMins / 60).toFixed(1).replace('.0', '') + ' ' + $t('common.hour') : curMins + ' ' + $t('common.min')} 
+                                    ({$maxOfflineTimeHours.toFixed(1).replace('.0', '')} {$t('common.hour')})
+                                </span>
+                                <span class="effect-next">
+                                    → +{nextMins >= 60 ? (nextMins / 60).toFixed(1).replace('.0', '') + ' ' + $t('common.hour') : nextMins + ' ' + $t('common.min')}
+                                </span>
                             {:else if isHeat}
                                 <span class="effect-current">+{upgrade.level * 25}%</span>
                                 <span class="effect-next">→ +{(upgrade.level + bulk.count) * 25}%</span>

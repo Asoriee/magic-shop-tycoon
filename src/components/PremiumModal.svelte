@@ -22,7 +22,8 @@
     export let isOpen = false;
     export let onClose: () => void;
 
-    let activeTab: 'bank' | 'timeskip' | 'secret' | 'rebirth' = 'bank';
+    let activeTab: 'bank' | 'timeskip' | 'secret' | 'rebirth' = 
+        (typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('tab') as any) || 'bank';
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
     let contentEl: HTMLElement;

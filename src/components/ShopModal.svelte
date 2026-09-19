@@ -13,7 +13,7 @@
     } from '../store';
     import gsap from 'gsap';
     import { playCoinSound, playLevelUpSound } from '../audio';
-    import { t, currentLang, getUpgradeName, getUpgradeDesc } from '../i18n';
+    import { t, currentLang, getUpgradeName, getUpgradeDesc, getRankTitle } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
     import MechanicHelpButton from './MechanicHelpButton.svelte';
 
@@ -182,15 +182,16 @@
                         <path d="M4 6 H6 V10 H4 Z M18 6 H20 V10 H18 Z" fill="#f39c12"/>
                         <rect x="10" y="18" width="4" height="4" fill="#b7791f"/>
                     </svg>
-                    <span>{$t('shop.multiplier')}: x{$milestoneInfo.multiplier.toFixed(2)}</span>
+                    <span class="milestone-rank-text">{$t('hud.rank', { tier: $milestoneInfo.rankLevel || ($milestoneInfo.tier + 1) })}: {getRankTitle($milestoneInfo.tier, $currentLang)}</span>
+                    <span class="milestone-mult-pill">x{$milestoneInfo.multiplier.toFixed(2)}</span>
                 </div>
                 <div class="milestone-step-wrap">
-                    <span class="milestone-step">{$milestoneInfo.progress} / 25 {$t('common.level')}</span>
+                    <span class="milestone-step">{$milestoneInfo.progress} / {$milestoneInfo.stepTarget} {$t('common.level')}</span>
                     <MechanicHelpButton guideId="shop_milestones" compact={true} />
                 </div>
             </div>
             <div class="milestone-bar">
-                <div class="milestone-fill" style="width: {($milestoneInfo.progress / 25) * 100}%"></div>
+                <div class="milestone-fill" style="width: {$milestoneInfo.percent}%"></div>
             </div>
         </div>
 
@@ -493,6 +494,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-shrink: 0;
     }
 
     .title-text {
@@ -574,9 +576,29 @@
     .milestone-badge {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         color: #ffeaa7;
         font-weight: 700;
+        flex-wrap: wrap;
+    }
+
+    .milestone-rank-text {
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    .milestone-mult-pill {
+        background: rgba(241, 196, 15, 0.18);
+        border: 1px solid rgba(241, 196, 15, 0.45);
+        color: #f1c40f;
+        font-size: 0.74rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0 6px rgba(241, 196, 15, 0.2);
     }
 
     .milestone-step {
@@ -731,6 +753,7 @@
         gap: 14px;
         transition: transform 0.2s, border-color 0.2s, background 0.2s;
         position: relative;
+        min-width: 0;
     }
 
     .upgrade-card:hover {
@@ -757,14 +780,16 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
+        overflow: hidden;
     }
 
     .name-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: wrap;
+        min-width: 0;
     }
 
     .name {
@@ -776,12 +801,14 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        min-width: 0;
     }
 
     .badges-row {
         display: flex;
         align-items: center;
         gap: 6px;
+        flex-shrink: 0;
     }
 
     .type-badge {
@@ -929,41 +956,98 @@
 
     /* Responsive Design for Mobile Devices */
     @media (max-width: 600px) {
+        .modal-overlay {
+            padding: 6px;
+        }
+
         .modal-content {
-            max-height: 92vh;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            max-height: 94vh;
             border-radius: 18px;
+            box-sizing: border-box;
         }
 
         .master-header {
-            padding: 14px 14px 10px;
+            padding: 12px 12px 8px;
+            min-width: 0;
+            box-sizing: border-box;
         }
 
         .title-text {
-            font-size: 1.15rem;
+            font-size: 1.12rem;
         }
 
         .currencies-panel {
-            gap: 6px;
+            gap: 5px;
+            min-width: 0;
         }
 
         .curr-chip {
-            padding: 3px 8px;
-            font-size: 0.74rem;
+            padding: 2px 7px;
+            font-size: 0.72rem;
         }
 
         .shop-body-scroll {
-            padding: 10px 12px 14px;
+            padding: 8px 10px 12px;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .upgrades-list {
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .milestone-card {
+            padding: 6px 10px;
+        }
+
+        .milestone-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .milestone-badge {
+            gap: 5px;
+        }
+
+        .milestone-rank-text {
+            font-size: 0.74rem;
+        }
+
+        .milestone-mult-pill {
+            font-size: 0.68rem;
+            padding: 1px 4px;
+        }
+
+        .milestone-step {
+            font-size: 0.70rem;
+            white-space: nowrap;
         }
 
         .shop-controls-bar {
             flex-direction: column;
             align-items: stretch;
-            gap: 8px;
-            padding: 8px;
+            gap: 6px;
+            padding: 6px;
         }
 
         .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
             justify-content: center;
+        }
+
+        .filter-pill {
+            padding: 3px 6px;
+            font-size: 0.70rem;
+            gap: 3px;
         }
 
         .buy-mode-group {
@@ -971,35 +1055,42 @@
         }
 
         .upgrade-card {
-            padding: 10px;
-            gap: 10px;
+            padding: 8px 10px;
+            gap: 8px;
         }
 
         .icon-wrap {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .name-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
         }
 
         .name {
-            font-size: 0.95rem;
+            font-size: 0.88rem;
+            white-space: normal;
         }
 
         .description {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
         }
 
         .effect-preview {
-            font-size: 0.74rem;
+            font-size: 0.70rem;
         }
 
         .buy-btn {
-            min-width: 80px;
-            padding: 6px 10px;
-            height: 44px;
+            min-width: 68px;
+            padding: 4px 6px;
+            height: 40px;
         }
 
         .buy-price {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
     }
 </style>

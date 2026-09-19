@@ -1,5 +1,5 @@
 <script lang="ts">
-    export let type: 'gold' | 'crystals' | 'stardust' | 'income' | 'vip' | 'time' | 'click' = 'gold';
+    export let type: 'gold' | 'crystals' | 'stardust' | 'income' | 'vip' | 'time' | 'click' | 'ingredients' = 'gold';
     export let size: number = 16;
     let customClass: string = '';
     export { customClass as class };
@@ -154,6 +154,22 @@
             stroke-width="1.5"
             stroke-linejoin="round"
         />
+    </svg>
+
+{:else if type === 'ingredients'}
+    <!-- Волшебная трава: изумрудный лист алхимии -->
+    <svg 
+        viewBox="0 0 24 24" 
+        width={size} 
+        height={size} 
+        class="resource-icon ingredients-icon {customClass}" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+    >
+        <path d="M12 3 C6 3 3 8 3 13 C3 18 7 21 12 21 C17 21 21 18 21 13 C21 8 18 3 12 3 Z" fill="#2ecc71" stroke="#27ae60" stroke-width="1.5"/>
+        <path d="M12 21 C12 15 15 10 19 6" stroke="#a8e6cf" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M12 14 Q9 11 7 12" stroke="#a8e6cf" stroke-width="1.2" stroke-linecap="round"/>
     </svg>
 {/if}
 

@@ -14,5 +14,5 @@ trigger: always_on
 - Используй русские буквы и символы;
 - Всегда доделывай все до конца, не останавливайся на пол пути;
 - Делай коммиты сам, когда посчитаешь нужным;
-- Не используй встроенный браузер;
+- ЗАПРЕЩЕНО использовать browser_subagent — внутренний браузер IDE зависает и не создаёт сессию нормально. Вместо этого для визуальной проверки использовать Chrome headless через PowerShell по следующему порядку: (1) убедиться что dev-сервер запущен: `try { $r = Invoke-WebRequest -Uri "http://localhost:5173" -UseBasicParsing -TimeoutSec 5; Write-Host $r.StatusCode } catch { Write-Host "NOT_RUNNING" }` — должно вернуть 200; (2) сделать скриншот командой: `& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --screenshot="C:\projects\magic-shop-tycoon\screenshot.png" --window-size=1280,800 --disable-gpu http://localhost:5173; Start-Sleep -Seconds 3`; (3) просмотреть результат через `view_file` на `C:\projects\magic-shop-tycoon\screenshot.png`; (4) после просмотра удалить: `Remove-Item "C:\projects\magic-shop-tycoon\screenshot.png"`;
 - Следи за полной экономикой, игра не должна быть быстрой, рост прогресса при упорном труде;

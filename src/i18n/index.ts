@@ -262,3 +262,14 @@ export function getCustomerArchetype(name: string, isVip?: boolean, orderType?: 
     return 'citizen';
 }
 
+export function getRankTitle(tier: number, lang?: SupportedLang): string {
+    const l = lang || get(currentLang);
+    const titles = locales[l]?.hud?.rankTitles || locales.ru.hud.rankTitles;
+    if (!titles || titles.length === 0) return '';
+    const safeTier = Math.max(0, Math.floor(tier));
+    if (safeTier < titles.length) {
+        return titles[safeTier];
+    }
+    return titles[titles.length - 1];
+}
+

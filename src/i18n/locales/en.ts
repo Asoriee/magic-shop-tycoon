@@ -60,8 +60,31 @@ export const en: Translations = {
     },
     hud: {
         rank: 'Rank {tier}',
-        rankTooltip: 'Shop Mastery Rank: {tier} (Multiplier: x{mult}). Click to open Shop',
+        rankTooltip: 'Shop Rank: {tier} — {title} (Multiplier: x{mult}). Click to open Shop',
         rankProgress: 'Progress to next rank: {current} / {total}',
+        rankTitles: [
+            'Apprentice',
+            'Novice',
+            'Adept',
+            'Practitioner',
+            'Alchemist',
+            'Master',
+            'Senior Master',
+            'Magister',
+            'High Magister',
+            'Lorekeeper',
+            'Archmage',
+            'Ether Sorcerer',
+            'Rune Lord',
+            'Astral Sage',
+            'Titan of Alchemy',
+            'World Shaper',
+            'Demiurge',
+            'Eternal Alchemist',
+            'Elemental Sovereign',
+            'Absolute Magus',
+            'Living Legend'
+        ],
         goldTooltip: 'Gold (click to open Shop)',
         incomeTooltip: 'Passive income per second (click to open Shop)',
         crystalTooltip: 'Crystals (click to open Treasury)',
@@ -774,16 +797,16 @@ export const en: Translations = {
             tipText: 'Invest in Mastery when regular buildings become expensive — it delivers an immediate exponential income surge!'
         },
         shop_milestones: {
-            title: 'Gold Rush (Milestones)',
+            title: 'Gold Rush (Shop Ranks)',
             category: 'Shop Upgrades',
             summary: 'Tiered shop mastery progression: rewards for your cumulative upgrade levels.',
             points: [
-                'Every 25 total upgrade levels purchased fill your Shop Rank progression meter.',
-                'Achieving a milestone permanently bestows a potent x1.25 multiplier to all gold.',
-                'New shop ranks elevate shop prestige and increase visitor rewards.'
+                'Each tier of cumulative upgrade levels advances your Shop Rank.',
+                'Each new rank permanently grants +10% to all earnings (x1.10, x1.20, x2.00...).',
+                'Higher shop ranks bestow prestigious archmage titles and multiply income.'
             ],
             tipTitle: "Archmage's Pro-Tip",
-            tipText: 'Always top off inexpensive lower-tier upgrades if you are just a few levels away from the next x1.25 boost!'
+            tipText: 'Level up various upgrade categories evenly — this is the most cost-effective path to reach the next rank!'
         },
         city_orders: {
             title: 'Citizen Orders',

@@ -2625,17 +2625,75 @@ export const totalUpgradeLevels = derived(gameStore, $gameStore => {
     return $gameStore.upgrades.reduce((sum, u) => sum + u.level, 0);
 });
 
+export const RANK_THRESHOLDS: number[] = [
+    0,     // Rank 1 (Tier 0): Apprentice
+    25,    // Rank 2 (Tier 1): Novice (+25)
+    60,    // Rank 3 (Tier 2): Adept (+35)
+    110,   // Rank 4 (Tier 3): Practitioner (+50)
+    175,   // Rank 5 (Tier 4): Alchemist (+65)
+    255,   // Rank 6 (Tier 5): Master (+80)
+    350,   // Rank 7 (Tier 6): Senior Master (+95)
+    465,   // Rank 8 (Tier 7): Magister (+115)
+    600,   // Rank 9 (Tier 8): High Magister (+135)
+    760,   // Rank 10 (Tier 9): Lorekeeper (+160)
+    950,   // Rank 11 (Tier 10): Archmage (+190)
+    1175,  // Rank 12 (Tier 11): Ether Sorcerer (+225)
+    1435,  // Rank 13 (Tier 12): Rune Lord (+260)
+    1735,  // Rank 14 (Tier 13): Astral Sage (+300)
+    2080,  // Rank 15 (Tier 14): Titan of Alchemy (+345)
+    2480,  // Rank 16 (Tier 15): World Shaper (+400)
+    2940,  // Rank 17 (Tier 16): Demiurge (+460)
+    3460,  // Rank 18 (Tier 17): Eternal Alchemist (+520)
+    4050,  // Rank 19 (Tier 18): Elemental Sovereign (+590)
+    4715,  // Rank 20 (Tier 19): Absolute Magus (+665)
+    5460   // Rank 21 (Tier 20): Living Legend (+745)
+];
+
+export function getRankTier(totalLevels: number): number {
+    if (totalLevels <= 0) return 0;
+    const maxKnown = RANK_THRESHOLDS.length - 1;
+    const maxThreshold = RANK_THRESHOLDS[maxKnown];
+    if (totalLevels >= maxThreshold) {
+        return maxKnown + Math.floor((totalLevels - maxThreshold) / 800);
+    }
+    for (let i = maxKnown; i >= 0; i--) {
+        if (totalLevels >= RANK_THRESHOLDS[i]) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+export function getRankThreshold(tier: number): number {
+    if (tier <= 0) return 0;
+    const maxKnown = RANK_THRESHOLDS.length - 1;
+    if (tier <= maxKnown) {
+        return RANK_THRESHOLDS[tier];
+    }
+    return RANK_THRESHOLDS[maxKnown] + (tier - maxKnown) * 800;
+}
+
 export const milestoneInfo = derived(totalUpgradeLevels, $totalLevels => {
-    const tier = Math.floor($totalLevels / 25);
-    const multiplier = Math.pow(1.25, tier);
-    const progress = $totalLevels % 25;
-    const nextTarget = (tier + 1) * 25;
+    const total = Math.max(0, $totalLevels || 0);
+    const tier = getRankTier(total);
+    const currentFloor = getRankThreshold(tier);
+    const nextTarget = getRankThreshold(tier + 1);
+    const stepTarget = Math.max(1, nextTarget - currentFloor);
+    const progress = Math.max(0, total - currentFloor);
+    // Option A: Additive +10% per tier to smoothly enhance without exponential inflation
+    const multiplier = Number((1 + tier * 0.10).toFixed(2));
+    const percent = Math.min(100, Math.max(0, (progress / stepTarget) * 100));
+
     return {
         tier,
+        rankLevel: tier + 1,
         multiplier,
         progress,
+        stepTarget,
         nextTarget,
-        totalLevels: $totalLevels
+        currentFloor,
+        percent,
+        totalLevels: total
     };
 });
 

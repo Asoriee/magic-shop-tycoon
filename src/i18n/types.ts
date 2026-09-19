@@ -65,6 +65,7 @@ export interface Translations {
         rank: string;
         rankTooltip: string;
         rankProgress: string;
+        rankTitles: string[];
         goldTooltip: string;
         incomeTooltip: string;
         crystalTooltip: string;

@@ -60,8 +60,31 @@ export const tr: Translations = {
     },
     hud: {
         rank: 'Aşama {tier}',
-        rankTooltip: 'Dükkan Ustalık Aşaması: {tier} (Çarpan: x{mult}). Dükkanı açmak için tıkla',
+        rankTooltip: 'Dükkan Rütbesi: {tier} — {title} (Çarpan: x{mult}). Dükkanı açmak için tıkla',
         rankProgress: 'Sonraki aşamaya ilerleme: {current} / {total}',
+        rankTitles: [
+            'Çırak',
+            'Kalfa',
+            'Acemi Usta',
+            'Uygulayıcı',
+            'Simyacı',
+            'Usta',
+            'Kıdemli Usta',
+            'Mecister',
+            'Yüksek Mecister',
+            'Gizem Muhafızı',
+            'Başbüyücü',
+            'Esir Büyücüsü',
+            'Rün Lordu',
+            'Astral Bilge',
+            'Simya Titanı',
+            'Dünya Yaratan',
+            'Kâinat Mimarı',
+            'Ebedi Simyacı',
+            'Element Hükümdarı',
+            'Mutlak Büyücü',
+            'Yaşayan Efsane'
+        ],
         goldTooltip: 'Altın (Dükkanı açmak için tıkla)',
         incomeTooltip: 'Saniye başına pasif gelir (Dükkanı açmak için tıkla)',
         crystalTooltip: 'Kristaller (Hazineyi açmak için tıkla)',
@@ -774,16 +797,16 @@ export const tr: Translations = {
             tipText: 'Normal binalar pahalandığında Ustalık seviyelerine yatırım yapın — anında patlayıcı bir gelir sıçraması sağlar!'
         },
         shop_milestones: {
-            title: 'Altına Hücum (Aşamalar)',
+            title: 'Altına Hücum (Dükkan Rütbeleri)',
             category: 'Dükkan Geliştirmeleri',
             summary: 'Kademeli dükkan ustalık sistemi: toplam geliştirme seviyeleriniz için ödüller.',
             points: [
-                'Satın alınan her 25 toplam geliştirme seviyesi Dükkan Rütbesi çubuğunu doldurur.',
-                'Bir aşamaya ulaşmak kalıcı olarak tüm altına x1.25 çarpanı kazandırır.',
-                'Yeni rütbeler dükkan prestijini ve ziyaretçi ödüllerinin değerini artırır.'
+                'Satın alınan toplam geliştirme seviyeleri Dükkan Rütbenizi yükseltir.',
+                'Her yeni rütbe kalıcı olarak tüm gelire +%10 kazandırır (x1.10, x1.20, x2.00...).',
+                'Daha yüksek dükkan rütbeleri büyücünüze prestijli unvanlar kazandırır.'
             ],
             tipTitle: 'Başbüyücünün İpucu',
-            tipText: 'Bir sonraki x1.25 artışına sadece birkaç seviye kaldıysa ucuz alt kademe geliştirmeleri tamamlayın!'
+            tipText: 'Farklı geliştirme kategorilerini dengeli yükseltin — sonraki rütbeye ulaşmanın en hızlı yolu budur!'
         },
         city_orders: {
             title: 'Kasaba Siparişleri',

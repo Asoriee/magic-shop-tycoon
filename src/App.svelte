@@ -42,7 +42,7 @@
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import { isSoundMuted, toggleSound } from './audio';
-    import { t, currentLang, setLanguage } from './i18n';
+    import { t, currentLang, setLanguage, getRankTitle } from './i18n';
 
     let isOfflinePopupOpen = false;
     let isGrimoireOpen = false;
@@ -167,6 +167,15 @@
         gameStore.checkOrderSpawns();
         isReady = true;
 
+        if (typeof window !== 'undefined' && window.location?.search) {
+            const urlModal = new URLSearchParams(window.location.search).get('modal');
+            if (urlModal === 'shop') isShopOpen = true;
+            if (urlModal === 'grimoire') isGrimoireOpen = true;
+            if (urlModal === 'city') isCityOpen = true;
+            if (urlModal === 'premium') isPremiumOpen = true;
+            if (urlModal === 'leaderboard') isLeaderboardOpen = true;
+        }
+
         await tick();
         signalGameReady();
         notifyGameplayStart();
@@ -246,7 +255,11 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div 
             class="hud-crest-box" 
-            title={$t('hud.rankTooltip', { tier: $milestoneInfo?.tier + 1, mult: $milestoneInfo?.multiplier?.toFixed(2) })} 
+            title={$t('hud.rankTooltip', { 
+                tier: $milestoneInfo?.rankLevel || (($milestoneInfo?.tier || 0) + 1), 
+                title: getRankTitle($milestoneInfo?.tier || 0, $currentLang),
+                mult: $milestoneInfo?.multiplier?.toFixed(2) 
+            })} 
             on:click={() => isShopOpen = true}
         >
             <div class="crest-icon-wrap">
@@ -258,11 +271,11 @@
             </div>
             <div class="crest-meta">
                 <div class="crest-title-row">
-                    <span class="crest-tier">{$t('hud.rank', { tier: $milestoneInfo?.tier + 1 })}</span>
+                    <span class="crest-tier">{$t('hud.rank', { tier: $milestoneInfo?.rankLevel || (($milestoneInfo?.tier || 0) + 1) })}</span>
                     <span class="crest-bonus">x{$milestoneInfo?.multiplier?.toFixed(2)}</span>
                 </div>
-                <div class="crest-progress-track" title={$t('hud.rankProgress', { current: $milestoneInfo?.progress, total: 25 })}>
-                    <div class="crest-progress-fill" style="width: {(($milestoneInfo?.progress || 0) / 25) * 100}%"></div>
+                <div class="crest-progress-track" title={$t('hud.rankProgress', { current: $milestoneInfo?.progress, total: $milestoneInfo?.stepTarget || 25 })}>
+                    <div class="crest-progress-fill" style="width: {$milestoneInfo?.percent || 0}%"></div>
                 </div>
             </div>
         </div>

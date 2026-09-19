@@ -41,6 +41,12 @@ export const tr: Translations = {
         ad: 'Reklam',
         potion: 'İksir',
     },
+    nav: {
+        shop: 'Dükkân',
+        city: 'Şehir',
+        grimoire: 'Grimuar',
+        premium: 'Arkanum',
+    },
     numberUnits: {
         thousand: 'B',
         million: 'M',
@@ -48,6 +54,8 @@ export const tr: Translations = {
         trillion: 'T',
         quadrillion: 'Kt',
         quintillion: 'Kn',
+        sextillion: 'Sks',
+        septillion: 'Spt',
     },
     header: {
         soundOn: 'Ses: Açık',
@@ -57,6 +65,8 @@ export const tr: Translations = {
         vipExpiresToday: 'VIP: Bugün bitiyor',
         vipDailyReady: 'VIP günlük ödülü hazır!',
         vipActivate: 'VIP Durumu',
+        shortcutTooltip: 'Oyun kısayolunu ekle (+25 kristal)',
+        shortcutRewardToast: 'Kısayol oluşturuldu! +25 kristal kazanıldı!',
     },
     hud: {
         rank: 'Aşama {tier}',
@@ -381,7 +391,7 @@ export const tr: Translations = {
         mastery: 'İksir Ustalığı',
         masteryLevel: 'Sv. {level}',
         masteryBonus: 'Kalıcı Bonus',
-        masteryBadge: '⭐ Ustalık: Sv. {level}/10',
+        masteryBadge: 'Ustalık: Sv. {level}/10',
         masteryMax: 'MAKSİMUM',
         masteryXp: '{current}/{next} içildi',
         masteryDurationShort: 'süre',
@@ -559,6 +569,9 @@ export const tr: Translations = {
         refresh: 'Yenile',
         scoreDust: 'toz',
         loadError: 'Lider tablosu yüklenemedi',
+        authTitle: 'Yandex ile giriş yapın',
+        authDesc: 'İlerlemenizi bulutta kaydedin ve lider tablosunda yarışın',
+        authButton: 'Giriş yap',
     },
     artifactsStore: {
         title: 'Eski Eserler Dükkânı',
@@ -568,6 +581,11 @@ export const tr: Translations = {
         setCompletedAll: 'Set tamamlandı! Tüm bonuslar aktif!',
         setHint: 'Yoldaşı çağırmak için setteki tüm kalıntıları toplayın.',
         setPrefix: 'Set ',
+        overchargeTitle: 'Eser Güçlendirme',
+        overchargeBtn: 'Güçlendir',
+        overchargeMax: 'MAKS',
+        overchargeStars: 'Yıldızlar: {stars}/5',
+        overchargeBonus: 'Güce +%{percent}',
     },
     premium: {
         title: 'Büyük Arkanum',
@@ -1011,6 +1029,8 @@ export const tr: Translations = {
     calendar: {
         title: 'Başbüyücü Takvimi',
         subtitle: '30 Günlük Hediye ve Yadigar Döngüsü',
+        seasonBadge: 'Sezon {season}',
+        seasonBonus: 'Sezon ödüllerine +%{percent}',
         week1: '1. Hafta: Çırak Kapısı',
         week2: '2. Hafta: Üstat Yolu',
         week3: '3. Hafta: Esir Parıltısı',

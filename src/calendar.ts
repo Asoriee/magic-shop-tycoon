@@ -284,6 +284,8 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
         }
 
         const currentDay = Math.max(1, Math.min(30, state.calendarDay || 1));
+        const currentSeason = state.calendarSeason || 1;
+        const seasonMultiplier = 1 + (currentSeason - 1) * 0.15;
         const reward = getCalendarReward(currentDay);
         const vipActive = get(isVip);
         const mult = vipActive ? 2 : 1;
@@ -299,11 +301,12 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
         const finalAmt = baseAmt * mult;
 
         if (reward.type === 'crystals') {
-            crystals.update(c => c + finalAmt);
-            desc = translate('calendar.rewardCrystals', { amount: finalAmt });
+            const seasonAmt = Math.round(finalAmt * seasonMultiplier);
+            crystals.update(c => c + seasonAmt);
+            desc = translate('calendar.rewardCrystals', { amount: seasonAmt });
         } else if (reward.type === 'gold_seconds') {
             const idle = get(stableIdleIncome) || 0;
-            const goldEarned = Math.max(1000, Math.round(idle * finalAmt));
+            const goldEarned = Math.max(1000, Math.round(idle * finalAmt * seasonMultiplier));
             nextGold += goldEarned;
             desc = translate('calendar.rewardGold', { amount: formatNumber(goldEarned) });
         } else if (reward.type === 'chest' && reward.chestType) {
@@ -313,9 +316,10 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             const cName = translate(`chests.${reward.chestType}`) || reward.chestType;
             desc = translate('calendar.rewardChest', { mult, chest: cName });
         } else if (reward.type === 'stardust') {
-            nextStardust += finalAmt;
-            nextTotalDust += finalAmt;
-            desc = translate('calendar.rewardDust', { amount: finalAmt });
+            const dustAmt = Math.round(finalAmt * seasonMultiplier);
+            nextStardust += dustAmt;
+            nextTotalDust += dustAmt;
+            desc = translate('calendar.rewardDust', { amount: dustAmt });
         } else if (reward.type === 'pet' && reward.petId) {
             if (!nextUnlockedPets.includes(reward.petId)) {
                 nextUnlockedPets.push(reward.petId);
@@ -323,21 +327,32 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             } else {
                 nextPetLevels[reward.petId] = (nextPetLevels[reward.petId] || 1) + (1 * mult);
             }
-            const cryAmt = vipActive ? 40 : 20;
+            const cryAmt = Math.round((vipActive ? 40 : 20) * seasonMultiplier);
             crystals.update(c => c + cryAmt);
             desc = translate('calendar.rewardOwlDesc', { crystals: cryAmt });
         } else if (reward.type === 'relic') {
             nextHasRelic = true;
-            nextStardust += (150 * mult);
-            nextTotalDust += (150 * mult);
-            crystals.update(c => c + (150 * mult));
+            const relicDust = Math.round(150 * mult * seasonMultiplier);
+            const relicCry = Math.round(150 * mult * seasonMultiplier);
+            nextStardust += relicDust;
+            nextTotalDust += relicDust;
+            crystals.update(c => c + relicCry);
             desc = translate('calendar.rewardRelicDesc');
         }
 
         playSuccessSound();
         claimed = true;
 
+        if (currentDay === 7) {
+            import('./yandex-sdk').then(sdk => {
+                sdk.canRequestReview().then(can => {
+                    if (can) sdk.requestGameReview();
+                }).catch(() => {});
+            }).catch(() => {});
+        }
+
         const nextDay = currentDay >= 30 ? 1 : currentDay + 1;
+        const nextSeason = currentDay >= 30 ? currentSeason + 1 : currentSeason;
 
         return {
             ...state,
@@ -348,6 +363,7 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             petLevels: nextPetLevels,
             hasRelicEternityEye: nextHasRelic,
             calendarDay: nextDay,
+            calendarSeason: nextSeason,
             calendarLastClaimDate: today
         };
     });

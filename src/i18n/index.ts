@@ -167,6 +167,9 @@ export function formatNumberLocalized(num: number | undefined | null, lang?: Sup
     const activeLang = lang || get(currentLang);
     const units = locales[activeLang]?.numberUnits || locales.ru.numberUnits;
 
+    if (n >= 1e27) return n.toExponential(2);
+    if (n >= 1e24) return (n / 1e24).toFixed(2) + (units.septillion || 'Sp');
+    if (n >= 1e21) return (n / 1e21).toFixed(2) + (units.sextillion || 'Sx');
     if (n >= 1_000_000_000_000_000_000) return (n / 1_000_000_000_000_000_000).toFixed(2) + units.quintillion;
     if (n >= 1_000_000_000_000_000) return (n / 1_000_000_000_000_000).toFixed(2) + units.quadrillion;
     if (n >= 1_000_000_000_000) return (n / 1_000_000_000_000).toFixed(2) + units.trillion;

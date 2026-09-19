@@ -46,7 +46,7 @@
         const isBoosted = ($gameStore.secretKnowledgeBoostUntil || 0) > Date.now();
         const boostMult = isBoosted ? 1.5 : 1;
         let goldMultiplier = 1 + (ordersLevel * 0.15 * boostMult);
-        if ($gameStore.artifacts?.includes(8)) goldMultiplier += 0.40;
+        if ($gameStore.artifacts?.includes(8)) goldMultiplier += 0.40 * (1 + ($gameStore.artifactOvercharge?.[8] || 0) * 0.20);
         if ($gameStore.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
         if ($gameStore.activeCompanionId) {
             const compLvl = $gameStore.petLevels?.[$gameStore.activeCompanionId] || 1;
@@ -314,7 +314,10 @@
                     title="{$t('orders.dismiss')}"
                     aria-label="{$t('orders.dismiss')}"
                 >
-                    &times;
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                 </button>
                 
                 <div class="customer-row">

@@ -26,7 +26,9 @@
         signalGameReady,
         notifyGameplayStart,
         notifyGameplayStop,
-        getServerTime
+        getServerTime,
+        canShowShortcutPrompt,
+        createGameShortcut
     } from './yandex-sdk';
     import Cauldron from './components/Cauldron.svelte';
     import OfflineIncomePopup from './components/OfflineIncomePopup.svelte';
@@ -60,6 +62,23 @@
     }
     let isShopOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'shop';
     let isLeaderboardOpen = false;
+    let canAddShortcut = false;
+    let shortcutRewardToast = false;
+
+    async function handleAddShortcut() {
+        try {
+            const accepted = await createGameShortcut();
+            if (accepted) {
+                crystals.update(c => c + 25);
+                gameStore.update(s => ({ ...s, hasCreatedShortcut: true }));
+                saveGame();
+                shortcutRewardToast = true;
+                setTimeout(() => { shortcutRewardToast = false; }, 4000);
+            }
+        } catch (e) {
+            console.warn('Shortcut prompt error', e);
+        }
+    }
     
     let offlineGoldAmount = 0;
     let offlineSecondsCount = 0;
@@ -179,11 +198,16 @@
             if (urlModal === 'city') isCityOpen = true;
             if (urlModal === 'premium') isPremiumOpen = true;
             if (urlModal === 'leaderboard') isLeaderboardOpen = true;
+            if (urlModal === 'calendar') isDailyCalendarOpen = true;
         }
 
         await tick();
         signalGameReady();
         notifyGameplayStart();
+
+        canShowShortcutPrompt().then(can => {
+            canAddShortcut = can;
+        }).catch(() => {});
 
         handleContextMenu = (e: MouseEvent) => e.preventDefault();
         window.addEventListener('contextmenu', handleContextMenu);
@@ -382,6 +406,27 @@
                 </svg>
             </button>
 
+            <!-- Desktop / Mobile App Shortcut Button -->
+            {#if canAddShortcut && !$gameStore.hasCreatedShortcut}
+                <button 
+                    type="button" 
+                    class="hud-icon-btn shortcut-btn" 
+                    title="{$t('header.shortcutTooltip')}" 
+                    on:click={handleAddShortcut}
+                >
+                    <span class="shortcut-gift-badge">
+                        +25
+                        <svg viewBox="0 0 24 24" width="9" height="9" fill="#00d2d3" style="display:inline-block; vertical-align:-1px;">
+                            <polygon points="12,2 22,8 18,22 6,22 2,8" />
+                        </svg>
+                    </span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2ed573" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="4" stroke="#2ed573" fill="rgba(46, 213, 115, 0.1)"/>
+                        <path d="M12 8v8M8 12h8" stroke="#2ed573" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            {/if}
+
             <!-- Leaderboard Button -->
             <button 
                 type="button" 
@@ -421,6 +466,15 @@
             </button>
         </div>
     </header>
+
+    {#if shortcutRewardToast}
+        <div class="shortcut-toast-notification">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2ed573" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>{$t('header.shortcutRewardToast')}</span>
+        </div>
+    {/if}
 
     <!-- 2. Active Magic Deck (Live Potion Countdown Widgets) -->
     {#if liveBuffs.length > 0}
@@ -464,7 +518,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">{$t('shop.title')}</span>
+                <span class="portal-name portal-name-full">{$t('shop.title')}</span>
+                <span class="portal-name portal-name-short">{$t('nav.shop')}</span>
                 <span class="portal-sub">{$t('shop.tabProduction')}</span>
             </div>
         </button>
@@ -492,7 +547,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">{$t('city.title')}</span>
+                <span class="portal-name portal-name-full">{$t('city.title')}</span>
+                <span class="portal-name portal-name-short">{$t('nav.city')}</span>
                 <span class="portal-sub">{$t('city.tabOrders')}</span>
             </div>
         </button>
@@ -518,7 +574,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">{$t('grimoire.title')}</span>
+                <span class="portal-name portal-name-full">{$t('grimoire.title')}</span>
+                <span class="portal-name portal-name-short">{$t('nav.grimoire')}</span>
                 <span class="portal-sub">{$t('alchemy.title')}</span>
             </div>
         </button>
@@ -545,7 +602,8 @@
                 </svg>
             </div>
             <div class="portal-texts">
-                <span class="portal-name">{$t('premium.title')}</span>
+                <span class="portal-name portal-name-full">{$t('premium.title')}</span>
+                <span class="portal-name portal-name-short">{$t('nav.premium')}</span>
                 <span class="portal-sub">{$t('common.vip')}</span>
             </div>
         </button>
@@ -619,7 +677,8 @@
         flex-direction: column;
         width: 100%;
         height: 100%;
-        min-height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
         background: transparent;
         position: relative;
         overflow: hidden;
@@ -632,7 +691,10 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 18px;
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-left: max(18px, env(safe-area-inset-left));
+        padding-right: max(18px, env(safe-area-inset-right));
+        padding-bottom: 10px;
         background: linear-gradient(180deg, rgba(16, 7, 34, 0.94) 0%, rgba(12, 4, 25, 0.88) 100%);
         border-bottom: 1.5px solid rgba(241, 196, 15, 0.35);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55), 0 0 15px rgba(241, 196, 15, 0.08);
@@ -985,7 +1047,7 @@
     /* ============================================================ */
     .master-hub-dock {
         position: absolute;
-        bottom: 16px;
+        bottom: max(16px, env(safe-area-inset-bottom));
         left: 50%;
         transform: translateX(-50%);
         width: calc(100% - 28px);
@@ -1057,6 +1119,10 @@
         color: #dfe6e9;
         letter-spacing: 0.3px;
         transition: color 0.15s ease;
+    }
+
+    .portal-name-short {
+        display: none;
     }
 
     .hub-portal-btn:hover .portal-name {
@@ -1146,49 +1212,105 @@
     /* ============================================================ */
     @media (max-width: 680px) {
         .master-hud-panel {
-            padding: 8px 10px;
-            gap: 8px;
+            padding-top: max(6px, env(safe-area-inset-top));
+            padding-left: max(8px, env(safe-area-inset-left));
+            padding-right: max(8px, env(safe-area-inset-right));
+            padding-bottom: 6px;
+            gap: 6px;
+            display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .hud-crest-box {
-            padding: 3px 8px;
+            padding: 3px 6px;
+            order: 1;
+        }
+
+        .hud-controls-cluster {
+            gap: 5px;
+            order: 2;
+        }
+
+        .hud-icon-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+        }
+
+        .hud-chips-row {
+            width: 100%;
+            order: 3;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            padding: 1px 0;
+        }
+
+        .hud-chips-row::-webkit-scrollbar {
+            display: none;
         }
 
         .hud-chip {
-            padding: 4px 8px;
-            gap: 4px;
+            padding: 3px 6px;
+            gap: 3px;
+            flex-shrink: 0;
+            border-radius: 9px;
         }
 
         .chip-val {
-            font-size: 0.92rem;
+            font-size: 0.82rem;
         }
 
         .active-buffs-dock {
-            top: 86px;
+            top: 82px;
             left: 8px;
-            gap: 6px;
+            gap: 5px;
         }
 
         .buff-capsule {
-            padding: 3px 6px;
+            padding: 2px 5px;
         }
 
         .master-hub-dock {
-            bottom: 10px;
+            bottom: max(12px, env(safe-area-inset-bottom));
             width: calc(100% - 16px);
-            padding: 5px 6px;
-            gap: 4px;
+            max-width: 440px;
+            padding: 5px 4px;
+            gap: 3px;
             border-radius: 16px;
         }
 
         .hub-portal-btn {
-            padding: 5px 2px;
+            padding: 4px 1px;
+            min-width: 0;
+            overflow: hidden;
         }
 
-        .portal-name {
-            font-size: 0.74rem;
+        .portal-icon-box svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .portal-name-full {
+            display: none;
+        }
+
+        .portal-name-short {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #dfe6e9;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            text-align: center;
         }
 
         .portal-sub {
@@ -1198,5 +1320,52 @@
         .center-area {
             padding-bottom: 60px;
         }
+    }
+    .shortcut-btn {
+        position: relative;
+        border-color: rgba(46, 213, 115, 0.4);
+        background: rgba(46, 213, 115, 0.08);
+    }
+    .shortcut-btn:hover {
+        border-color: #2ed573;
+        background: rgba(46, 213, 115, 0.2);
+        box-shadow: 0 0 10px rgba(46, 213, 115, 0.35);
+    }
+    .shortcut-gift-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #1e272e;
+        border: 1px solid #2ed573;
+        color: #2ed573;
+        font-size: 0.6rem;
+        font-weight: 800;
+        border-radius: 8px;
+        padding: 0px 4px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .shortcut-toast-notification {
+        position: fixed;
+        bottom: 85px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #1e272e 0%, #2d3436 100%);
+        border: 1.5px solid #2ed573;
+        border-radius: 12px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ffffff;
+        font-size: 0.88rem;
+        font-weight: 700;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 15px rgba(46, 213, 115, 0.4);
+        z-index: 9999;
     }
 </style>

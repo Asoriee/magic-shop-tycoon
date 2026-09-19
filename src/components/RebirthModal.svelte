@@ -78,7 +78,12 @@
                     </div>
                     <h2 class="tab-title">{$t('rebirth.title')}</h2>
                 </div>
-                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
+                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
         {/if}
 
@@ -141,10 +146,20 @@
                         <span class="gain-value">+{formatNumber(earnedStardust)}</span>
                         <span class="gain-label">{$t('common.stardust')}</span>
                         {#if hasTitanBonus}
-                            <span class="titan-bonus-badge">✦ +15% {$t('collections.titan_set.name')}</span>
+                            <span class="titan-bonus-badge">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" style="vertical-align: -1px; margin-right: 3px; display: inline-block;">
+                                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z"/>
+                                </svg>
+                                +15% {$t('collections.titan_set.name')}
+                            </span>
                         {/if}
                         {#if extractorLevel > 0}
-                            <span class="titan-bonus-badge" style="border-color: #a29bfe; color: #a29bfe;">✦ +{extractorLevel * 5}% {$t('secretUpgrades.stardust_extractor.name')}</span>
+                            <span class="titan-bonus-badge" style="border-color: #a29bfe; color: #a29bfe;">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" style="vertical-align: -1px; margin-right: 3px; display: inline-block;">
+                                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z"/>
+                                </svg>
+                                +{extractorLevel * 5}% {$t('secretUpgrades.stardust_extractor.name')}
+                            </span>
                         {/if}
                     </div>
 
@@ -233,7 +248,7 @@
                         <span>{$t('grimoire.prestigePrompt')}</span>
                     {:else}
                         <ResourceIcon type="stardust" size={18} />
-                        <span>{$t('grimoire.prestigeButton')} (+{formatNumber(earnedStardust)} ✦)</span>
+                        <span>{$t('grimoire.prestigeButton')} (+{formatNumber(earnedStardust)})</span>
                     {/if}
                 </button>
             {/if}

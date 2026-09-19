@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { get } from 'svelte/store';
     import { gameStore, formatNumber } from '../store';
-    import { getLeaderboardEntries, type LeaderboardEntry } from '../yandex-sdk';
+    import { getLeaderboardEntries, isGuestPlayer, promptPlayerAuth, type LeaderboardEntry } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
     import { t } from '../i18n';
 
@@ -13,11 +13,13 @@
     let entries: LeaderboardEntry[] = [];
     let userEntry: LeaderboardEntry | null = null;
     let errorMessage: string | null = null;
+    let isGuest = false;
 
     async function loadLeaderboard() {
         isLoading = true;
         errorMessage = null;
         try {
+            isGuest = isGuestPlayer();
             const res = await getLeaderboardEntries(10);
             entries = res.entries;
             userEntry = res.userEntry;
@@ -26,6 +28,13 @@
             errorMessage = get(t)('leaderboard.loadError');
         } finally {
             isLoading = false;
+        }
+    }
+
+    async function handleAuthLogin() {
+        const ok = await promptPlayerAuth();
+        if (ok) {
+            await loadLeaderboard();
         }
     }
 
@@ -64,7 +73,12 @@
                 <h2>{$t('leaderboard.title')}</h2>
                 <p class="header-sub">{$t('leaderboard.subtitle')}</p>
             </div>
-            <button class="close-btn" on:click={onClose} aria-label={$t('common.close')}>✕</button>
+            <button class="close-btn" on:click={onClose} aria-label={$t('common.close')}>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
         </div>
 
         <!-- Info Note: Spending doesn't reduce score -->
@@ -92,6 +106,24 @@
                 </div>
             </div>
         </div>
+
+        {#if isGuest}
+            <div class="guest-auth-card">
+                <div class="auth-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f1c40f" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="auth-text-block">
+                    <span class="auth-title">{$t('leaderboard.authTitle')}</span>
+                    <span class="auth-desc">{$t('leaderboard.authDesc')}</span>
+                </div>
+                <button type="button" class="auth-btn" on:click={handleAuthLogin}>
+                    {$t('leaderboard.authButton')}
+                </button>
+            </div>
+        {/if}
 
         <!-- Leaderboard Table -->
         <div class="content-scroll">
@@ -484,5 +516,62 @@
     .refresh-btn:hover {
         background: rgba(255, 255, 255, 0.1);
         color: white;
+    }
+
+    .guest-auth-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.12) 0%, rgba(108, 92, 231, 0.15) 100%);
+        border: 1px solid rgba(241, 196, 15, 0.35);
+        border-radius: 12px;
+        padding: 10px 14px;
+        flex-shrink: 0;
+    }
+
+    .auth-icon-wrap {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .auth-text-block {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .auth-title {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #f1c40f;
+    }
+
+    .auth-desc {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.25;
+    }
+
+    .auth-btn {
+        background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+        color: #1a0a2e;
+        border: none;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.78rem;
+        padding: 6px 14px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(241, 196, 15, 0.3);
+    }
+
+    .auth-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(241, 196, 15, 0.5);
     }
 </style>

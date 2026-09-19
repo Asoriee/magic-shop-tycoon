@@ -357,7 +357,12 @@
                     <h2>{$t('familiars.title')}</h2>
                     <p class="header-sub">{$t('city.expeditionsTitle')}</p>
                 </div>
-                <button class="close-btn" on:click={onClose}>✕</button>
+                <button class="close-btn" on:click={onClose} aria-label="{$t('common.close')}">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
             
             <div class="balance-row">
@@ -475,7 +480,12 @@
                                             </div>
                                         {:else if petLevel >= 10}
                                             <div class="aura-max-reached">
-                                                <span>✨ {$t('familiars.auraMaxNotice')}</span>
+                                                <span>
+                                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd32a" style="vertical-align: -1px; margin-right: 3px;">
+                                                        <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                                    </svg>
+                                                    {$t('familiars.auraMaxNotice')}
+                                                </span>
                                             </div>
                                         {/if}
                                     </div>
@@ -583,7 +593,11 @@
                                         <div class="jackpot-info">
                                             <div class="jackpot-name">{getPetName(jpPet.id, $currentLang)}</div>
                                             <div class="jackpot-aura-desc">
-                                                <span class="aura-icon-star">✦</span>
+                                                <span class="aura-icon-star">
+                                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="display:block;">
+                                                        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z"/>
+                                                    </svg>
+                                                </span>
                                                 <span class="aura-text">{jpAura.badge || jpAura.description}</span>
                                             </div>
                                         </div>
@@ -740,10 +754,17 @@
                                             {:else if item.type === 'upgrade'}
                                                 <span class="multi-badge up-badge">{$t('common.levelShort')} {item.level}</span>
                                             {:else}
-                                                <span class="multi-badge refund-badge">+50 💎</span>
+                                                <span class="multi-badge refund-badge">
+                                                    +50
+                                                    <svg viewBox="0 0 16 16" width="13" height="13" style="vertical-align: -2px; margin-left: 2px;">
+                                                        <polygon points="8,1 15,6 12,15 4,15 1,6" fill="#00d2d3" stroke="#81ecec" stroke-width="1.2"/>
+                                                    </svg>
+                                                </span>
                                             {/if}
                                             <div class="multi-card-aura" title="{itemAura.title}: {itemAura.description}">
-                                                ✦ {itemAura.title}
+                                                <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" style="vertical-align: -1px; margin-right: 3px; display: inline-block;">
+                                                    <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z"/>
+                                                </svg>{itemAura.title}
                                             </div>
                                         </div>
                                     {/each}

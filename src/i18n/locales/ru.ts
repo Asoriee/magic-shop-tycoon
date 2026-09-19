@@ -41,6 +41,12 @@ export const ru: Translations = {
         ad: 'Реклама',
         potion: 'Зелье',
     },
+    nav: {
+        shop: 'Лавка',
+        city: 'Город',
+        grimoire: 'Гримуар',
+        premium: 'Арканум',
+    },
     numberUnits: {
         thousand: 'К',
         million: 'М',
@@ -48,6 +54,8 @@ export const ru: Translations = {
         trillion: 'Т',
         quadrillion: 'Кв',
         quintillion: 'Кви',
+        sextillion: 'Ск',
+        septillion: 'Сп',
     },
     header: {
         soundOn: 'Звук: Вкл',
@@ -57,6 +65,8 @@ export const ru: Translations = {
         vipExpiresToday: 'ВИП: Истекает сегодня',
         vipDailyReady: 'ВИП-бонус готов!',
         vipActivate: 'ВИП Статус',
+        shortcutTooltip: 'Установить иконку игры (+25 кристаллов)',
+        shortcutRewardToast: 'Иконка установлена! Получено +25 кристаллов!',
     },
     hud: {
         rank: 'Ранг {tier}',
@@ -381,7 +391,7 @@ export const ru: Translations = {
         mastery: 'Мастерство зелья',
         masteryLevel: 'Ур. {level}',
         masteryBonus: 'Постоянный бонус',
-        masteryBadge: '⭐ Мастерство: Ур. {level}/10',
+        masteryBadge: 'Мастерство: Ур. {level}/10',
         masteryMax: 'МАКСИМУМ',
         masteryXp: '{current}/{next} выпито',
         masteryDurationShort: 'длит.',
@@ -559,6 +569,9 @@ export const ru: Translations = {
         refresh: 'Обновить',
         scoreDust: 'пыли',
         loadError: 'Не удалось загрузить таблицу лидеров',
+        authTitle: 'Войдите в Яндекс',
+        authDesc: 'Сохраняйте прогресс в облаке и участвуйте в таблице лидеров',
+        authButton: 'Войти',
     },
     artifactsStore: {
         title: 'Лавка Древностей',
@@ -568,6 +581,11 @@ export const ru: Translations = {
         setCompletedAll: 'Комплект собран! Все бонусы активны!',
         setHint: 'Соберите все реликвии комплекта для призыва фамильяра.',
         setPrefix: 'Сет ',
+        overchargeTitle: 'Усиление артефакта',
+        overchargeBtn: 'Усилить',
+        overchargeMax: 'МАКС',
+        overchargeStars: 'Звёзды: {stars}/5',
+        overchargeBonus: '+{percent}% к эффекту',
     },
     premium: {
         title: 'Великий Арканум',
@@ -1011,6 +1029,8 @@ export const ru: Translations = {
     calendar: {
         title: 'Календарь Архимага',
         subtitle: '30-дневный цикл даров и реликвий',
+        seasonBadge: 'Сезон {season}',
+        seasonBonus: '+{percent}% к наградам сезона',
         week1: 'Неделя 1: Врата Ученика',
         week2: 'Неделя 2: Тропа Магистра',
         week3: 'Неделя 3: Сияние Эфира',

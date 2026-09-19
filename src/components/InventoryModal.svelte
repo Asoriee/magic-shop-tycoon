@@ -167,7 +167,12 @@
                     <h2>{$t('inventory.title')}</h2>
                     <p class="header-sub">{$t('inventory.typesAndItems', { types: uniqueIngredients, total: totalIngredients })}</p>
                 </div>
-                <button class="close-btn" on:click={close}>✕</button>
+                <button class="close-btn" on:click={close} aria-label="{$t('common.close')}">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
         {/if}
 
@@ -266,14 +271,22 @@
                                         <!-- Mastery Bar -->
                                         <div class="mastery-box">
                                             <div class="mastery-header">
-                                                <span class="mastery-badge">{$t('inventory.masteryBadge', { level: masteryLvl })}</span>
+                                                <span class="mastery-badge">
+                                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="#ffd700" style="vertical-align: -1px; margin-right: 3px; display: inline-block;">
+                                                        <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                                    </svg>
+                                                    {$t('inventory.masteryBadge', { level: masteryLvl })}
+                                                </span>
                                                 <span class="mastery-xp">{masteryLvl >= 10 ? $t('inventory.masteryMax') : $t('inventory.masteryXp', { current: xp, next: nextThreshold })}</span>
                                             </div>
                                             <div class="mastery-bar-bg">
                                                 <div class="mastery-bar-fill" style="width: {masteryLvl >= 10 ? 100 : Math.round(progressInTier * 100)}%"></div>
                                             </div>
                                             <div class="mastery-bonus-text">
-                                                ✨ {getMasteryBonusText(potion.id, masteryLvl)}
+                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd700" style="vertical-align: -1px; margin-right: 3px;">
+                                                    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                                </svg>
+                                                {getMasteryBonusText(potion.id, masteryLvl)}
                                                 {#if masteryLvl > 0}
                                                     <span class="mastery-duration-hint"> (+{masteryLvl * 10}% {$t('inventory.masteryDurationShort')})</span>
                                                 {/if}

@@ -5,7 +5,8 @@
         AVAILABLE_ARTIFACTS, 
         AVAILABLE_COLLECTIONS, 
         AVAILABLE_PETS,
-        formatNumber 
+        formatNumber,
+        getArtifactOverchargeCost
     } from '../store';
     import { saveGame } from '../yandex-sdk';
     import gsap from 'gsap';
@@ -62,6 +63,16 @@
         }
     }
 
+    async function overcharge(id: number) {
+        const stars = $gameStore.artifactOvercharge?.[id] || 0;
+        if (stars >= 5) return;
+        const cost = getArtifactOverchargeCost(id, stars);
+        if ($gameStore.stardust >= cost) {
+            gameStore.overchargeArtifact(id);
+            await saveGame();
+        }
+    }
+
     function getArtifactSet(id: number) {
         return AVAILABLE_COLLECTIONS.find(c => c.requiredArtifactIds.includes(id));
     }
@@ -98,7 +109,12 @@
                     </div>
                 </div>
 
-                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
+                <button class="close-btn" on:click={close} aria-label={$t('common.close')}>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
         {/if}
 
@@ -239,12 +255,35 @@
                     </div>
                     <div class="artifact-action">
                         {#if isBought}
-                            <span class="status-bought">
-                                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3,8 7,12 13,4" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                {$t('collectionsMeta.obtained')}
-                            </span>
+                            {@const stars = $gameStore.artifactOvercharge?.[art.id] || 0}
+                            {@const overchargeCost = getArtifactOverchargeCost(art.id, stars)}
+                            {@const canOvercharge = $gameStore.stardust >= overchargeCost}
+                            <div class="overcharge-block">
+                                <div class="stars-row" title="{$t('artifactsStore.overchargeStars', { stars })}">
+                                    {#each [0, 1, 2, 3, 4] as sIdx}
+                                        <svg viewBox="0 0 24 24" width="13" height="13" class="overcharge-star" class:filled={sIdx < stars}>
+                                            <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                        </svg>
+                                    {/each}
+                                </div>
+                                {#if stars < 5}
+                                    <button 
+                                        type="button" 
+                                        class="btn-overcharge" 
+                                        disabled={!canOvercharge}
+                                        on:click={() => overcharge(art.id)}
+                                        title="{$t('artifactsStore.overchargeTitle')}: {$t('artifactsStore.overchargeBonus', { percent: (stars + 1) * 20 })}"
+                                    >
+                                        <ResourceIcon type="stardust" size={12} />
+                                        <span>{formatNumber(overchargeCost)}</span>
+                                        <span class="btn-subtext">{$t('artifactsStore.overchargeBtn')}</span>
+                                    </button>
+                                {:else}
+                                    <span class="max-stars-badge">
+                                        {$t('artifactsStore.overchargeMax')}
+                                    </span>
+                                {/if}
+                            </div>
                         {:else}
                             <button 
                                 class="btn-buy" 
@@ -695,17 +734,81 @@
         box-shadow: none;
     }
 
-    .status-bought {
-        color: #2ecc71;
+
+    .overcharge-block {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+    }
+
+    .stars-row {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+    }
+
+    .overcharge-star {
+        fill: rgba(255, 215, 0, 0.2);
+        stroke: rgba(255, 215, 0, 0.4);
+        stroke-width: 1;
+        transition: all 0.2s;
+    }
+
+    .overcharge-star.filled {
+        fill: #ffd700;
+        stroke: #f39c12;
+        filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
+    }
+
+    .btn-overcharge {
+        background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        border: 1px solid #f1c40f;
+        color: white;
+        border-radius: 8px;
+        padding: 4px 9px;
         font-weight: 700;
-        font-size: 0.82rem;
+        font-size: 0.76rem;
+        cursor: pointer;
         display: flex;
         align-items: center;
         gap: 4px;
-        background: rgba(46, 204, 113, 0.12);
-        padding: 4px 8px;
-        border-radius: 8px;
-        border: 1px solid rgba(46, 204, 113, 0.3);
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(211, 84, 0, 0.3);
+    }
+
+    .btn-overcharge:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4);
+        background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+    }
+
+    .btn-overcharge:disabled {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.35);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .btn-subtext {
+        font-size: 0.68rem;
+        opacity: 0.85;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        padding-left: 4px;
+        margin-left: 2px;
+    }
+
+    .max-stars-badge {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #ffd700;
+        background: rgba(255, 215, 0, 0.15);
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        border-radius: 6px;
+        padding: 3px 8px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
     }
 
     @media (max-width: 480px) {

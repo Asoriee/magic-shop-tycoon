@@ -41,6 +41,12 @@ export const en: Translations = {
         ad: 'Ad',
         potion: 'Potion',
     },
+    nav: {
+        shop: 'Shop',
+        city: 'City',
+        grimoire: 'Grimoire',
+        premium: 'Arcanum',
+    },
     numberUnits: {
         thousand: 'K',
         million: 'M',
@@ -48,6 +54,8 @@ export const en: Translations = {
         trillion: 'T',
         quadrillion: 'Qa',
         quintillion: 'Qi',
+        sextillion: 'Sx',
+        septillion: 'Sp',
     },
     header: {
         soundOn: 'Sound: On',
@@ -57,6 +65,8 @@ export const en: Translations = {
         vipExpiresToday: 'VIP: Expires today',
         vipDailyReady: 'VIP daily bonus ready!',
         vipActivate: 'VIP Status',
+        shortcutTooltip: 'Install game shortcut (+25 crystals)',
+        shortcutRewardToast: 'Shortcut created! Received +25 crystals!',
     },
     hud: {
         rank: 'Rank {tier}',
@@ -381,7 +391,7 @@ export const en: Translations = {
         mastery: 'Potion Mastery',
         masteryLevel: 'Lvl. {level}',
         masteryBonus: 'Permanent Bonus',
-        masteryBadge: '⭐ Mastery: Lvl. {level}/10',
+        masteryBadge: 'Mastery: Lvl. {level}/10',
         masteryMax: 'MAXIMUM',
         masteryXp: '{current}/{next} drunk',
         masteryDurationShort: 'dur.',
@@ -559,6 +569,9 @@ export const en: Translations = {
         refresh: 'Refresh',
         scoreDust: 'dust',
         loadError: 'Failed to load leaderboard',
+        authTitle: 'Log in to Yandex',
+        authDesc: 'Save your progress to the cloud and compete on the leaderboard',
+        authButton: 'Log in',
     },
     artifactsStore: {
         title: 'Relics Vault',
@@ -568,6 +581,11 @@ export const en: Translations = {
         setCompletedAll: 'Set completed! All perks are active!',
         setHint: 'Gather all set relics to summon the familiar.',
         setPrefix: 'Set ',
+        overchargeTitle: 'Artifact Overcharge',
+        overchargeBtn: 'Overcharge',
+        overchargeMax: 'MAX',
+        overchargeStars: 'Stars: {stars}/5',
+        overchargeBonus: '+{percent}% to power',
     },
     premium: {
         title: 'Grand Arcanum',
@@ -1011,6 +1029,8 @@ export const en: Translations = {
     calendar: {
         title: 'Archmage Calendar',
         subtitle: '30-Day Cycle of Gifts and Relics',
+        seasonBadge: 'Season {season}',
+        seasonBonus: '+{percent}% to season rewards',
         week1: 'Week 1: Apprentice Gate',
         week2: 'Week 2: Master Trail',
         week3: 'Week 3: Aether Glow',

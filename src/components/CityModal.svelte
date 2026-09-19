@@ -23,6 +23,12 @@
     export let onClose: () => void;
 
     let activeTab: 'orders' | 'quests' | 'chests' | 'artifacts' = 'orders';
+    if (typeof window !== 'undefined' && window.location?.search) {
+        const urlTab = new URLSearchParams(window.location.search).get('tab');
+        if (urlTab === 'artifacts' || urlTab === 'quests' || urlTab === 'chests' || urlTab === 'orders') {
+            activeTab = urlTab;
+        }
+    }
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
 
@@ -69,7 +75,12 @@
     <div class="modal-content" bind:this={modalEl} on:click|stopPropagation>
         <!-- Master Header -->
         <div class="master-header">
-            <button class="close-btn" on:click={close} aria-label={$t('common.close')}>✕</button>
+            <button class="close-btn" on:click={close} aria-label={$t('common.close')}>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
 
             <div class="header-main">
                 <div class="master-icon-wrap">

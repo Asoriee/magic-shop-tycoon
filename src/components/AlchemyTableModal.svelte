@@ -290,7 +290,12 @@
                 <h2>{$t('alchemy.title')}</h2>
                 <p class="header-sub">{$t('alchemy.subtitle')}</p>
             </div>
-            <button class="close-btn" on:click={close}>✕</button>
+            <button class="close-btn" on:click={close} aria-label="{$t('common.close')}">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
         </div>
 
         <div class="balance-row">
@@ -430,7 +435,12 @@
                     >
                         {#if ing}
                             <div class="slot-icon">{@html ing.icon}</div>
-                            <div class="slot-x">✕</div>
+                            <div class="slot-x">
+                                <svg viewBox="0 0 12 12" width="9" height="9" stroke="currentColor" stroke-width="2.2" fill="none">
+                                    <line x1="2" y1="2" x2="10" y2="10"/>
+                                    <line x1="10" y1="2" x2="2" y2="10"/>
+                                </svg>
+                            </div>
                         {:else}
                             <span class="slot-num">{i+1}</span>
                         {/if}

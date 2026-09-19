@@ -117,6 +117,9 @@ export async function initYandexSdk() {
         window.addEventListener('beforeunload', () => {
             flushCloudSave();
         });
+        window.addEventListener('pagehide', () => {
+            flushCloudSave();
+        });
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 flushCloudSave();
@@ -179,15 +182,30 @@ async function checkPurchases() {
     if (!payments) return;
     try {
         const purchasesList = await payments.getPurchases();
-        // Consume any pending consumable purchases and activate VIP
+        // Consume any pending consumable purchases and activate VIP or credit crystals
         for (const purchase of purchasesList) {
+            let processed = false;
             if (purchase.productID === 'vip_status' || purchase.productID === 'vip_month') {
                 activateVip30Days();
+                processed = true;
+            } else if (purchase.productID === 'pack_crystals_100') {
+                crystals.update(n => n + 100);
+                processed = true;
+            } else if (purchase.productID === 'pack_crystals_300') {
+                crystals.update(n => n + 350);
+                processed = true;
+            } else if (purchase.productID === 'pack_crystals_1000') {
+                crystals.update(n => n + 1250);
+                processed = true;
+            }
+
+            if (processed) {
                 saveGame();
                 try {
                     await payments.consumePurchase(purchase.purchaseToken);
+                    console.log(`[IAP] Successfully consumed pending purchase: ${purchase.productID}`);
                 } catch (e) {
-                    console.warn('Failed to consume pending VIP purchase', e);
+                    console.warn(`[IAP] Failed to consume pending purchase ${purchase.productID}`, e);
                 }
             }
         }
@@ -408,6 +426,15 @@ export async function loadGame(): Promise<void> {
             }
             if (merged.calendarLastClaimDate === undefined) {
                 merged.calendarLastClaimDate = '';
+            }
+            if (merged.calendarSeason === undefined || typeof merged.calendarSeason !== 'number') {
+                merged.calendarSeason = 1;
+            }
+            if (merged.hasCreatedShortcut === undefined) {
+                merged.hasCreatedShortcut = false;
+            }
+            if (!merged.artifactOvercharge || typeof merged.artifactOvercharge !== 'object') {
+                merged.artifactOvercharge = {};
             }
             if (merged.hasRelicEternityEye === undefined) {
                 merged.hasRelicEternityEye = false;
@@ -768,4 +795,73 @@ export async function getLeaderboardEntries(topCount: number = 10): Promise<{ en
         return getMockFallback();
     }
 }
+
+// --- Feedback / Review API ---
+
+export async function canRequestReview(): Promise<boolean> {
+    if (!ysdk || !ysdk.feedback || typeof ysdk.feedback.canReview !== 'function') return false;
+    try {
+        const res = await ysdk.feedback.canReview();
+        return Boolean(res?.value);
+    } catch (e) {
+        return false;
+    }
+}
+
+export async function requestGameReview(): Promise<boolean> {
+    if (!ysdk || !ysdk.feedback || typeof ysdk.feedback.requestReview !== 'function') return false;
+    try {
+        const can = await ysdk.feedback.canReview();
+        if (!can?.value) return false;
+        const res = await ysdk.feedback.requestReview();
+        return Boolean(res?.feedbackSent);
+    } catch (e) {
+        console.warn('Feedback API error', e);
+        return false;
+    }
+}
+
+// --- Shortcut API (Mobile & Desktop App Icon) ---
+
+export async function canShowShortcutPrompt(): Promise<boolean> {
+    if (!ysdk || !ysdk.shortcut || typeof ysdk.shortcut.canShowPrompt !== 'function') return false;
+    try {
+        const res = await ysdk.shortcut.canShowPrompt();
+        return Boolean(res?.canShow);
+    } catch (e) {
+        return false;
+    }
+}
+
+export async function createGameShortcut(): Promise<boolean> {
+    if (!ysdk || !ysdk.shortcut || typeof ysdk.shortcut.showPrompt !== 'function') return false;
+    try {
+        const res = await ysdk.shortcut.showPrompt();
+        return res?.outcome === 'accepted';
+    } catch (e) {
+        console.warn('Shortcut API error', e);
+        return false;
+    }
+}
+
+// --- Player Auth API ---
+
+export function isGuestPlayer(): boolean {
+    if (!player || typeof player.getMode !== 'function') return false;
+    return player.getMode() === 'lite';
+}
+
+export async function promptPlayerAuth(): Promise<boolean> {
+    if (!ysdk || !ysdk.auth || typeof ysdk.auth.openAuthDialog !== 'function') return false;
+    try {
+        await ysdk.auth.openAuthDialog();
+        player = await ysdk.getPlayer();
+        await loadGame();
+        return true;
+    } catch (e) {
+        console.warn('Auth dialog closed or rejected', e);
+        return false;
+    }
+}
+
 

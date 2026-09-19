@@ -246,6 +246,9 @@ export interface GameState {
     potionMasteryXp?: Record<string, number>;
     calendarDay?: number;
     calendarLastClaimDate?: string;
+    calendarSeason?: number;
+    hasCreatedShortcut?: boolean;
+    artifactOvercharge?: Record<number, number>;
     hasRelicEternityEye?: boolean;
 }
 
@@ -1632,6 +1635,14 @@ export const AVAILABLE_ARTIFACTS: Artifact[] = [
     }
 ];
 
+export function getArtifactOverchargeCost(artifactId: number, currentStar: number): number {
+    const art = AVAILABLE_ARTIFACTS.find(a => a.id === artifactId);
+    if (!art) return 999999;
+    const multipliers = [1.5, 2.5, 4.0, 6.5, 10.0];
+    const mult = multipliers[Math.min(multipliers.length - 1, Math.max(0, currentStar))];
+    return Math.round(art.cost * mult);
+}
+
 export const AVAILABLE_COLLECTIONS: Collection[] = [
     {
         id: 'archmage_set',
@@ -2059,6 +2070,9 @@ const defaultState: GameState = {
     potionMasteryXp: {},
     calendarDay: 1,
     calendarLastClaimDate: '',
+    calendarSeason: 1,
+    hasCreatedShortcut: false,
+    artifactOvercharge: {},
     hasRelicEternityEye: false
 };
 
@@ -2410,8 +2424,13 @@ function createGameStore() {
             }
 
             const newTotalStardustEarned = (state.totalStardustEarned || 0) + earnedStardust;
-            // Leaderboard submission:
-            import('./yandex-sdk').then(sdk => sdk.submitLeaderboardScore(newTotalStardustEarned)).catch(() => {});
+            // Leaderboard submission and review prompt:
+            import('./yandex-sdk').then(sdk => {
+                sdk.submitLeaderboardScore(newTotalStardustEarned);
+                sdk.canRequestReview().then(can => {
+                    if (can) sdk.requestGameReview();
+                }).catch(() => {});
+            }).catch(() => {});
 
             // Сброс сваренных зелий согласно правилам Ритуала
             potionsCount.set({});
@@ -2455,6 +2474,24 @@ function createGameStore() {
                     return newState;
                 }
                 return state;
+            });
+        },
+        overchargeArtifact: (artifactId: number) => {
+            update(state => {
+                if (!state.artifacts.includes(artifactId)) return state;
+                const currentStars = state.artifactOvercharge?.[artifactId] || 0;
+                if (currentStars >= 5) return state;
+                const cost = getArtifactOverchargeCost(artifactId, currentStars);
+                if (state.stardust < cost) return state;
+
+                const nextOvercharge = { ...(state.artifactOvercharge || {}) };
+                nextOvercharge[artifactId] = currentStars + 1;
+
+                return {
+                    ...state,
+                    stardust: state.stardust - cost,
+                    artifactOvercharge: nextOvercharge
+                };
             });
         },
         buyUpgrade: (id: string) => update(state => {
@@ -2965,18 +3002,24 @@ export const stableIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
     let multiplier = 1 * ($milestone?.multiplier || 1);
     const arts = $gameStore?.artifacts || [];
     const colls = $gameStore?.unlockedCollections || [];
+    const overcharges = $gameStore?.artifactOvercharge || {};
+    const getArtBonus = (id: number, base: number) => {
+        if (!arts.includes(id)) return 0;
+        const star = overcharges[id] || 0;
+        return base * (1 + star * 0.20);
+    };
     
     // Original artifacts
-    if (arts.includes(0)) multiplier += 0.20; // Scroll of Greed
+    multiplier += getArtBonus(0, 0.20); // Scroll of Greed
     // Archmage set artifacts
-    if (arts.includes(3)) multiplier += 0.35; // Archmage Robe
-    if (arts.includes(6)) multiplier += 0.35; // Archmage Ring
-    if (arts.includes(7)) multiplier += 1.00; // Archmage Eye
+    multiplier += getArtBonus(3, 0.35); // Archmage Robe
+    multiplier += getArtBonus(6, 0.35); // Archmage Ring
+    multiplier += getArtBonus(7, 1.00); // Archmage Eye
     // Phoenix set artifacts
-    if (arts.includes(10)) multiplier += 1.20; // Chalice of Eternal Flame
+    multiplier += getArtBonus(10, 1.20); // Chalice of Eternal Flame
     // Titan set artifacts
-    if (arts.includes(13)) multiplier += 2.00; // Tablet of Creation
-    if (arts.includes(15)) multiplier += 3.00; // Titan's Core
+    multiplier += getArtBonus(13, 2.00); // Tablet of Creation
+    multiplier += getArtBonus(15, 3.00); // Titan's Core
     
     // Set Completion Bonuses
     if (colls.includes('archmage_set')) multiplier += 1.50;
@@ -3020,13 +3063,16 @@ export const stableIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
 });
 
 export const globalIdleMultiplier = derived([stableIdleMultiplier, gameStore], ([$stableMult, $gameStore]) => {
-    let multiplier = $stableMult;
+    let totalMultiplier = (typeof $stableMult === 'number' && !isNaN($stableMult)) ? $stableMult : 1;
     const buffs = $gameStore?.activeBuffs || [];
+
+    // Apply active buffs
     for (const buff of buffs) {
-        if (buff.effect === 'idle_multiplier') multiplier += buff.value;
-        if (buff.effect === 'gold_multiplier') multiplier += buff.value;
+        if (buff.effect === 'idle_multiplier') totalMultiplier += buff.value;
+        if (buff.effect === 'gold_multiplier') totalMultiplier += buff.value;
     }
-    return Math.max(1, multiplier);
+
+    return Math.max(1, totalMultiplier);
 });
 
 export const stableIdleIncome = derived([gameStore, stableIdleMultiplier], ([$gameStore, $stableMult]) => {
@@ -3051,15 +3097,21 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     const arts = $gameStore?.artifacts || [];
     const colls = $gameStore?.unlockedCollections || [];
     const buffs = $gameStore?.activeBuffs || [];
+    const overcharges = $gameStore?.artifactOvercharge || {};
+    const getArtBonus = (id: number, base: number) => {
+        if (!arts.includes(id)) return 0;
+        const star = overcharges[id] || 0;
+        return base * (1 + star * 0.20);
+    };
     
     // Original artifacts
-    if (arts.includes(1)) multiplier += 0.20; // Ring of Power
+    multiplier += getArtBonus(1, 0.20); // Ring of Power
     // Archmage set artifacts
-    if (arts.includes(4)) multiplier += 0.60; // Archmage Staff
+    multiplier += getArtBonus(4, 0.60); // Archmage Staff
     // Phoenix set artifacts
-    if (arts.includes(9)) multiplier += 0.80; // Volcanic Seal
+    multiplier += getArtBonus(9, 0.80); // Volcanic Seal
     // Titan set artifacts
-    if (arts.includes(14)) multiplier += 2.50; // Void Crown
+    multiplier += getArtBonus(14, 2.50); // Void Crown
 
     // Set Completion Bonuses
     if (colls.includes('archmage_set')) multiplier += 1.00;
@@ -3105,14 +3157,21 @@ export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $is
     let hours = 2; // base
     const upgs = $gameStore?.upgrades || [];
     const arts = $gameStore?.artifacts || [];
+    const overcharges = $gameStore?.artifactOvercharge || {};
+    const getArtHours = (id: number, base: number) => {
+        if (!arts.includes(id)) return 0;
+        const star = overcharges[id] || 0;
+        return base * (1 + star * 0.20);
+    };
+
     const hearthUpgrade = upgs.find(u => u.id === 'idle_hearth');
     if (hearthUpgrade && hearthUpgrade.level > 0) {
         hours += hearthUpgrade.level * (10 / 60); // +10 minutes per level
     }
-    if (arts.includes(2)) hours = Math.max(hours, 12); // Time Amulet
-    if (arts.includes(5)) hours += 2; // Archmage Hat (+2 hours)
-    if (arts.includes(11)) hours += 3; // Plume of Rebirth (+3 hours)
-    if (arts.includes(12)) hours += 4; // Chronometer of Eternity (+4 hours)
+    if (arts.includes(2)) hours = Math.max(hours, 12 + (overcharges[2] || 0) * 1.5); // Time Amulet
+    hours += getArtHours(5, 2); // Archmage Hat (+2..+4 hours)
+    hours += getArtHours(11, 3); // Plume of Rebirth (+3..+6 hours)
+    hours += getArtHours(12, 4); // Chronometer of Eternity (+4..+8 hours)
     if ($isVip) hours += 5; // VIP Bonus: +5 hours offline limit
 
     // Active Companion Bonus (e.g. Void Titan offline hours aura)

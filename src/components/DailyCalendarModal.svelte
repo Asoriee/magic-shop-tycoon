@@ -124,8 +124,21 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 id="cal-title" class="title">{$t('calendar.title')}</h2>
-                        <p class="subtitle">{$t('calendar.subtitle')}</p>
+                        <div class="title-with-badge">
+                            <h2 id="cal-title" class="title">{$t('calendar.title')}</h2>
+                            <span class="season-badge-pill">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="#ffd700">
+                                    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                </svg>
+                                {$t('calendar.seasonBadge', { season: $gameStore.calendarSeason || 1 })}
+                            </span>
+                        </div>
+                        <p class="subtitle">
+                            {$t('calendar.subtitle')}
+                            {#if ($gameStore.calendarSeason || 1) > 1}
+                                <span class="season-bonus-tag">({$t('calendar.seasonBonus', { percent: (($gameStore.calendarSeason || 1) - 1) * 15 })})</span>
+                            {/if}
+                        </p>
                     </div>
                 </div>
                 <button class="close-btn" on:click={close} aria-label="{$t('common.close')}">
@@ -334,10 +347,41 @@
         letter-spacing: 0.3px;
     }
 
+    .title-with-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .season-badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 215, 0, 0.15);
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        border-radius: 20px;
+        padding: 2px 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #ffd700;
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+    }
+
     .subtitle {
         margin: 2px 0 0;
         font-size: 0.82rem;
         color: rgba(236, 240, 241, 0.7);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .season-bonus-tag {
+        color: #2ed573;
+        font-weight: 600;
+        font-size: 0.78rem;
     }
 
     .close-btn {

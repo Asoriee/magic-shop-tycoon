@@ -5,11 +5,13 @@ import {
     isVip, 
     stableIdleIncome, 
     openChest, 
+    formatNumber,
     type ChestType,
     type GameState 
 } from './store';
 import { saveGame } from './yandex-sdk';
 import { playSuccessSound } from './audio';
+import { translate } from './i18n';
 
 export interface CalendarRewardItem {
     day: number;
@@ -298,21 +300,22 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
 
         if (reward.type === 'crystals') {
             crystals.update(c => c + finalAmt);
-            desc = `+${finalAmt} Crystals`;
+            desc = translate('calendar.rewardCrystals', { amount: finalAmt });
         } else if (reward.type === 'gold_seconds') {
             const idle = get(stableIdleIncome) || 0;
             const goldEarned = Math.max(1000, Math.round(idle * finalAmt));
             nextGold += goldEarned;
-            desc = `+${goldEarned.toLocaleString()} Gold`;
+            desc = translate('calendar.rewardGold', { amount: formatNumber(goldEarned) });
         } else if (reward.type === 'chest' && reward.chestType) {
             for (let i = 0; i < mult; i++) {
                 openChest(reward.chestType);
             }
-            desc = `${mult}x Chest (${reward.chestType})`;
+            const cName = translate(`chests.${reward.chestType}`) || reward.chestType;
+            desc = translate('calendar.rewardChest', { mult, chest: cName });
         } else if (reward.type === 'stardust') {
             nextStardust += finalAmt;
             nextTotalDust += finalAmt;
-            desc = `+${finalAmt} Stardust`;
+            desc = translate('calendar.rewardDust', { amount: finalAmt });
         } else if (reward.type === 'pet' && reward.petId) {
             if (!nextUnlockedPets.includes(reward.petId)) {
                 nextUnlockedPets.push(reward.petId);
@@ -320,14 +323,15 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             } else {
                 nextPetLevels[reward.petId] = (nextPetLevels[reward.petId] || 1) + (1 * mult);
             }
-            crystals.update(c => c + (vipActive ? 40 : 20));
-            desc = `Familiar + Crystals`;
+            const cryAmt = vipActive ? 40 : 20;
+            crystals.update(c => c + cryAmt);
+            desc = translate('calendar.rewardOwlDesc', { crystals: cryAmt });
         } else if (reward.type === 'relic') {
             nextHasRelic = true;
             nextStardust += (150 * mult);
             nextTotalDust += (150 * mult);
             crystals.update(c => c + (150 * mult));
-            desc = `Relic: Eye of Eternity (+50% permanent income!)`;
+            desc = translate('calendar.rewardRelicDesc');
         }
 
         playSuccessSound();

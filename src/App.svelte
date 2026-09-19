@@ -362,11 +362,11 @@
             <button 
                 type="button" 
                 class="hud-icon-btn calendar-btn" 
-                title="{$t('calendar.title') || 'Календарь Архимага'}" 
+                title="{$t('calendar.title')}" 
                 on:click={() => isDailyCalendarOpen = true}
             >
                 {#if isCalendarReady}
-                    <span class="calendar-notify-dot" title="Доступна награда календаря!"></span>
+                    <span class="calendar-notify-dot" title="{$t('calendar.notifyTooltip')}"></span>
                 {/if}
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
                     <rect x="3" y="4" width="18" height="17" rx="3.5" fill="#2d1b4e" stroke="#ffd32a" stroke-width="1.4"/>

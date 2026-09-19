@@ -54,7 +54,7 @@
         if (!isReady) return;
         const res = claimCalendarReward();
         if (res.success) {
-            claimFeedback = res.rewardDesc || 'Награда получена!';
+            claimFeedback = res.rewardDesc || $t('calendar.received');
             if (feedbackTimeout) clearTimeout(feedbackTimeout);
             feedbackTimeout = setTimeout(() => {
                 claimFeedback = null;
@@ -65,42 +65,35 @@
     function getRewardLabel(reward: CalendarRewardItem, vipActive: boolean): string {
         const mult = vipActive ? 2 : 1;
         if (reward.type === 'crystals') {
-            return `+${(reward.amount || 1) * mult} крист.`;
+            return $t('calendar.rewardCrystals', { amount: (reward.amount || 1) * mult });
         }
         if (reward.type === 'gold_seconds') {
             const idle = $stableIdleIncome || 0;
             const gold = Math.max(1000, Math.round(idle * (reward.amount || 60) * mult));
-            return `+${formatNumber(gold)} золота`;
+            return $t('calendar.rewardGold', { amount: formatNumber(gold) });
         }
         if (reward.type === 'chest') {
-            const count = mult;
-            const names: Record<string, string> = {
-                wooden: 'Деревянный',
-                alchemist: 'Алхимика',
-                magical: 'Магический',
-                astral: 'Астральный',
-                titan: 'Титана'
-            };
-            const cName = names[reward.chestType || 'wooden'] || 'Ларец';
-            return `${count}x ${cName}`;
+            const cType = reward.chestType || 'wooden';
+            const cName = $t(`chests.${cType}`) || cType;
+            return $t('calendar.rewardChest', { mult, chest: cName });
         }
         if (reward.type === 'stardust') {
-            return `+${(reward.amount || 10) * mult} пыли`;
+            return $t('calendar.rewardDust', { amount: (reward.amount || 10) * mult });
         }
         if (reward.type === 'pet') {
-            return vipActive ? 'Сова + 40 крист.' : 'Сова + 20 крист.';
+            return $t('calendar.rewardOwl', { crystals: vipActive ? 40 : 20 });
         }
         if (reward.type === 'relic') {
-            return vipActive ? 'Око Вечности (2x)' : 'Око Вечности';
+            return $t('calendar.rewardRelic', { mult: vipActive ? ' (2x)' : '' });
         }
         return '';
     }
 
     const WEEKS = [
-        { titleKey: 'calendar.week1', days: CALENDAR_REWARDS.slice(0, 7), milestoneTitle: 'Вестник Мудрости (Фамильяр Сова)' },
-        { titleKey: 'calendar.week2', days: CALENDAR_REWARDS.slice(7, 14), milestoneTitle: 'Сила Звёзд (Астральный Ларец)' },
-        { titleKey: 'calendar.week3', days: CALENDAR_REWARDS.slice(14, 21), milestoneTitle: 'Гнев Титанов (Сундук Титана)' },
-        { titleKey: 'calendar.week4', days: CALENDAR_REWARDS.slice(21, 30), milestoneTitle: 'Апогей Архимага (Око Вечности)' }
+        { titleKey: 'calendar.week1', days: CALENDAR_REWARDS.slice(0, 7), milestoneKey: 'calendar.milestoneWeek1' },
+        { titleKey: 'calendar.week2', days: CALENDAR_REWARDS.slice(7, 14), milestoneKey: 'calendar.milestoneWeek2' },
+        { titleKey: 'calendar.week3', days: CALENDAR_REWARDS.slice(14, 21), milestoneKey: 'calendar.milestoneWeek3' },
+        { titleKey: 'calendar.week4', days: CALENDAR_REWARDS.slice(21, 30), milestoneKey: 'calendar.milestoneWeek4' }
     ];
 </script>
 
@@ -131,11 +124,11 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 id="cal-title" class="title">{$t('calendar.title') || 'Календарь Архимага'}</h2>
-                        <p class="subtitle">{$t('calendar.subtitle') || '30-дневный цикл даров и реликвий'}</p>
+                        <h2 id="cal-title" class="title">{$t('calendar.title')}</h2>
+                        <p class="subtitle">{$t('calendar.subtitle')}</p>
                     </div>
                 </div>
-                <button class="close-btn" on:click={close} aria-label="Закрыть">
+                <button class="close-btn" on:click={close} aria-label="{$t('common.close')}">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
@@ -152,11 +145,11 @@
                 </div>
                 <div class="vip-content">
                     {#if $isVip}
-                        <div class="vip-title">VIP-привилегия активна!</div>
-                        <div class="vip-desc">Все награды каждого дня удвоены (х2)!</div>
+                        <div class="vip-title">{$t('calendar.vipActiveTitle')}</div>
+                        <div class="vip-desc">{$t('calendar.vipActiveDesc')}</div>
                     {:else}
-                        <div class="vip-title">Удвойте ВСЕ награды с VIP!</div>
-                        <div class="vip-desc">VIP-статус дает 2х ко всем 30 дням календаря и эксклюзивные бонусы.</div>
+                        <div class="vip-title">{$t('calendar.vipPromoTitle')}</div>
+                        <div class="vip-desc">{$t('calendar.vipPromoDesc')}</div>
                     {/if}
                 </div>
                 {#if !$isVip && onOpenVip}
@@ -172,7 +165,7 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2ed573" stroke-width="2.5">
                         <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                    <span>Получено: <strong>{claimFeedback}</strong></span>
+                    <span>{$t('calendar.received')}: <strong>{claimFeedback}</strong></span>
                 </div>
             {/if}
 
@@ -181,12 +174,12 @@
                 {#each WEEKS as week, wIdx}
                     <div class="week-section">
                         <div class="week-header">
-                            <span class="week-title">{$t(week.titleKey) || `Неделя ${wIdx + 1}`}</span>
+                            <span class="week-title">{$t(week.titleKey)}</span>
                             <span class="week-milestone-hint">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="#ffd32a" style="vertical-align: middle; margin-right: 4px;">
                                     <path d="M6 3h12v4c0 3.3-2.7 6-6 6s-6-2.7-6-6V3zm0 2H4c0 2.2 1.8 4 4 4h.4C7.5 8.2 6.8 6.7 6.5 5H6zm12 0h.5c-.3 1.7-1 3.2-1.9 4H17c2.2 0 4-1.8 4-4h-2zm-7 10.9V18H8v2h8v-2h-3v-2.1c3.5-.5 6-3.4 6-6.9V3H5v6c0 3.5 2.5 6.4 6 6.9z"/>
                                 </svg>
-                                {week.milestoneTitle}
+                                {$t(week.milestoneKey)}
                             </span>
                         </div>
                         <div class="days-grid">
@@ -204,7 +197,7 @@
                                 >
                                     <!-- Day Header -->
                                     <div class="day-card-header">
-                                        <span class="day-num">День {reward.day}</span>
+                                        <span class="day-num">{$t('calendar.dayNum', { day: reward.day })}</span>
                                         {#if $isVip}
                                             <span class="vip-badge-pill">2x</span>
                                         {/if}
@@ -226,18 +219,18 @@
                                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="#2ed573" stroke-width="3" fill="none">
                                                 <polyline points="20 6 9 17 4 12"/>
                                             </svg>
-                                            <span>Взято</span>
+                                            <span>{$t('calendar.claimed')}</span>
                                         </div>
                                     {:else if isToday && isReady}
                                         <button class="claim-mini-btn" on:click={handleClaim}>
-                                            Забрать
+                                            {$t('calendar.claim')}
                                         </button>
                                     {:else if isToday && !isReady}
                                         <div class="stamp-claimed">
                                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="#2ed573" stroke-width="3" fill="none">
                                                 <polyline points="20 6 9 17 4 12"/>
                                             </svg>
-                                            <span>Взято</span>
+                                            <span>{$t('calendar.claimed')}</span>
                                         </div>
                                     {:else}
                                         <div class="stamp-locked">
@@ -261,7 +254,7 @@
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffd32a">
                             <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
                         </svg>
-                        <span>Забрать награду за {currentDay}-й день! ({getRewardLabel(currentReward, $isVip)})</span>
+                        <span>{$t('calendar.claimToday', { day: currentDay, reward: getRewardLabel(currentReward, $isVip) })}</span>
                     </button>
                 {:else}
                     <div class="already-claimed-notice">
@@ -269,7 +262,7 @@
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
-                        <span>Сегодняшняя награда забрана. Новый дар будет доступен завтра!</span>
+                        <span>{$t('calendar.alreadyClaimedToday')}</span>
                     </div>
                 {/if}
             </div>

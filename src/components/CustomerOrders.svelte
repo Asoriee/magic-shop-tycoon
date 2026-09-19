@@ -345,7 +345,7 @@
                             {#if order.isVip}
                                 <span class="order-badge vip-badge">{$t('orders.vipOrder').toUpperCase()}</span>
                             {:else if order.orderType === 'potion' || order.requirements.some(r => r.type === 'potion')}
-                                <span class="order-badge potion-badge">{$t('alchemy.tabBrew').toUpperCase()}</span>
+                                <span class="order-badge potion-badge">{$t('orders.potionBadge').toUpperCase()}</span>
                             {/if}
                         </div>
                     </div>

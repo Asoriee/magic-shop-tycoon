@@ -102,7 +102,7 @@
             gameStore.usePotion(potionId);
             saveGame();
             const pName = potion ? getPotionName(potion.id, $currentLang) : '';
-            showFeedback($t('inventory.potionDrunk', { name: pName }) || `Выпито: ${pName}! +XP Мастерства`);
+            showFeedback($t('inventory.potionDrunk', { name: pName }));
         }
     }
 
@@ -112,24 +112,24 @@
             saveGame();
             const singleGold = getPotionSellGold(potionId);
             const totalGold = singleGold * count;
-            showFeedback(`Продано ${count} шт. за +${formatNumber(totalGold)} золота`);
+            showFeedback($t('inventory.soldFeedback', { count, gold: formatNumber(totalGold) }));
         }
     }
 
     function getMasteryBonusText(potionId: string, lvl: number): string {
-        if (lvl <= 0) return 'Ур. 0 — пейте зелье для открытия постоянного бонуса';
+        if (lvl <= 0) return $t('inventory.masteryZero');
         switch (potionId) {
-            case 'potion_wealth': return `+${lvl}% к доходу лавки навсегда`;
-            case 'potion_luck': return `+${lvl}% к силе клика навсегда`;
-            case 'potion_midas': return `+${lvl * 2}% к доходу лавки навсегда`;
-            case 'potion_focus': return `+${(lvl * 0.5).toFixed(1)}% к шансу крита`;
-            case 'potion_berserk': return `+${(lvl * 0.1).toFixed(1)}x к множителю крита`;
-            case 'potion_chronos': return `+${lvl * 10} мин к лимиту оффлайна`;
-            case 'potion_harmony': return `+${(lvl * 1.5).toFixed(1)}% к доходу и клику`;
-            case 'potion_void': return `+${(lvl * 1.5).toFixed(1)}% золота за заказы`;
-            case 'potion_astral': return `+${(lvl * 0.5).toFixed(1)}% звёздной пыли`;
-            case 'potion_miracle': return `+${lvl * 3}% к доходу и клику`;
-            default: return `+${lvl * 10}% длительности эффекта`;
+            case 'potion_wealth': return $t('inventory.mastery_wealth', { pct: lvl });
+            case 'potion_luck': return $t('inventory.mastery_luck', { pct: lvl });
+            case 'potion_midas': return $t('inventory.mastery_midas', { pct: lvl * 2 });
+            case 'potion_focus': return $t('inventory.mastery_focus', { pct: (lvl * 0.5).toFixed(1) });
+            case 'potion_berserk': return $t('inventory.mastery_berserk', { mult: (lvl * 0.1).toFixed(1) });
+            case 'potion_chronos': return $t('inventory.mastery_chronos', { min: lvl * 10 });
+            case 'potion_harmony': return $t('inventory.mastery_harmony', { pct: (lvl * 1.5).toFixed(1) });
+            case 'potion_void': return $t('inventory.mastery_void', { pct: (lvl * 1.5).toFixed(1) });
+            case 'potion_astral': return $t('inventory.mastery_astral', { pct: (lvl * 0.5).toFixed(1) });
+            case 'potion_miracle': return $t('inventory.mastery_miracle', { pct: lvl * 3 });
+            default: return $t('inventory.mastery_default', { pct: lvl * 10 });
         }
     }
 </script>
@@ -266,8 +266,8 @@
                                         <!-- Mastery Bar -->
                                         <div class="mastery-box">
                                             <div class="mastery-header">
-                                                <span class="mastery-badge">⭐ Мастерство: Ур. {masteryLvl}/10</span>
-                                                <span class="mastery-xp">{masteryLvl >= 10 ? 'МАКСИМУМ' : `${xp}/${nextThreshold} выпито`}</span>
+                                                <span class="mastery-badge">{$t('inventory.masteryBadge', { level: masteryLvl })}</span>
+                                                <span class="mastery-xp">{masteryLvl >= 10 ? $t('inventory.masteryMax') : $t('inventory.masteryXp', { current: xp, next: nextThreshold })}</span>
                                             </div>
                                             <div class="mastery-bar-bg">
                                                 <div class="mastery-bar-fill" style="width: {masteryLvl >= 10 ? 100 : Math.round(progressInTier * 100)}%"></div>
@@ -275,25 +275,25 @@
                                             <div class="mastery-bonus-text">
                                                 ✨ {getMasteryBonusText(potion.id, masteryLvl)}
                                                 {#if masteryLvl > 0}
-                                                    <span class="mastery-duration-hint"> (+{masteryLvl * 10}% длит.)</span>
+                                                    <span class="mastery-duration-hint"> (+{masteryLvl * 10}% {$t('inventory.masteryDurationShort')})</span>
                                                 {/if}
                                             </div>
                                         </div>
                                     </div>
                                     <div class="potion-actions">
-                                        <button class="use-potion-btn" on:click={() => handleUsePotion(potion.id)} title="Выпить для баффа и +1 XP Мастерства">
+                                        <button class="use-potion-btn" on:click={() => handleUsePotion(potion.id)} title="{$t('inventory.drinkTooltip')}">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                                 <polyline points="20 6 9 17 4 12"></polyline>
                                             </svg>
                                             <span>{$t('inventory.drink')}</span>
                                         </button>
                                         <div class="sell-buttons">
-                                            <button class="sell-btn sell-one" on:click={() => handleSellPotion(potion.id, 1)} title="Продать 1 шт.">
-                                                Продать ({formatNumber(sellGold)} зол.)
+                                            <button class="sell-btn sell-one" on:click={() => handleSellPotion(potion.id, 1)} title="{$t('inventory.sellOneTooltip')}">
+                                                {$t('inventory.sellOneBtn', { gold: formatNumber(sellGold) })}
                                             </button>
                                             {#if count > 1}
-                                                <button class="sell-btn sell-all" on:click={() => handleSellPotion(potion.id, count)} title="Продать всю партию">
-                                                    Все ({formatNumber(sellGold * count)} зол.)
+                                                <button class="sell-btn sell-all" on:click={() => handleSellPotion(potion.id, count)} title="{$t('inventory.sellAllTooltip')}">
+                                                    {$t('inventory.sellAllBtn', { gold: formatNumber(sellGold * count) })}
                                                 </button>
                                             {/if}
                                         </div>

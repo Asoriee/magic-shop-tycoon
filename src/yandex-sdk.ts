@@ -397,6 +397,21 @@ export async function loadGame(): Promise<void> {
             if (!merged.activeCompanionId) {
                 merged.activeCompanionId = merged.unlockedPets?.[0] || 'pet_rat';
             }
+            if (!merged.potionMastery || typeof merged.potionMastery !== 'object') {
+                merged.potionMastery = {};
+            }
+            if (!merged.potionMasteryXp || typeof merged.potionMasteryXp !== 'object') {
+                merged.potionMasteryXp = {};
+            }
+            if (merged.calendarDay === undefined || typeof merged.calendarDay !== 'number') {
+                merged.calendarDay = 1;
+            }
+            if (merged.calendarLastClaimDate === undefined) {
+                merged.calendarLastClaimDate = '';
+            }
+            if (merged.hasRelicEternityEye === undefined) {
+                merged.hasRelicEternityEye = false;
+            }
             
             // Restore missing upgrades from default state
             // Restore missing upgrades from default state with dynamic reactive getters

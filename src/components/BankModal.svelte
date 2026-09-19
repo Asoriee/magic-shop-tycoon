@@ -234,6 +234,12 @@
                                 </svg>
                                 <span>{$t('treasury.perk7')}</span>
                             </li>
+                            <li>
+                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
+                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>{@html $t('treasury.perkCalendar')}</span>
+                            </li>
                         </ul>
                     </div>
 

@@ -37,17 +37,22 @@
     import GrimoireModal from './components/GrimoireModal.svelte';
     import CityModal from './components/CityModal.svelte';
     import PremiumModal from './components/PremiumModal.svelte';
+    import DailyCalendarModal from './components/DailyCalendarModal.svelte';
     import LeaderboardModal from './components/LeaderboardModal.svelte';
     import MechanicGuideModal from './components/MechanicGuideModal.svelte';
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import { isSoundMuted, toggleSound } from './audio';
     import { t, currentLang, setLanguage, getRankTitle } from './i18n';
+    import { isCalendarRewardReady } from './calendar';
 
     let isOfflinePopupOpen = false;
     let isGrimoireOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'grimoire';
     let isCityOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'city';
     let isPremiumOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'premium';
+    let isDailyCalendarOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'calendar';
+
+    $: isCalendarReady = isCalendarRewardReady($gameStore);
 
     function cycleLanguage() {
         const next = $currentLang === 'ru' ? 'en' : ($currentLang === 'en' ? 'tr' : 'ru');
@@ -353,6 +358,30 @@
                 <span class="lang-label">{$currentLang.toUpperCase()}</span>
             </button>
 
+            <!-- Daily Calendar Button -->
+            <button 
+                type="button" 
+                class="hud-icon-btn calendar-btn" 
+                title="{$t('calendar.title') || 'Календарь Архимага'}" 
+                on:click={() => isDailyCalendarOpen = true}
+            >
+                {#if isCalendarReady}
+                    <span class="calendar-notify-dot" title="Доступна награда календаря!"></span>
+                {/if}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                    <rect x="3" y="4" width="18" height="17" rx="3.5" fill="#2d1b4e" stroke="#ffd32a" stroke-width="1.4"/>
+                    <path d="M3 9 L21 9" stroke="#ffd32a" stroke-width="1.4"/>
+                    <line x1="8" y1="2" x2="8" y2="5" stroke="#ffd32a" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="16" y1="2" x2="16" y2="5" stroke="#ffd32a" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="8" cy="13" r="1.4" fill="#55efc4"/>
+                    <circle cx="12" cy="13" r="1.4" fill="#ffd32a"/>
+                    <circle cx="16" cy="13" r="1.4" fill="#ff7675"/>
+                    <circle cx="8" cy="17" r="1.4" fill="#a29bfe"/>
+                    <circle cx="12" cy="17" r="1.4" fill="#74b9ff"/>
+                    <circle cx="16" cy="17" r="1.4" fill="#ffd32a"/>
+                </svg>
+            </button>
+
             <!-- Leaderboard Button -->
             <button 
                 type="button" 
@@ -549,6 +578,12 @@
     <PremiumModal 
         isOpen={isPremiumOpen} 
         onClose={() => { isPremiumOpen = false; }} 
+    />
+
+    <DailyCalendarModal 
+        isOpen={isDailyCalendarOpen} 
+        onClose={() => { isDailyCalendarOpen = false; }} 
+        onOpenVip={() => { isDailyCalendarOpen = false; isPremiumOpen = true; }} 
     />
 
     <LeaderboardModal 
@@ -830,6 +865,25 @@
         background: rgba(255, 255, 255, 0.16);
         border-color: rgba(255, 255, 255, 0.35);
         transform: translateY(-2px);
+    }
+    .hud-icon-btn.calendar-btn {
+        position: relative;
+    }
+    .hud-icon-btn.calendar-btn:hover {
+        border-color: #ffd32a;
+        box-shadow: 0 0 12px rgba(255, 211, 42, 0.4);
+    }
+    .calendar-notify-dot {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        background: #ffd32a;
+        border: 1.5px solid #110722;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #ffd32a;
+        animation: pulseRewardDot 1.5s infinite ease-in-out;
     }
     .hud-icon-btn.leaderboard-btn:hover {
         border-color: #f1c40f;

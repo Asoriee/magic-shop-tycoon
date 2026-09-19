@@ -85,7 +85,8 @@ export type SecretUpgradeId =
     | 'familiar'
     | 'magnet'
     | 'alchemy'
-    | 'wallet';
+    | 'wallet'
+    | 'astral_resonance';
 
 export interface SecretUpgrade {
     id: SecretUpgradeId;
@@ -241,6 +242,11 @@ export interface GameState {
     totalStardustEarned?: number;
     activeCompanionId?: string;
     viewedGuides?: string[];
+    potionMastery?: Record<string, number>;
+    potionMasteryXp?: Record<string, number>;
+    calendarDay?: number;
+    calendarLastClaimDate?: string;
+    hasRelicEternityEye?: boolean;
 }
 
 // ============================================================
@@ -413,7 +419,7 @@ function rollIngredient(rarityWeights: { rarity: Rarity; weight: number }[]): In
 // ============================================================
 
 export const ingredientsCount = writable<Record<string, number>>({});
-export const potionsCount     = writable<Record<string, number>>({});
+export const potionsCount     = writable<Record<string, number>>({ 'potion_wealth': 1 });
 
 // ============================================================
 // ALCHEMY: POTIONS CATALOGUE & RECIPES
@@ -1466,6 +1472,16 @@ export const defaultSecretUpgrades: SecretUpgrade[] = [
         costMultiplier: 1.6, 
         level: 0, 
         maxLevel: 10 
+    },
+    { 
+        id: 'astral_resonance', 
+        get name() { return getSecretUpgradeName('astral_resonance'); }, 
+        get description() { return getSecretUpgradeDesc('astral_resonance'); }, 
+        category: 'ritual',
+        baseCost: 50, 
+        costMultiplier: 1.40, 
+        level: 0, 
+        maxLevel: 999999 
     }
 ];
 
@@ -2038,7 +2054,12 @@ const defaultState: GameState = {
     totalStardustEarned: 0,
     petLevels: { 'pet_rat': 1 },
     activeCompanionId: 'pet_rat',
-    viewedGuides: []
+    viewedGuides: [],
+    potionMastery: {},
+    potionMasteryXp: {},
+    calendarDay: 1,
+    calendarLastClaimDate: '',
+    hasRelicEternityEye: false
 };
 
 // --- Premium stores ---
@@ -2219,6 +2240,31 @@ export function generateSingleOrder(): CustomerOrder {
     }
 }
 
+export const MASTERY_THRESHOLDS = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55];
+
+export function getPotionMasteryLevel(xp: number): number {
+    if (!xp || xp <= 0) return 0;
+    for (let i = 10; i >= 1; i--) {
+        if (xp >= MASTERY_THRESHOLDS[i]) return i;
+    }
+    return 0;
+}
+
+export function getPotionSellGold(potionId: string): number {
+    const idle = get(stableIdleIncome) || 0;
+    const potion = AVAILABLE_POTIONS.find(p => p.id === potionId);
+    if (!potion) return 100;
+    let secs = 20;
+    if (['potion_luck', 'potion_wealth', 'potion_void', 'potion_focus'].includes(potionId)) {
+        secs = 20;
+    } else if (['potion_chronos', 'potion_swift', 'potion_astral', 'potion_midas'].includes(potionId)) {
+        secs = 35;
+    } else {
+        secs = 60;
+    }
+    return Math.max(500, Math.round(idle * secs));
+}
+
 export function getStardustThreshold(rawDust: number): number {
     if (rawDust <= 0) return 0;
     return 1_000_000 * Math.pow(rawDust, 4);
@@ -2238,6 +2284,10 @@ export function calculateEarnedStardust(state: GameState): number {
     const extractorLevel = state.secretUpgrades?.find(u => u.id === 'stardust_extractor')?.level || 0;
     const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
     stardustMultiplier += extractorLevel * 0.05 * (isBoosted ? 1.5 : 1);
+
+    // Potion Mastery: Astral Elixir (+0.5% stardust per mastery level)
+    const astralMastery = state.potionMastery?.['potion_astral'] || 0;
+    if (astralMastery > 0) stardustMultiplier += astralMastery * 0.005;
 
     const rawStardust = getRawStardust(state.gold);
     return Math.floor(rawStardust * stardustMultiplier);
@@ -2352,9 +2402,11 @@ function createGameStore() {
                 const preservedGold = Math.floor((state.gold || 0) * 0.005 * heritageLevel * boostMult);
                 startingGold = Math.max(10, Math.min(maxCap, preservedGold));
             }
-            // Artifact 11 (Перо Возрождения): сохраняет 10% золота после ритуала
+            // Artifact 11 (Перо Возрождения): сохраняет 10% золота после ритуала (с мягким капом до 2 часов стабильного дохода)
             if (state.artifacts?.includes(11)) {
-                startingGold += Math.floor((state.gold || 0) * 0.10);
+                const idleSec = get(stableIdleIncome) || 0;
+                const maxPreserved = Math.max(100_000, Math.round(idleSec * 7200));
+                startingGold += Math.min(Math.floor((state.gold || 0) * 0.10), maxPreserved);
             }
 
             const newTotalStardustEarned = (state.totalStardustEarned || 0) + earnedStardust;
@@ -2592,6 +2644,11 @@ function createGameStore() {
             if (state.artifacts?.includes(8)) goldMultiplier += 0.40;
             // Phoenix Set Grand Bonus: +30% золота за заказы
             if (state.unlockedCollections?.includes('phoenix_set')) goldMultiplier += 0.30;
+            // Potion Mastery: Эликсир Бездны (+1.5% золота за заказы за уровень мастерства)
+            const voidMastery = state.potionMastery?.['potion_void'] || 0;
+            if (voidMastery > 0) {
+                goldMultiplier += voidMastery * 0.015;
+            }
             // Active Companion Bonus: order gold boost
             if (state.activeCompanionId) {
                 const compLvl = state.petLevels?.[state.activeCompanionId] || 1;
@@ -2663,6 +2720,42 @@ function createGameStore() {
                 lastOrderSpawnTime: lastSpawn
             };
         }),
+        sellPotion: (potionId: string, count: number = 1) => update(state => {
+            const counts = get(potionsCount);
+            const currentCount = counts[potionId] ?? 0;
+            if (currentCount <= 0) return state;
+            const validCount = Math.min(currentCount, Math.max(1, count));
+
+            potionsCount.update(c => {
+                const next = { ...c };
+                next[potionId] = (next[potionId] ?? 0) - validCount;
+                if (next[potionId] <= 0) delete next[potionId];
+                return next;
+            });
+
+            const unitGold = getPotionSellGold(potionId);
+            const totalGold = unitGold * validCount;
+
+            // Secret Upgrade: Трансмутация Кристаллов (шанс получить кристаллы за продажу зелий)
+            const isBoosted = (state.secretKnowledgeBoostUntil || 0) > Date.now();
+            const boostMult = isBoosted ? 1.5 : 1;
+            const transmuteLevel = state.secretUpgrades.find(u => u.id === 'crystal_transmute' || (u.id as string) === 'magnet')?.level || 0;
+            let transmuteChance = transmuteLevel > 0 ? Math.min(0.75, transmuteLevel * 0.08 * boostMult) : 0;
+            let extraCrystals = 0;
+            for (let i = 0; i < validCount; i++) {
+                if (transmuteChance > 0 && Math.random() < transmuteChance) {
+                    extraCrystals += 1;
+                }
+            }
+            if (extraCrystals > 0) {
+                crystals.update(c => c + extraCrystals);
+            }
+
+            return {
+                ...state,
+                gold: state.gold + totalGold
+            };
+        }),
         usePotion: (potionId: string) => update(state => {
             const potion = AVAILABLE_POTIONS.find(p => p.id === potionId);
             if (!potion) return state;
@@ -2694,9 +2787,19 @@ function createGameStore() {
                 }));
             }
 
+            // Potion Mastery Progress (+10% duration per level)
+            const nextMasteryXp = { ...(state.potionMasteryXp || {}) };
+            const nextMastery = { ...(state.potionMastery || {}) };
+            nextMasteryXp[potionId] = (nextMasteryXp[potionId] || 0) + 1;
+            const masteryLvl = getPotionMasteryLevel(nextMasteryXp[potionId]);
+            nextMastery[potionId] = masteryLvl;
+
+            const durationMultiplier = 1 + (masteryLvl * 0.10);
+            const durationMs = Math.round(potion.durationMin * durationMultiplier * 60 * 1000);
+
             const newBuff: ActiveBuff = {
                 potionId,
-                expiresAt: Date.now() + potion.durationMin * 60 * 1000,
+                expiresAt: Date.now() + durationMs,
                 effect: potion.effect,
                 value: potion.value
             };
@@ -2704,7 +2807,9 @@ function createGameStore() {
             return {
                 ...state,
                 activeBuffs: [...state.activeBuffs, newBuff],
-                activeExpeditions: updatedExpeditions
+                activeExpeditions: updatedExpeditions,
+                potionMasteryXp: nextMasteryXp,
+                potionMastery: nextMastery
             };
         }),
         removeExpiredBuffs: () => update(state => {
@@ -2769,7 +2874,21 @@ export const RANK_THRESHOLDS: number[] = [
     3460,  // Rank 18 (Tier 17): Eternal Alchemist (+520)
     4050,  // Rank 19 (Tier 18): Elemental Sovereign (+590)
     4715,  // Rank 20 (Tier 19): Absolute Magus (+665)
-    5460   // Rank 21 (Tier 20): Living Legend (+745)
+    5460,  // Rank 21 (Tier 20): Living Legend (+745)
+    6300,  // Rank 22 (Tier 21): Ether Sovereign (+840)
+    7240,  // Rank 23 (Tier 22): Sphere Architect (+940)
+    8280,  // Rank 24 (Tier 23): Time Warden (+1040)
+    9420,  // Rank 25 (Tier 24): Astral Emperor (+1140)
+    10660, // Rank 26 (Tier 25): Rune Overlord (+1240)
+    12000, // Rank 27 (Tier 26): Void Demiurge (+1340)
+    13440, // Rank 28 (Tier 27): Reality Forger (+1440)
+    14980, // Rank 29 (Tier 28): Eternal Alchemist (+1540)
+    16620, // Rank 30 (Tier 29): Cosmic Sovereign (+1640)
+    18360, // Rank 31 (Tier 30): God of Alchemy (+1740)
+    20200, // Rank 32 (Tier 31): Timeless One (+1840)
+    22140, // Rank 33 (Tier 32): Font of Magic (+1940)
+    24180, // Rank 34 (Tier 33): Primal Mind (+2040)
+    26320  // Rank 35 (Tier 34): The Absolute (+2140)
 ];
 
 export function getRankTier(totalLevels: number): number {
@@ -2866,6 +2985,25 @@ export const stableIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
         const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
         if (compBonus.idleBonus > 0) multiplier += compBonus.idleBonus;
     }
+
+    // Potion Mastery Idle Boosts
+    const mastery = $gameStore?.potionMastery || {};
+    const wealthLvl = mastery['potion_wealth'] || 0;
+    if (wealthLvl > 0) multiplier += wealthLvl * 0.01;
+    const midasLvl = mastery['potion_midas'] || 0;
+    if (midasLvl > 0) multiplier += midasLvl * 0.02;
+    const harmonyLvl = mastery['potion_harmony'] || 0;
+    if (harmonyLvl > 0) multiplier += harmonyLvl * 0.015;
+    const miracleLvl = mastery['potion_miracle'] || 0;
+    if (miracleLvl > 0) multiplier += miracleLvl * 0.03;
+
+    // Secret Upgrade: Астральный Резонанс (+0.5% passive income per level, unlimited)
+    const secUpgs = $gameStore?.secretUpgrades || [];
+    const astralLvl = secUpgs.find(u => u.id === 'astral_resonance')?.level || 0;
+    if (astralLvl > 0) multiplier += astralLvl * 0.005;
+
+    // Legendary Relic: Око Вечности (+50% passive income)
+    if ($gameStore?.hasRelicEternityEye) multiplier += 0.50;
     
     // Apply stardust prestige multiplier (+1% per stardust)
     multiplier += ($gameStore?.stardust || 0) * 0.01;
@@ -2930,6 +3068,18 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
         if (compBonus.clickBonus > 0) multiplier += compBonus.clickBonus;
     }
 
+    // Potion Mastery Click Boosts
+    const mastery = $gameStore?.potionMastery || {};
+    const luckLvl = mastery['potion_luck'] || 0;
+    if (luckLvl > 0) multiplier += luckLvl * 0.01;
+    const harmonyLvl = mastery['potion_harmony'] || 0;
+    if (harmonyLvl > 0) multiplier += harmonyLvl * 0.015;
+    const miracleLvl = mastery['potion_miracle'] || 0;
+    if (miracleLvl > 0) multiplier += miracleLvl * 0.03;
+
+    // Legendary Relic: Око Вечности (+50% click power)
+    if ($gameStore?.hasRelicEternityEye) multiplier += 0.50;
+
     // Apply active buffs
     for (const buff of buffs) {
         if (buff.effect === 'click_multiplier') multiplier += buff.value;
@@ -2942,7 +3092,7 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
     return Math.max(1, multiplier);
 });
 
-// Update max offline time to account for new artifacts, hearth upgrade, companion bonus, and VIP (+5 hours)
+// Update max offline time to account for new artifacts, hearth upgrade, companion bonus, VIP (+5 hours), and Chronos mastery
 export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $isVip]) => {
     let hours = 2; // base
     const upgs = $gameStore?.upgrades || [];
@@ -2963,6 +3113,13 @@ export const maxOfflineTimeHours = derived([gameStore, isVip], ([$gameStore, $is
         const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
         if (compBonus.offlineHoursBonus > 0) hours += compBonus.offlineHoursBonus;
     }
+
+    // Potion Mastery: Зелье Хроноса (+10 мин оффлайн лимита за уровень)
+    const chronosLvl = $gameStore?.potionMastery?.['potion_chronos'] || 0;
+    if (chronosLvl > 0) {
+        hours += chronosLvl * (10 / 60);
+    }
+
     return hours;
 });
 
@@ -2996,6 +3153,11 @@ export const critChance = derived(gameStore, ($gameStore) => {
         const compBonus = getPetBonusValues($gameStore.activeCompanionId, compLvl);
         if (compBonus.critBonus > 0) chance += compBonus.critBonus;
     }
+    // Potion Mastery: Зелье Концентрации (+0.5% шанс крита за уровень)
+    const focusLvl = $gameStore?.potionMastery?.['potion_focus'] || 0;
+    if (focusLvl > 0) {
+        chance += focusLvl * 0.005;
+    }
     return Math.min(0.75, chance);
 });
 
@@ -3004,6 +3166,11 @@ export const critMultiplier = derived(gameStore, ($gameStore) => {
     const critDmgUpgrade = $gameStore?.upgrades?.find(u => u.id === 'mastery_crit_dmg');
     if (critDmgUpgrade && critDmgUpgrade.level > 0) {
         mult += critDmgUpgrade.level * 0.5;
+    }
+    // Potion Mastery: Зелье Берсерка (+0.10 множитель крита за уровень)
+    const berserkLvl = $gameStore?.potionMastery?.['potion_berserk'] || 0;
+    if (berserkLvl > 0) {
+        mult += berserkLvl * 0.10;
     }
     return mult;
 });

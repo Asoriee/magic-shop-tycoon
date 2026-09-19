@@ -5,6 +5,10 @@
         ingredientsCount, potionsCount,
         AVAILABLE_INGREDIENTS, AVAILABLE_POTIONS,
         gameStore,
+        formatNumber,
+        getPotionSellGold,
+        MASTERY_THRESHOLDS,
+        getPotionMasteryLevel,
         type Rarity
     } from '../store';
     import { saveGame } from '../yandex-sdk';
@@ -14,7 +18,7 @@
     export let isEmbedded = false;
     export let onClose: () => void;
 
-    let activeTab: 'ingredients' | 'potions' = 'ingredients';
+    let activeTab: 'ingredients' | 'potions' = (typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('subtab') === 'potions') ? 'potions' : 'ingredients';
     let modalEl: HTMLElement;
     let overlayEl: HTMLElement;
     let toastMessage: string | null = null;
@@ -97,7 +101,35 @@
         if (($potionsCount[potionId] ?? 0) > 0) {
             gameStore.usePotion(potionId);
             saveGame();
-            showFeedback($t('inventory.potionDrunk', { name: potion ? getPotionName(potion.id, $currentLang) : '' }));
+            const pName = potion ? getPotionName(potion.id, $currentLang) : '';
+            showFeedback($t('inventory.potionDrunk', { name: pName }) || `Выпито: ${pName}! +XP Мастерства`);
+        }
+    }
+
+    function handleSellPotion(potionId: string, count: number) {
+        if (($potionsCount[potionId] ?? 0) >= count) {
+            gameStore.sellPotion(potionId, count);
+            saveGame();
+            const singleGold = getPotionSellGold(potionId);
+            const totalGold = singleGold * count;
+            showFeedback(`Продано ${count} шт. за +${formatNumber(totalGold)} золота`);
+        }
+    }
+
+    function getMasteryBonusText(potionId: string, lvl: number): string {
+        if (lvl <= 0) return 'Ур. 0 — пейте зелье для открытия постоянного бонуса';
+        switch (potionId) {
+            case 'potion_wealth': return `+${lvl}% к доходу лавки навсегда`;
+            case 'potion_luck': return `+${lvl}% к силе клика навсегда`;
+            case 'potion_midas': return `+${lvl * 2}% к доходу лавки навсегда`;
+            case 'potion_focus': return `+${(lvl * 0.5).toFixed(1)}% к шансу крита`;
+            case 'potion_berserk': return `+${(lvl * 0.1).toFixed(1)}x к множителю крита`;
+            case 'potion_chronos': return `+${lvl * 10} мин к лимиту оффлайна`;
+            case 'potion_harmony': return `+${(lvl * 1.5).toFixed(1)}% к доходу и клику`;
+            case 'potion_void': return `+${(lvl * 1.5).toFixed(1)}% золота за заказы`;
+            case 'potion_astral': return `+${(lvl * 0.5).toFixed(1)}% звёздной пыли`;
+            case 'potion_miracle': return `+${lvl * 3}% к доходу и клику`;
+            default: return `+${lvl * 10}% длительности эффекта`;
         }
     }
 </script>
@@ -215,21 +247,57 @@
                     {:else}
                         <div class="potions-grid">
                             {#each ownedPotions as potion (potion.id)}
+                                {@const masteryLvl = $gameStore?.potionMastery?.[potion.id] || 0}
+                                {@const xp = $gameStore?.potionMasteryXp?.[potion.id] || 0}
+                                {@const prevThreshold = MASTERY_THRESHOLDS[masteryLvl] || 0}
+                                {@const nextThreshold = MASTERY_THRESHOLDS[Math.min(10, masteryLvl + 1)] || 55}
+                                {@const progressInTier = masteryLvl >= 10 ? 1 : Math.min(1, Math.max(0, (xp - prevThreshold) / Math.max(1, nextThreshold - prevThreshold)))}
+                                {@const count = $potionsCount[potion.id] || 0}
+                                {@const sellGold = getPotionSellGold(potion.id)}
                                 <div class="potion-card">
                                     <div class="potion-icon">{@html potion.icon}</div>
                                     <div class="potion-info">
                                         <div class="potion-name-row">
                                             <span class="potion-name">{getPotionName(potion.id, $currentLang)}</span>
-                                            <span class="potion-count-pill">×{$potionsCount[potion.id]}</span>
+                                            <span class="potion-count-pill">×{count}</span>
                                         </div>
                                         <div class="potion-desc">{getPotionDesc(potion.id, $currentLang)}</div>
+
+                                        <!-- Mastery Bar -->
+                                        <div class="mastery-box">
+                                            <div class="mastery-header">
+                                                <span class="mastery-badge">⭐ Мастерство: Ур. {masteryLvl}/10</span>
+                                                <span class="mastery-xp">{masteryLvl >= 10 ? 'МАКСИМУМ' : `${xp}/${nextThreshold} выпито`}</span>
+                                            </div>
+                                            <div class="mastery-bar-bg">
+                                                <div class="mastery-bar-fill" style="width: {masteryLvl >= 10 ? 100 : Math.round(progressInTier * 100)}%"></div>
+                                            </div>
+                                            <div class="mastery-bonus-text">
+                                                ✨ {getMasteryBonusText(potion.id, masteryLvl)}
+                                                {#if masteryLvl > 0}
+                                                    <span class="mastery-duration-hint"> (+{masteryLvl * 10}% длит.)</span>
+                                                {/if}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button class="use-potion-btn" on:click={() => handleUsePotion(potion.id)}>
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                        {$t('inventory.drink')}
-                                    </button>
+                                    <div class="potion-actions">
+                                        <button class="use-potion-btn" on:click={() => handleUsePotion(potion.id)} title="Выпить для баффа и +1 XP Мастерства">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            <span>{$t('inventory.drink')}</span>
+                                        </button>
+                                        <div class="sell-buttons">
+                                            <button class="sell-btn sell-one" on:click={() => handleSellPotion(potion.id, 1)} title="Продать 1 шт.">
+                                                Продать ({formatNumber(sellGold)} зол.)
+                                            </button>
+                                            {#if count > 1}
+                                                <button class="sell-btn sell-all" on:click={() => handleSellPotion(potion.id, count)} title="Продать всю партию">
+                                                    Все ({formatNumber(sellGold * count)} зол.)
+                                                </button>
+                                            {/if}
+                                        </div>
+                                    </div>
                                 </div>
                             {/each}
                         </div>
@@ -618,25 +686,123 @@
         line-height: 1.3;
     }
 
+    .mastery-box {
+        margin-top: 8px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(241, 196, 15, 0.25);
+        border-radius: 8px;
+        padding: 6px 8px;
+    }
+
+    .mastery-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.72rem;
+        margin-bottom: 4px;
+    }
+
+    .mastery-badge {
+        font-weight: 700;
+        color: #ffd32a;
+    }
+
+    .mastery-xp {
+        color: #a4b0be;
+        font-size: 0.68rem;
+    }
+
+    .mastery-bar-bg {
+        width: 100%;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 4px;
+    }
+
+    .mastery-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ffd32a, #ff9f43);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .mastery-bonus-text {
+        font-size: 0.72rem;
+        color: #55efc4;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .mastery-duration-hint {
+        color: #74b9ff;
+        font-size: 0.68rem;
+    }
+
+    .potion-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex-shrink: 0;
+        align-items: stretch;
+    }
+
+    .sell-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sell-btn {
+        background: rgba(241, 196, 15, 0.12);
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        border-radius: 8px;
+        color: #ffd32a;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 4px 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .sell-btn:hover {
+        background: rgba(241, 196, 15, 0.25);
+        border-color: rgba(241, 196, 15, 0.55);
+        transform: translateY(-1px);
+    }
+
+    .sell-btn.sell-all {
+        background: rgba(230, 126, 34, 0.15);
+        border-color: rgba(230, 126, 34, 0.4);
+        color: #ff9f43;
+    }
+
+    .sell-btn.sell-all:hover {
+        background: rgba(230, 126, 34, 0.3);
+    }
+
     .use-potion-btn {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        padding: 8px 14px;
+        padding: 8px 12px;
         background: linear-gradient(135deg, #2ed573, #10ac84);
         border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 12px;
+        border-radius: 10px;
         color: #042410;
         font-weight: 800;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.15s;
-        flex-shrink: 0;
         box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3);
     }
 
     .use-potion-btn:hover {
-        transform: scale(1.06);
+        transform: scale(1.04);
         box-shadow: 0 6px 16px rgba(46, 213, 115, 0.5);
     }
 

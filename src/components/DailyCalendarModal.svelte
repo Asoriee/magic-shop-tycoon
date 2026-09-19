@@ -1,0 +1,651 @@
+<script lang="ts">
+    import { tick } from 'svelte';
+    import gsap from 'gsap';
+    import { gameStore, isVip, formatNumber, stableIdleIncome } from '../store';
+    import { 
+        CALENDAR_REWARDS, 
+        isCalendarRewardReady, 
+        claimCalendarReward, 
+        type CalendarRewardItem 
+    } from '../calendar';
+    import { t } from '../i18n';
+
+    export let isOpen = false;
+    export let onClose: () => void;
+    export let onOpenVip: (() => void) | undefined = undefined;
+
+    let overlayEl: HTMLElement;
+    let modalEl: HTMLElement;
+    let claimFeedback: string | null = null;
+    let feedbackTimeout: any = null;
+
+    $: currentDay = $gameStore?.calendarDay || 1;
+    $: isReady = isCalendarRewardReady($gameStore);
+    $: currentReward = CALENDAR_REWARDS[Math.min(29, Math.max(0, currentDay - 1))];
+
+    $: if (isOpen) {
+        tick().then(() => {
+            if (overlayEl && modalEl) {
+                gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25 });
+                gsap.fromTo(modalEl,
+                    { y: 35, opacity: 0, scale: 0.94 },
+                    { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.2)' }
+                );
+            }
+        });
+    }
+
+    function close() {
+        if (overlayEl && modalEl) {
+            gsap.to(overlayEl, { opacity: 0, duration: 0.2 });
+            gsap.to(modalEl, {
+                y: 25,
+                opacity: 0,
+                scale: 0.95,
+                duration: 0.2,
+                onComplete: () => onClose()
+            });
+        } else {
+            onClose();
+        }
+    }
+
+    function handleClaim() {
+        if (!isReady) return;
+        const res = claimCalendarReward();
+        if (res.success) {
+            claimFeedback = res.rewardDesc || 'Награда получена!';
+            if (feedbackTimeout) clearTimeout(feedbackTimeout);
+            feedbackTimeout = setTimeout(() => {
+                claimFeedback = null;
+            }, 3500);
+        }
+    }
+
+    function getRewardLabel(reward: CalendarRewardItem, vipActive: boolean): string {
+        const mult = vipActive ? 2 : 1;
+        if (reward.type === 'crystals') {
+            return `+${(reward.amount || 1) * mult} крист.`;
+        }
+        if (reward.type === 'gold_seconds') {
+            const idle = $stableIdleIncome || 0;
+            const gold = Math.max(1000, Math.round(idle * (reward.amount || 60) * mult));
+            return `+${formatNumber(gold)} золота`;
+        }
+        if (reward.type === 'chest') {
+            const count = mult;
+            const names: Record<string, string> = {
+                wooden: 'Деревянный',
+                alchemist: 'Алхимика',
+                magical: 'Магический',
+                astral: 'Астральный',
+                titan: 'Титана'
+            };
+            const cName = names[reward.chestType || 'wooden'] || 'Ларец';
+            return `${count}x ${cName}`;
+        }
+        if (reward.type === 'stardust') {
+            return `+${(reward.amount || 10) * mult} пыли`;
+        }
+        if (reward.type === 'pet') {
+            return vipActive ? 'Сова + 40 крист.' : 'Сова + 20 крист.';
+        }
+        if (reward.type === 'relic') {
+            return vipActive ? 'Око Вечности (2x)' : 'Око Вечности';
+        }
+        return '';
+    }
+
+    const WEEKS = [
+        { titleKey: 'calendar.week1', days: CALENDAR_REWARDS.slice(0, 7), milestoneTitle: 'Вестник Мудрости (Фамильяр Сова)' },
+        { titleKey: 'calendar.week2', days: CALENDAR_REWARDS.slice(7, 14), milestoneTitle: 'Сила Звёзд (Астральный Ларец)' },
+        { titleKey: 'calendar.week3', days: CALENDAR_REWARDS.slice(14, 21), milestoneTitle: 'Гнев Титанов (Сундук Титана)' },
+        { titleKey: 'calendar.week4', days: CALENDAR_REWARDS.slice(21, 30), milestoneTitle: 'Апогей Архимага (Око Вечности)' }
+    ];
+</script>
+
+{#if isOpen}
+    <div 
+        class="modal-overlay" 
+        bind:this={overlayEl} 
+        on:click|self={close}
+        on:keydown={(e) => e.key === 'Escape' && close()}
+        role="presentation"
+    >
+        <div class="calendar-modal" bind:this={modalEl} role="dialog" aria-modal="true" aria-labelledby="cal-title">
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <svg viewBox="0 0 40 40" width="32" height="32">
+                            <rect x="4" y="6" width="32" height="30" rx="6" fill="#2d1b4e" stroke="#9b59b6" stroke-width="2.2"/>
+                            <rect x="4" y="6" width="32" height="9" rx="3" fill="#8e44ad"/>
+                            <circle cx="12" cy="4" r="2.5" fill="#f1c40f"/>
+                            <circle cx="28" cy="4" r="2.5" fill="#f1c40f"/>
+                            <rect x="9" y="19" width="5" height="4" rx="1" fill="#ecf0f1"/>
+                            <rect x="17.5" y="19" width="5" height="4" rx="1" fill="#ecf0f1"/>
+                            <rect x="26" y="19" width="5" height="4" rx="1" fill="#ecf0f1"/>
+                            <rect x="9" y="26" width="5" height="4" rx="1" fill="#f1c40f"/>
+                            <rect x="17.5" y="26" width="5" height="4" rx="1" fill="#ecf0f1"/>
+                            <rect x="26" y="26" width="5" height="4" rx="1" fill="#00d2d3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 id="cal-title" class="title">{$t('calendar.title') || 'Календарь Архимага'}</h2>
+                        <p class="subtitle">{$t('calendar.subtitle') || '30-дневный цикл даров и реликвий'}</p>
+                    </div>
+                </div>
+                <button class="close-btn" on:click={close} aria-label="Закрыть">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- VIP Banner -->
+            <div class="vip-banner {$isVip ? 'vip-active' : 'vip-inactive'}">
+                <div class="vip-icon">
+                    <svg viewBox="0 0 32 32" width="24" height="24">
+                        <polygon points="16,3 20,11 29,11 22,17 25,26 16,20 7,26 10,17 3,11 12,11" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <div class="vip-content">
+                    {#if $isVip}
+                        <div class="vip-title">VIP-привилегия активна!</div>
+                        <div class="vip-desc">Все награды каждого дня удвоены (х2)!</div>
+                    {:else}
+                        <div class="vip-title">Удвойте ВСЕ награды с VIP!</div>
+                        <div class="vip-desc">VIP-статус дает 2х ко всем 30 дням календаря и эксклюзивные бонусы.</div>
+                    {/if}
+                </div>
+                {#if !$isVip && onOpenVip}
+                    <button class="vip-activate-btn" on:click={onOpenVip}>
+                        VIP
+                    </button>
+                {/if}
+            </div>
+
+            <!-- Feedback Toast -->
+            {#if claimFeedback}
+                <div class="claim-toast">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2ed573" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    <span>Получено: <strong>{claimFeedback}</strong></span>
+                </div>
+            {/if}
+
+            <!-- 4 Weeks Calendar Body -->
+            <div class="calendar-scroll-area">
+                {#each WEEKS as week, wIdx}
+                    <div class="week-section">
+                        <div class="week-header">
+                            <span class="week-title">{$t(week.titleKey) || `Неделя ${wIdx + 1}`}</span>
+                            <span class="week-milestone-hint">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="#ffd32a" style="vertical-align: middle; margin-right: 4px;">
+                                    <path d="M6 3h12v4c0 3.3-2.7 6-6 6s-6-2.7-6-6V3zm0 2H4c0 2.2 1.8 4 4 4h.4C7.5 8.2 6.8 6.7 6.5 5H6zm12 0h.5c-.3 1.7-1 3.2-1.9 4H17c2.2 0 4-1.8 4-4h-2zm-7 10.9V18H8v2h8v-2h-3v-2.1c3.5-.5 6-3.4 6-6.9V3H5v6c0 3.5 2.5 6.4 6 6.9z"/>
+                                </svg>
+                                {week.milestoneTitle}
+                            </span>
+                        </div>
+                        <div class="days-grid">
+                            {#each week.days as reward}
+                                {@const isPast = reward.day < currentDay || (reward.day === currentDay && !isReady)}
+                                {@const isToday = reward.day === currentDay}
+                                {@const isFuture = reward.day > currentDay}
+                                <div 
+                                    class="day-card"
+                                    class:past={isPast}
+                                    class:current={isToday}
+                                    class:ready={isToday && isReady}
+                                    class:future={isFuture}
+                                    class:milestone={reward.isMilestone}
+                                >
+                                    <!-- Day Header -->
+                                    <div class="day-card-header">
+                                        <span class="day-num">День {reward.day}</span>
+                                        {#if $isVip}
+                                            <span class="vip-badge-pill">2x</span>
+                                        {/if}
+                                    </div>
+
+                                    <!-- Icon -->
+                                    <div class="reward-icon-wrap">
+                                        {@html reward.iconSvg}
+                                    </div>
+
+                                    <!-- Label -->
+                                    <div class="reward-label">
+                                        {getRewardLabel(reward, $isVip)}
+                                    </div>
+
+                                    <!-- Status Overlay / Stamp -->
+                                    {#if isPast}
+                                        <div class="stamp-claimed">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#2ed573" stroke-width="3" fill="none">
+                                                <polyline points="20 6 9 17 4 12"/>
+                                            </svg>
+                                            <span>Взято</span>
+                                        </div>
+                                    {:else if isToday && isReady}
+                                        <button class="claim-mini-btn" on:click={handleClaim}>
+                                            Забрать
+                                        </button>
+                                    {:else if isToday && !isReady}
+                                        <div class="stamp-claimed">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#2ed573" stroke-width="3" fill="none">
+                                                <polyline points="20 6 9 17 4 12"/>
+                                            </svg>
+                                            <span>Взято</span>
+                                        </div>
+                                    {:else}
+                                        <div class="stamp-locked">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                            </svg>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+                {/each}
+            </div>
+
+            <!-- Footer Action -->
+            <div class="modal-footer">
+                {#if isReady}
+                    <button class="main-claim-btn" on:click={handleClaim}>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffd32a">
+                            <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                        </svg>
+                        <span>Забрать награду за {currentDay}-й день! ({getRewardLabel(currentReward, $isVip)})</span>
+                    </button>
+                {:else}
+                    <div class="already-claimed-notice">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#2ed573" stroke-width="2" fill="none">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span>Сегодняшняя награда забрана. Новый дар будет доступен завтра!</span>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+{/if}
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(10, 8, 20, 0.82);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .calendar-modal {
+        background: linear-gradient(175deg, #1b132f 0%, #110c22 100%);
+        border: 1px solid rgba(155, 89, 182, 0.35);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 820px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 35px rgba(155, 89, 182, 0.2);
+        overflow: hidden;
+        color: #ecf0f1;
+        font-family: inherit;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .header-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(155, 89, 182, 0.15);
+        border-radius: 12px;
+        padding: 6px;
+        border: 1px solid rgba(155, 89, 182, 0.3);
+    }
+
+    .title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #ffd32a 0%, #ff9f43 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+        margin: 2px 0 0;
+        font-size: 0.82rem;
+        color: rgba(236, 240, 241, 0.7);
+    }
+
+    .close-btn {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        color: #bdc3c7;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+        background: rgba(231, 76, 60, 0.25);
+        color: #ff7675;
+        border-color: rgba(231, 76, 60, 0.4);
+    }
+
+    .vip-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 12px 18px 4px;
+        padding: 10px 14px;
+        border-radius: 12px;
+    }
+
+    .vip-banner.vip-active {
+        background: linear-gradient(90deg, rgba(241, 196, 15, 0.18) 0%, rgba(230, 126, 34, 0.18) 100%);
+        border: 1px solid rgba(241, 196, 15, 0.45);
+    }
+
+    .vip-banner.vip-inactive {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .vip-content {
+        flex: 1;
+    }
+
+    .vip-title {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: #ffd32a;
+    }
+
+    .vip-desc {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .vip-activate-btn {
+        background: linear-gradient(135deg, #ffd32a 0%, #ff9f43 100%);
+        color: #2c3e50;
+        border: none;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.78rem;
+        padding: 6px 14px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(241, 196, 15, 0.35);
+        transition: transform 0.15s;
+    }
+
+    .vip-activate-btn:hover {
+        transform: scale(1.04);
+    }
+
+    .claim-toast {
+        margin: 6px 18px 0;
+        padding: 8px 14px;
+        background: rgba(46, 213, 115, 0.15);
+        border: 1px solid rgba(46, 213, 115, 0.4);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #2ed573;
+        animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .calendar-scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .calendar-scroll-area::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .calendar-scroll-area::-webkit-scrollbar-thumb {
+        background: rgba(155, 89, 182, 0.3);
+        border-radius: 4px;
+    }
+
+    .week-section {
+        background: rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        padding: 12px 14px;
+    }
+
+    .week-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.82rem;
+    }
+
+    .week-title {
+        font-weight: 700;
+        color: #a29bfe;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .week-milestone-hint {
+        color: #ffd32a;
+        font-size: 0.76rem;
+        font-weight: 600;
+    }
+
+    .days-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .days-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .days-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+    }
+
+    .day-card {
+        position: relative;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 12px;
+        padding: 8px 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-height: 98px;
+        transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .day-card.milestone {
+        background: linear-gradient(160deg, rgba(155, 89, 182, 0.18) 0%, rgba(241, 196, 15, 0.12) 100%);
+        border-color: rgba(241, 196, 15, 0.45);
+        box-shadow: 0 0 12px rgba(241, 196, 15, 0.15);
+    }
+
+    .day-card.current.ready {
+        border-color: #ffd32a;
+        background: linear-gradient(160deg, rgba(241, 196, 15, 0.22) 0%, rgba(230, 126, 34, 0.15) 100%);
+        box-shadow: 0 0 18px rgba(241, 196, 15, 0.35);
+        animation: pulseReady 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseReady {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(241, 196, 15, 0.3); }
+        50% { transform: scale(1.02); box-shadow: 0 0 22px rgba(241, 196, 15, 0.6); }
+    }
+
+    .day-card.past {
+        opacity: 0.65;
+        background: rgba(0, 0, 0, 0.28);
+    }
+
+    .day-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 4px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: rgba(236, 240, 241, 0.7);
+    }
+
+    .vip-badge-pill {
+        background: #ffd32a;
+        color: #2c3e50;
+        border-radius: 4px;
+        padding: 1px 4px;
+        font-size: 0.64rem;
+        font-weight: 900;
+    }
+
+    .reward-icon-wrap {
+        margin: 2px 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px;
+    }
+
+    .reward-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #ecf0f1;
+        line-height: 1.15;
+        margin-top: auto;
+    }
+
+    .stamp-claimed {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.65rem;
+        color: #2ed573;
+        font-weight: 700;
+        margin-top: 4px;
+    }
+
+    .stamp-locked {
+        color: rgba(255, 255, 255, 0.3);
+        margin-top: 4px;
+    }
+
+    .claim-mini-btn {
+        margin-top: 4px;
+        background: linear-gradient(135deg, #ffd32a 0%, #ff9f43 100%);
+        color: #2c3e50;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        padding: 3px 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(241, 196, 15, 0.4);
+    }
+
+    .claim-mini-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .modal-footer {
+        padding: 14px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.25);
+        display: flex;
+        justify-content: center;
+    }
+
+    .main-claim-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #ffd32a 0%, #ff9f43 100%);
+        color: #2c3e50;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 28px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(241, 196, 15, 0.4);
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .main-claim-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(241, 196, 15, 0.55);
+    }
+
+    .already-claimed-notice {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: rgba(236, 240, 241, 0.7);
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+    }
+</style>

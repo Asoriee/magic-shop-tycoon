@@ -240,6 +240,7 @@ export interface GameState {
     petLevels?: Record<string, number>;
     totalStardustEarned?: number;
     activeCompanionId?: string;
+    viewedGuides?: string[];
 }
 
 // ============================================================
@@ -1927,7 +1928,8 @@ const defaultState: GameState = {
     alchemyBrewsCount: 0,
     totalStardustEarned: 0,
     petLevels: { 'pet_rat': 1 },
-    activeCompanionId: 'pet_rat'
+    activeCompanionId: 'pet_rat',
+    viewedGuides: []
 };
 
 // --- Premium stores ---
@@ -2592,11 +2594,28 @@ function createGameStore() {
         }),
         claimDragonGift: () => update(state => ({ ...state, lastDragonGiftTime: Date.now() })),
         claimFreeTimeSkip: () => update(state => ({ ...state, lastFreeTimeSkipTime: Date.now() })),
-        setActiveCompanion: (petId: string) => update(state => ({ ...state, activeCompanionId: petId }))
+        setActiveCompanion: (petId: string) => update(state => ({ ...state, activeCompanionId: petId })),
+        markGuideAsViewed: (guideId: string) => update(state => {
+            const existing = state.viewedGuides || [];
+            if (existing.includes(guideId)) return state;
+            return { ...state, viewedGuides: [...existing, guideId] };
+        })
     };
 }
 
 export const gameStore = createGameStore();
+
+// --- Active Guide Modal Store & Handlers ---
+export const activeGuideModalId = writable<string | null>(null);
+
+export function openGuide(guideId: string): void {
+    activeGuideModalId.set(guideId);
+    gameStore.markGuideAsViewed(guideId);
+}
+
+export function closeGuide(): void {
+    activeGuideModalId.set(null);
+}
 
 // ============================================================
 // DERIVED STORES

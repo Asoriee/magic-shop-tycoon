@@ -15,6 +15,7 @@
     import { playCoinSound, playLevelUpSound } from '../audio';
     import { t, currentLang, getUpgradeName, getUpgradeDesc } from '../i18n';
     import ResourceIcon from './ResourceIcon.svelte';
+    import MechanicHelpButton from './MechanicHelpButton.svelte';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -22,6 +23,12 @@
 
     let activeCategory: 'all' | 'production' | 'click' | 'mastery' = 'all';
     let buyMode: '1' | '10' | 'max' = '1';
+
+    $: currentGuideId = activeCategory === 'click' 
+        ? 'shop_click' 
+        : (activeCategory === 'mastery' 
+            ? 'shop_mastery' 
+            : 'shop_production');
 
     let buttons: Record<string, HTMLButtonElement> = {};
     let lastTier = $milestoneInfo?.tier || 0;
@@ -136,7 +143,10 @@
                     </div>
 
                     <div class="header-titles">
-                        <h2 class="title-text">{$t('shop.title').toUpperCase()}</h2>
+                        <div class="title-with-guide">
+                            <h2 class="title-text">{$t('shop.title').toUpperCase()}</h2>
+                            <MechanicHelpButton guideId={currentGuideId} />
+                        </div>
                         <span class="subtitle-text">{$t('shop.subtitle')}</span>
                     </div>
                 </div>
@@ -174,7 +184,10 @@
                     </svg>
                     <span>{$t('shop.multiplier')}: x{$milestoneInfo.multiplier.toFixed(2)}</span>
                 </div>
-                <span class="milestone-step">{$milestoneInfo.progress} / 25 {$t('common.level')}</span>
+                <div class="milestone-step-wrap">
+                    <span class="milestone-step">{$milestoneInfo.progress} / 25 {$t('common.level')}</span>
+                    <MechanicHelpButton guideId="shop_milestones" compact={true} />
+                </div>
             </div>
             <div class="milestone-bar">
                 <div class="milestone-fill" style="width: {($milestoneInfo.progress / 25) * 100}%"></div>
@@ -468,6 +481,18 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .title-with-guide {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .milestone-step-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .title-text {

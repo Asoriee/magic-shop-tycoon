@@ -18,6 +18,7 @@
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import MechanicHelpButton from './MechanicHelpButton.svelte';
     import { t } from '../i18n';
 
     export let isOpen = false;
@@ -27,6 +28,14 @@
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
     let contentEl: HTMLElement;
+
+    $: currentGuideId = activeTab === 'inventory' 
+        ? 'grimoire_inventory' 
+        : (activeTab === 'alchemy' 
+            ? 'grimoire_alchemy' 
+            : (activeTab === 'pets' 
+                ? 'grimoire_familiars' 
+                : 'grimoire_collections'));
 
     let nowTime = Date.now();
     let timerInterval: any;
@@ -155,7 +164,10 @@
                 </div>
 
                 <div class="header-titles">
-                    <h2 class="title-text">{$t('grimoire.title')}</h2>
+                    <div class="title-with-guide">
+                        <h2 class="title-text">{$t('grimoire.title')}</h2>
+                        <MechanicHelpButton guideId={currentGuideId} />
+                    </div>
                     <span class="subtitle-text">{$t('grimoire.subtitle')}</span>
                 </div>
             </div>
@@ -393,6 +405,12 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .title-with-guide {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .title-text {

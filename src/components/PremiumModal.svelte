@@ -16,6 +16,7 @@
     } from '../store';
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import MechanicHelpButton from './MechanicHelpButton.svelte';
     import { t } from '../i18n';
 
     export let isOpen = false;
@@ -25,6 +26,14 @@
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
     let contentEl: HTMLElement;
+
+    $: currentGuideId = activeTab === 'bank' 
+        ? 'premium_bank' 
+        : (activeTab === 'timeskip' 
+            ? 'premium_timeskip' 
+            : (activeTab === 'secret' 
+                ? 'premium_secret' 
+                : 'premium_rebirth'));
 
     // Badges calculation
     $: earnedStardust = calculateEarnedStardust($gameStore);
@@ -120,7 +129,10 @@
                 </div>
 
                 <div class="header-titles">
-                    <h2 class="title-text">{$t('premium.title')}</h2>
+                    <div class="title-with-guide">
+                        <h2 class="title-text">{$t('premium.title')}</h2>
+                        <MechanicHelpButton guideId={currentGuideId} />
+                    </div>
                     <span class="subtitle-text">{$t('premium.subtitle')}</span>
                 </div>
             </div>
@@ -353,6 +365,12 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .title-with-guide {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .title-text {

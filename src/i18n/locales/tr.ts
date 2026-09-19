@@ -724,5 +724,210 @@ export const tr: Translations = {
         'Архимаг Совета': 'Konsey Başbüyücüsü',
         'Посланник Принцессы': 'Prenses Elçisi',
         'Богатый Вельможа': 'Zengin Soylu'
+    },
+    guidesUi: {
+        modalTitle: 'Büyücünün Rehberi',
+        modalSubtitle: 'Sihirli dükkanınızın gizemlerini ve ekonomisini keşfedin',
+        rulesTitle: 'Temel Kurallar',
+        archmageTipTitle: 'Başbüyücünün İpucu',
+        prevGuide: 'Önceki',
+        nextGuide: 'Sonraki',
+        gotIt: 'Anladım!',
+        unreadBadge: 'Yeni!',
+        allGuides: 'Tüm Mekanikler'
+    },
+    guides: {
+        shop_production: {
+            title: 'Büyülü Üretim',
+            category: 'Dükkan Geliştirmeleri',
+            summary: 'Tıklamasanız bile her saniye kesintisiz çalışan ana pasif altın kaynağınız.',
+            points: [
+                'Her geliştirme saniyede sabit altın üretir (Altın/sn).',
+                'Pasif gelir, kasaba siparişlerinin ödüllerini ve çevrimdışı kazancı doğrudan artırır.',
+                'Hızlı dükkan genişletmesi için x1, x10 veya MAKS toplu alım butonlarını kullanın.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Yüksek pasif gelir, sipariş ödüllerini ve Kronamansi zaman atlamasının kârlılığını katbekat artırır!'
+        },
+        shop_click: {
+            title: 'Tıklama Gücü ve Büyü',
+            category: 'Dükkan Geliştirmeleri',
+            summary: 'Manuel esans hasadı. Anında altın kazanmak için dükkanın ortasındaki Kazana dokunun.',
+            points: [
+                'Her kazan dokunuşu kombo serinizle çarpılan sabit bir altın kazandırır.',
+                'Kritik dokunuşlar devasa gelir patlamaları sağlar (tık gücünün 10 katına kadar).',
+                'Hızlı tempolu tıklama kombo çarpanını 2.0x zirvesine kadar çıkarır.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Oyunun başlarında tıklama gücü, ilk pahalı binaları ve karlı siparişleri hızla almanızı sağlar!'
+        },
+        shop_mastery: {
+            title: 'Ustalık ve Sinerjiler',
+            category: 'Dükkan Geliştirmeleri',
+            summary: 'Dükkanınızın tüm gelir kaynaklarını katlayan küresel yüzdelik çarpanlar.',
+            points: [
+                'Temel binaların aksine Ustalık, TÜM altın kaynaklarına yüzdelik bonuslar verir.',
+                'Eser rezonansını güçlendirir ve kazan aşırı ısınma istikrarını artırır.',
+                'Yüksek temel üretim seviyeleri ile muhteşem bir sinerji oluşturur.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Normal binalar pahalandığında Ustalık seviyelerine yatırım yapın — anında patlayıcı bir gelir sıçraması sağlar!'
+        },
+        shop_milestones: {
+            title: 'Altına Hücum (Aşamalar)',
+            category: 'Dükkan Geliştirmeleri',
+            summary: 'Kademeli dükkan ustalık sistemi: toplam geliştirme seviyeleriniz için ödüller.',
+            points: [
+                'Satın alınan her 25 toplam geliştirme seviyesi Dükkan Rütbesi çubuğunu doldurur.',
+                'Bir aşamaya ulaşmak kalıcı olarak tüm altına x1.25 çarpanı kazandırır.',
+                'Yeni rütbeler dükkan prestijini ve ziyaretçi ödüllerinin değerini artırır.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Bir sonraki x1.25 artışına sadece birkaç seviye kaldıysa ucuz alt kademe geliştirmeleri tamamlayın!'
+        },
+        city_orders: {
+            title: 'Kasaba Siparişleri',
+            category: 'Şehir Loncası',
+            summary: 'Kasabalılar ve büyücüler, toplanan otlar ve demlenen iksirler için özel ticaret sözleşmeleriyle gelir.',
+            points: [
+                'Sözleşmeleri tamamlamak devasa altın keseleri, kristaller ve nadir sandıklar kazandırır.',
+                'Yeni siparişler ticaret kervanıyla her 3 dakikada bir gelir (aynı anda en fazla 4 aktif).',
+                'VIP siparişleri altın çerçevelidir, 3-5 kat daha fazla öder ve kristal içerir.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Hazır iksir siparişleri ham otlara kıyasla kat kat daha fazla altın verir. İksirleri önceden demleyin!'
+        },
+        city_quests: {
+            title: 'Günlük Görevler',
+            category: 'Şehir Loncası',
+            summary: 'Büyü loncasının her 24 saatte bir yenilenen cömert ödüllü görev listesi.',
+            points: [
+                'Temel eylemleri tamamlayın: tıklamalar, iksir demleme, alışverişler ve keşifler.',
+                'Tamamlanan her görev altın ve değerli kristaller kazandırır.',
+                'Günün tüm görevlerini tamamlayarak garantili ganimete sahip Günlük Sandığı açın.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Günlük görevler en güvenilir ücretsiz kristal kaynağıdır. Hızlı ilerleme için her gün tamamlayın!'
+        },
+        city_chests: {
+            title: 'Şans Sandıkları',
+            category: 'Şehir Loncası',
+            summary: 'Nadir malzemeler, altın, kristaller ve evcil hayvan çağırma parşömenleriyle dolu sandıklar.',
+            points: [
+                'Ücretsiz Ahşap Sandık düzenli bir zamanlayıcı ile açılır.',
+                'Astral ve Titan Sandıkları en nadir efsanevi iksir esanslarını barındırır.',
+                'Garanti (Pity) sistemi: her açılış sizi büyük ikramiyeye ve evcil hayvan kopyalarına yaklaştırır.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Kristalleri Astral veya Titan sandıkları için biriktirin — en iyi koleksiyon parçaları bunlardan çıkar!'
+        },
+        city_artifacts: {
+            title: 'Büyülü Eserler',
+            category: 'Şehir Loncası',
+            summary: 'Yıldız Tozu (Stardust) ile satın alınan ve kozmik gücü sonsuza dek koruyan kadim kutsal emanetler.',
+            points: [
+                'Eserler devasa kalıcı bonuslar sağlar: gelir çarpanları, indirimler ve tık gücü.',
+                'Yeniden Doğuş ve Prestij ritüellerinde ASLA sıfırlanmaz.',
+                'Her eser Koleksiyonlar cildindeki özel pasif özellikleri etkinleştirir.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'İlk Yeniden Doğuşunuzdan sonra öncelikle pasif gelir ve çevrimdışı kazancı artıran eserleri alın!'
+        },
+        grimoire_inventory: {
+            title: 'Simyacı Envanteri',
+            category: 'Gizli Büyü Kitabı',
+            summary: 'Toplanan tüm şifalı otlar, rünler, kristaller ve hazır iksirlerin deposu.',
+            points: [
+                'Kaynaklar 5 nadirlik derecesine ayrılır: Sıradan, Sıradışı, Nadir, Epik ve Efsanevi.',
+                'Evcil hayvan keşiflerinden, sandıklardan ve uçan büyülü kıvılcımlardan elde edilir.',
+                'Envanter kapasitesi sınırsızdır — değerli malzemeleri karmaşık tarifler için biriktirin.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Kıt malzemeleri takip edin — bir kasabalı değerli bir VIP sözleşmesi sunarsa malzemeleri saklayın!'
+        },
+        grimoire_alchemy: {
+            title: 'Simya Masası',
+            category: 'Gizli Büyü Kitabı',
+            summary: 'Kazanınızda malzemeleri birleştirerek güçlü iksirler hazırlama sanatı.',
+            points: [
+                'Gizli formülleri keşfetmek için ot ve mineral çiftlerini deneyin.',
+                'Demlenen iksirler gelire, tıklamaya ve kritik şansına geçici devasa çarpanlar verir.',
+                'Isıyı yönetin: art arda başarısız demlemeler kazanı aşırı ısıtır ve soğuma gerektirir.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Keşfedilen iksirler tek tıkla demlenebilir. Değerli siparişleri teslim etmeden önce gelir iksiri için!'
+        },
+        grimoire_familiars: {
+            title: 'Yoldaşlar ve Keşifler',
+            category: 'Gizli Büyü Kitabı',
+            summary: 'Pasif auralar bahşeden ve tehlikeli keşif gezilerine çıkan sadık büyülü yoldaşlar.',
+            points: [
+                'Atanan aktif yoldaş kazanın yanında süzülerek sürekli bir aura sağlar.',
+                'Boştaki yoldaşları nadir otlar ve kristaller toplamak için keşiflere gönderin.',
+                'Tekrarlanan çağırmalar yoldaş seviyesini yükseltir ve aurasını güçlendirir.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Oyundan çıkmadan veya uyumadan önce evcil hayvanlarınızı daima en uzun keşiflere gönderin!'
+        },
+        grimoire_collections: {
+            title: 'Kadim Koleksiyonlar',
+            category: 'Gizli Büyü Kitabı',
+            summary: 'Kutsal emanetler ve iksir ciltleri. Kalıcı pasif avantajlar için tematik setleri tamamlayın.',
+            points: [
+                'Her set keşfedilen iksirleri, nadir reaktifleri ve edinilen eserleri bir araya getirir.',
+                'Tam bir seti tamamlamak kalıcı olarak 3-4 olağanüstü pasif güçlendirmeyi açar.',
+                'Koleksiyon bonusları sonsuza kadar aktiftir ve Yeniden Doğuşlarda korunur.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'En yakın tamamlanmamış koleksiyonu inceleyin — eksik bir eşyayı toplamak tüm gelirinizi ikiye katlayabilir!'
+        },
+        premium_bank: {
+            title: 'Hazine ve VIP',
+            category: 'Arkanum & Premium',
+            summary: 'Kristal yönetimi, Ejderha Hediyeleri ve seçkin VIP üyeliği merkezi.',
+            points: [
+                'Hazine içindeki ücretsiz Ejderha Hediyesini her 5 dakikada bir alın.',
+                'VIP durumu bekleme sürelerini kaldırır, çevrimdışı altını ikiye katlar ve günlük kristal verir.',
+                'Kristaller, pahalı binaları hızla açmak için anında altın keselerine dönüştürülebilir.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Ejderha Hediyesi sayacını kaçırmayın — düzenli alımlar oyun boyunca bolca ücretsiz kristal sağlar!'
+        },
+        premium_timeskip: {
+            title: 'Kronamansi (Zaman Atlama)',
+            category: 'Arkanum & Premium',
+            summary: 'Zaman manipülasyonu: dükkanın saatler veya günler sonraki gelirini anında toplayın.',
+            points: [
+                'Kısa bir parşömen izleyerek her 45 dakikada bir 1 saatlik ücretsiz zaman atlama yapılabilir.',
+                'Seçilen süre boyunca dükkanın üreteceği tüm altını anında hesabınıza ekler.',
+                'Tüm aktif iksir güçlendirmelerini, yoldaş auralarını ve koleksiyon avantajlarını hesaba katar.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'Zamanı atlamadan önce en güçlü gelir iksirinizi için — Kronamansi kazancı aktif güçlendirmelerle hesaplar!'
+        },
+        premium_secret: {
+            title: 'Gizli Geliştirmeler',
+            category: 'Arkanum & Premium',
+            summary: 'Yasak lonca sanatları: kristallerle alınan sıfırlanmayan kalıcı dükkan avantajları.',
+            points: [
+                'Otomatik tıklayıcı, iki kat sipariş ödülü, kazan koruması ve çevrimdışı artışları içerir.',
+                'Yükseliş (Yeniden Doğuş/Prestij) sonrasında ASLA sıfırlanmaz.',
+                'Kazanılan kristalleri uzun vadeli ekonomik güce yatırmanın en sağlam yoludur.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'İlk olarak Otomatik Tıklayıcı ve Cömert Siparişlere yatırım yapın — en hızlı geri dönüşü sağlarlar!'
+        },
+        premium_rebirth: {
+            title: 'Astral Yeniden Doğuş (Prestij)',
+            category: 'Arkanum & Premium',
+            summary: 'Büyük Prestij ritüeli: Yıldız Tozu ve kozmik çarpanlar uğruna dükkan ilerlemesini feda edin.',
+            points: [
+                'Mevcut altını ve temel dükkan binalarını sıfırlar.',
+                'KORUR: Kristaller, VIP, Eserler, Yoldaşlar, Koleksiyonlar ve Gizli Geliştirmeler.',
+                'Eser satın almak için Yıldız Tozu verir ve tüm altına kalıcı bir çarpan bahşeder.'
+            ],
+            tipTitle: 'Başbüyücünün İpucu',
+            tipText: 'İlk Yeniden Doğuş için acele etmeyin! Güçlü bir eseri hemen alabilmek için en az 50+ Yıldız Tozu biriktirin!'
+        }
     }
 };

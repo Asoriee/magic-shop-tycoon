@@ -724,5 +724,210 @@ export const en: Translations = {
         'Архимаг Совета': 'Council Archmage',
         'Посланник Принцессы': "Princess's Envoy",
         'Богатый Вельможа': 'Wealthy Nobleman'
+    },
+    guidesUi: {
+        modalTitle: "Mage's Compendium",
+        modalSubtitle: 'Discover the secrets and economics of your Magic Shop',
+        rulesTitle: 'Key Rules',
+        archmageTipTitle: "Archmage's Pro-Tip",
+        prevGuide: 'Previous',
+        nextGuide: 'Next',
+        gotIt: 'Got It!',
+        unreadBadge: 'New!',
+        allGuides: 'All Mechanics'
+    },
+    guides: {
+        shop_production: {
+            title: 'Magical Production',
+            category: 'Shop Upgrades',
+            summary: 'Your primary passive gold source, working continuously every second even without tapping.',
+            points: [
+                'Each upgrade generates steady gold per second (Gold/sec).',
+                'Passive income directly scales citizen order rewards and offline earnings.',
+                'Use x1, x10, or MAX bulk buy toggles for efficient and quick shop expansion.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'High passive income multiplies order rewards and the profitability of Chronomancy time skips!'
+        },
+        shop_click: {
+            title: 'Click Power & Sorcery',
+            category: 'Shop Upgrades',
+            summary: 'Manual essence harvesting. Tap the Cauldron in the center of the shop for instant gold.',
+            points: [
+                'Every cauldron tap grants fixed gold multiplied by your current combo chain.',
+                'Critical clicks unleash explosive revenue spikes (up to 10x your click power).',
+                'Fast, rhythmic tapping charges your combo meter up to a 2.0x peak multiplier.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'In early stages, click power allows you to swiftly afford your first high-tier buildings and lucrative orders!'
+        },
+        shop_mastery: {
+            title: 'Mastery & Synergies',
+            category: 'Shop Upgrades',
+            summary: 'Global percentage multipliers scaling the total revenue across all shop mechanics.',
+            points: [
+                'Unlike basic structures, Mastery grants percentage bonuses to ALL gold sources.',
+                'Amplifies artifact resonance and enhances cauldron heat stability.',
+                'Synergizes massively with high base production tiers.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Invest in Mastery when regular buildings become expensive — it delivers an immediate exponential income surge!'
+        },
+        shop_milestones: {
+            title: 'Gold Rush (Milestones)',
+            category: 'Shop Upgrades',
+            summary: 'Tiered shop mastery progression: rewards for your cumulative upgrade levels.',
+            points: [
+                'Every 25 total upgrade levels purchased fill your Shop Rank progression meter.',
+                'Achieving a milestone permanently bestows a potent x1.25 multiplier to all gold.',
+                'New shop ranks elevate shop prestige and increase visitor rewards.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Always top off inexpensive lower-tier upgrades if you are just a few levels away from the next x1.25 boost!'
+        },
+        city_orders: {
+            title: 'Citizen Orders',
+            category: 'Town Guild',
+            summary: 'Townsfolk and wizards arrive with custom trade contracts for gathered herbs and brewed potions.',
+            points: [
+                'Fulfilling contracts yields massive bags of gold, crystals, and rare chests.',
+                'New orders arrive with the trade caravan every 3 minutes (up to 4 active at a time).',
+                'VIP orders feature a golden crest, pay 3-5x higher, and always award crystals.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Potion orders reward tens of times more gold than raw herbs. Keep elixirs brewed in your Grimoire in advance!'
+        },
+        city_quests: {
+            title: 'Daily Quests',
+            category: 'Town Guild',
+            summary: 'Guild assignments refreshing every 24 hours with substantial progress rewards.',
+            points: [
+                'Complete core gameplay actions: clicks, brewing, shop purchases, and pet expeditions.',
+                'Each completed quest awards gold and valuable crystals.',
+                'Complete all daily quests to unlock the grand Daily Chest with guaranteed high-tier loot.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Daily quests are your most reliable source of free crystals. Finish them every day for rapid progression!'
+        },
+        city_chests: {
+            title: 'Fortune Chests',
+            category: 'Town Guild',
+            summary: 'Mystical coffers packed with rare ingredients, gold, crystals, and pet summoning scrolls.',
+            points: [
+                'A free Wooden Chest unlocks on a recurring timer.',
+                'Astral and Titan Chests feature the rarest legendary essences for top recipes.',
+                'Pity Resonance guarantees that every open brings you closer to a jackpot and pet duplicates.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Save crystals for Astral and Titan coffers — they drop missing ingredients required for master collections!'
+        },
+        city_artifacts: {
+            title: 'Magical Artifacts',
+            category: 'Town Guild',
+            summary: 'Eternal ancient relics purchased with Stardust, preserving cosmic power forever.',
+            points: [
+                'Artifacts provide colossal permanent perks: income multipliers, discounts, and click power.',
+                'NEVER reset during Rebirth and Prestige rituals.',
+                'Each artifact unlocks and supercharges special perks in your Collections tome.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'After your first Rebirth, prioritize buying artifacts boosting passive income and offline revenue!'
+        },
+        grimoire_inventory: {
+            title: "Alchemist's Inventory",
+            category: 'Secret Grimoire',
+            summary: 'Storage for all your gathered herbs, runes, crystals, and prepared magic potions.',
+            points: [
+                'Resources span 5 rarity tiers: Common, Uncommon, Rare, Epic, and Legendary.',
+                'Acquired from pet expeditions, chests, and flying magical sparks.',
+                'Inventory capacity is infinite — hoard rare reagents for high-value orders and formulas.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Keep an eye on scarce herbs — if a townsman offers a high-value VIP contract, save the ingredients for it!'
+        },
+        grimoire_alchemy: {
+            title: 'Alchemy Table',
+            category: 'Secret Grimoire',
+            summary: 'The art of brewing potent elixirs by combining reagents in your arcane cauldron.',
+            points: [
+                'Experiment with herb and mineral pairs to discover secret formulas.',
+                'Brewed potions grant temporary colossal multipliers to revenue, clicks, and crit rate.',
+                'Manage heat: consecutive failed brews overheat the cauldron, requiring cooldown or ice.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Discovered potions can be brewed in 1 click. Drink a wealth potion before turning in high-tier caravan orders!'
+        },
+        grimoire_familiars: {
+            title: 'Familiars & Expeditions',
+            category: 'Secret Grimoire',
+            summary: 'Loyal magical companions granting passive auras and venturing on dangerous foraging trips.',
+            points: [
+                'Your designated active companion hovers near the cauldron, providing a continuous aura.',
+                'Send available familiars on expeditions to gather rare herbs and crystals.',
+                'Duplicate summon scrolls upgrade familiar levels and intensify their passive aura.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Always dispatch your pets on the longest expeditions before logging off or heading to sleep!'
+        },
+        grimoire_collections: {
+            title: 'Ancient Collections',
+            category: 'Secret Grimoire',
+            summary: 'Tomes of relics and elixirs. Complete thematic sets to unlock game-changing permanent perks.',
+            points: [
+                'Each set unites discovered potions, rare reagents, and acquired artifacts.',
+                'Assembling a full set permanently unlocks 3-4 extraordinary passive bonuses.',
+                'Collection bonuses remain active forever and persist through Rebirths.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Check the requirements of your closest unfinished collection — completing one missing item can double your entire economy!'
+        },
+        premium_bank: {
+            title: 'Treasury & VIP',
+            category: 'Arcanum & Premium',
+            summary: 'Hub for crystal management, Dragon Gifts, and prestigious VIP membership.',
+            points: [
+                'Claim the free Dragon Gift every 5 minutes inside the Treasury.',
+                'VIP status removes timers, doubles offline gold, and grants daily crystals.',
+                'Crystals can be instantly exchanged for gold sacks to expedite costly upgrades.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Never miss the Dragon Gift timer — regular claims yield a plentiful supply of free crystals throughout your session!'
+        },
+        premium_timeskip: {
+            title: 'Chronomancy (Time Skip)',
+            category: 'Arcanum & Premium',
+            summary: 'Time manipulation: instantly claim hours or days of shop earnings ahead of time.',
+            points: [
+                'A free 1-hour time skip is available every 45 minutes by watching a quick scroll ad.',
+                'Instantly awards all gold your shop would have generated over the selected duration.',
+                'Factors in all active potion buffs, companion auras, and collection perks.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Drink your strongest income potion right before skipping time — Chronomancy calculates revenue with active buffs!'
+        },
+        premium_secret: {
+            title: 'Secret Upgrades',
+            category: 'Arcanum & Premium',
+            summary: 'Forbidden guild arts: eternal shop perks acquired with crystals.',
+            points: [
+                'Features automated clicking, doubled order payouts, cauldron shielding, and offline boosts.',
+                'NEVER reset upon Ascension (Rebirth/Prestige).',
+                'The ideal investment for earned crystals to cement long-term economic momentum.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: 'Prioritize Auto-Clicker and Generous Orders first — they yield the fastest return on investment!'
+        },
+        premium_rebirth: {
+            title: 'Astral Rebirth (Prestige)',
+            category: 'Arcanum & Premium',
+            summary: 'The Grand Prestige ritual: sacrifice shop progress for Stardust and cosmic multipliers.',
+            points: [
+                'Resets current gold and basic shop production buildings.',
+                'KEEPS: Crystals, VIP, Artifacts, Familiars, Collections, and Secret Upgrades.',
+                'Awards Stardust to acquire artifacts and grants a permanent multiplier across all gold.'
+            ],
+            tipTitle: "Archmage's Pro-Tip",
+            tipText: "Don't rush your first Rebirth! Accumulate gold until you earn at least 50+ Stardust to buy a powerful artifact immediately!"
+        }
     }
 };

@@ -17,6 +17,7 @@
     import { t } from '../i18n';
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
+    import MechanicHelpButton from './MechanicHelpButton.svelte';
 
     export let isOpen = false;
     export let onClose: () => void;
@@ -24,6 +25,14 @@
     let activeTab: 'orders' | 'quests' | 'chests' | 'artifacts' = 'orders';
     let overlayEl: HTMLElement;
     let modalEl: HTMLElement;
+
+    $: currentGuideId = activeTab === 'orders' 
+        ? 'city_orders' 
+        : (activeTab === 'quests' 
+            ? 'city_quests' 
+            : (activeTab === 'chests' 
+                ? 'city_chests' 
+                : 'city_artifacts'));
 
     $: if (isOpen) {
         tick().then(() => {
@@ -103,7 +112,10 @@
                 </div>
 
                 <div class="header-titles">
-                    <h2 class="title-text">{$t('city.title')}</h2>
+                    <div class="title-with-guide">
+                        <h2 class="title-text">{$t('city.title')}</h2>
+                        <MechanicHelpButton guideId={currentGuideId} />
+                    </div>
                     <span class="subtitle-text">{$t('city.subtitle')}</span>
                 </div>
             </div>
@@ -336,6 +348,12 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .title-with-guide {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .title-text {

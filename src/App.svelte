@@ -15,6 +15,7 @@
         finishedExpeditionsCount,
         milestoneInfo,
         AVAILABLE_POTIONS,
+        activeGuideModalId,
         type Potion
     } from './store';
     import { 
@@ -37,6 +38,7 @@
     import CityModal from './components/CityModal.svelte';
     import PremiumModal from './components/PremiumModal.svelte';
     import LeaderboardModal from './components/LeaderboardModal.svelte';
+    import MechanicGuideModal from './components/MechanicGuideModal.svelte';
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import { isSoundMuted, toggleSound } from './audio';
@@ -540,6 +542,8 @@
         isOpen={isLeaderboardOpen} 
         onClose={() => { isLeaderboardOpen = false; }} 
     />
+
+    <MechanicGuideModal />
 
     <!-- Wait, CustomerOrders is embedded in CityModal now! But we must remove it from App.svelte -->
     <FlyingBonus />

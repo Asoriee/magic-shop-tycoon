@@ -419,5 +419,27 @@ export interface Translations {
     artifacts: Record<number, { name: string; description: string }>;
     collections: Record<string, { name: string; description: string; perks: string[] }>;
     customers: Record<string, string>;
+    guidesUi?: {
+        modalTitle: string;
+        modalSubtitle: string;
+        rulesTitle: string;
+        archmageTipTitle: string;
+        prevGuide: string;
+        nextGuide: string;
+        gotIt: string;
+        unreadBadge: string;
+        allGuides: string;
+    };
+    guides?: Record<string, GuideItemTranslation>;
     [key: string]: any;
 }
+
+export interface GuideItemTranslation {
+    title: string;
+    category: string;
+    summary: string;
+    points: string[];
+    tipTitle: string;
+    tipText: string;
+}
+

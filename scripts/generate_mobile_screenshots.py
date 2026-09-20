@@ -36,10 +36,13 @@ def main():
         lang_dir.mkdir(parents=True, exist_ok=True)
         print(f"\n--- Язык: {lang.upper()} ---")
         
+        # Remove any old .jpg duplicates
+        for old_jpg in lang_dir.glob("*.jpg"):
+            old_jpg.unlink()
+        
         for name, path_template in scenes:
             url = base_url + path_template.format(lang=lang)
             out_png = lang_dir / f"{name}.png"
-            out_jpg = lang_dir / f"{name}.jpg"
             
             print(f"Снимок {name} [{lang}]...")
             
@@ -47,8 +50,8 @@ def main():
                 chrome_path,
                 "--headless=new",
                 f"--screenshot={temp_file}",
-                "--window-size=432,768",
-                "--force-device-scale-factor=2.5",
+                "--window-size=540,960",
+                "--force-device-scale-factor=2.0",
                 "--disable-gpu",
                 "--hide-scrollbars",
                 url
@@ -60,26 +63,22 @@ def main():
                 continue
                 
             with Image.open(temp_file) as im:
-                # Ensure 1080x1920
+                # Ensure exactly 1080x1920 (9:16)
                 if im.size != (1080, 1920):
                     im = im.resize((1080, 1920), Image.Resampling.LANCZOS)
                 
                 # Convert to RGB (24-bit Truecolor, NO alpha channel)
                 rgb_im = im.convert("RGB")
                 
-                # Save 24-bit PNG
+                # Save 24-bit PNG without alpha channel
                 rgb_im.save(out_png, format="PNG")
                 
-                # Save high quality JPEG (quality 95)
-                rgb_im.save(out_jpg, format="JPEG", quality=95, optimize=True)
-                
-            print(f"  -> Сохранено: {out_png.relative_to(root_dir)} ({out_png.stat().st_size:,} байт)")
-            print(f"  -> Сохранено: {out_jpg.relative_to(root_dir)} ({out_jpg.stat().st_size:,} байт)")
+            print(f"  -> Сохранено: {out_png.relative_to(root_dir)} ({out_png.stat().st_size:,} байт, 1080x1920 24-bit PNG)")
             
             if temp_file.exists():
                 temp_file.unlink()
                 
-    print("\n=== Все 15 мобильных скриншотов успешно созданы! ===")
+    print("\n=== Все 15 мобильных скриншотов успешно созданы без дубликатов и обрезки! ===")
 
 if __name__ == "__main__":
     main()

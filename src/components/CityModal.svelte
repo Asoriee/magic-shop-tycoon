@@ -42,7 +42,8 @@
 
     $: if (isOpen) {
         tick().then(() => {
-            if (overlayEl && modalEl) {
+            const isDemo = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).has('demo');
+            if (overlayEl && modalEl && !isDemo) {
                 gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25 });
                 gsap.fromTo(modalEl,
                     { y: 35, opacity: 0, scale: 0.94 },
@@ -587,10 +588,20 @@
     }
 
     /* Mobile Responsive */
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
+        .overlay {
+            padding: 0;
+        }
+
         .modal-content {
-            max-height: 94vh;
-            border-radius: 18px;
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            border: none;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .master-header {
@@ -611,30 +622,31 @@
         }
 
         .city-tabs-bar {
-            padding: 3px 4px 0;
+            padding: 4px 4px 0;
             gap: 2px;
         }
 
         .city-tab {
-            padding: 6px 2px 5px;
+            padding: 7px 2px 5px;
             gap: 2px;
         }
 
         .tab-svg {
-            width: 17px;
-            height: 17px;
+            width: 18px;
+            height: 18px;
         }
 
         .tab-label {
-            font-size: 0.68rem;
+            font-size: 0.72rem;
             line-height: 1.1;
+            white-space: nowrap;
         }
 
         .tab-badge {
-            top: 1px;
-            right: 2px;
-            font-size: 0.52rem;
-            padding: 1px 3px;
+            top: 2px;
+            right: 3px;
+            font-size: 0.58rem;
+            padding: 1px 4px;
         }
 
         .city-content {

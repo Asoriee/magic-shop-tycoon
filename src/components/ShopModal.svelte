@@ -980,17 +980,20 @@
     }
 
     /* Responsive Design for Mobile Devices */
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
         .modal-overlay {
-            padding: 6px;
+            padding: 0;
         }
 
         .modal-content {
             width: 100%;
             max-width: 100%;
             min-width: 0;
-            max-height: 94vh;
-            border-radius: 18px;
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            border: none;
             box-sizing: border-box;
         }
 

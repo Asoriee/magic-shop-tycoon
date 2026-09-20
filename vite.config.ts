@@ -86,6 +86,8 @@ export default defineConfig({
   base: './',
   plugins: [svelte(), yandexSdkDevMockPlugin()],
   server: {
+    host: '0.0.0.0',
+    port: 5173,
     open: false,
   },
 })

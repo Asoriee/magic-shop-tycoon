@@ -54,7 +54,8 @@
 
     $: if (isOpen) {
         tick().then(() => {
-            if (overlayEl && modalEl) {
+            const isDemo = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).has('demo');
+            if (overlayEl && modalEl && !isDemo) {
                 gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25 });
                 gsap.fromTo(modalEl,
                     { y: 35, opacity: 0, scale: 0.94 },
@@ -629,14 +630,18 @@
     }
 
     /* Mobile Responsiveness */
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
         .overlay {
-            padding: 4px;
+            padding: 0;
         }
         .grimoire-modal {
-            max-height: 96vh;
-            border-radius: 16px;
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            border: none;
             width: 100%;
+            max-width: 100%;
             box-sizing: border-box;
         }
         .master-header {
@@ -664,31 +669,29 @@
         }
         .master-tabs {
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            padding: 2px 2px 0;
+            padding: 4px 4px 0;
             gap: 2px;
             box-sizing: border-box;
             width: 100%;
         }
         .tab-btn {
-            padding: 8px 1px 6px;
+            padding: 8px 2px 6px;
             min-width: 0;
         }
         .tab-label {
-            font-size: 0.68rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.72rem;
             white-space: nowrap;
             max-width: 100%;
         }
         .tab-icon-box {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
         }
         .tab-badge {
             top: 2px;
-            right: 2px;
-            font-size: 0.6rem;
-            padding: 1px 3px;
+            right: 4px;
+            font-size: 0.62rem;
+            padding: 1px 4px;
         }
     }
 </style>

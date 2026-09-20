@@ -105,6 +105,22 @@ export async function initYandexSdk() {
 
         // Sync server time offset to defeat device clock tampering
         updateServerTimeOffset();
+
+        // Subscribe to SDK pause and resume events (Requirement 1.19.4)
+        if (ysdk && typeof ysdk.on === 'function') {
+            try {
+                ysdk.on('game_api_pause', () => {
+                    setAdAudioMute(true);
+                    notifyGameplayStop();
+                });
+                ysdk.on('game_api_resume', () => {
+                    setAdAudioMute(false);
+                    notifyGameplayStart();
+                });
+            } catch (e) {
+                console.warn('Failed to attach game_api_pause/resume listeners', e);
+            }
+        }
     } catch (error) {
         console.error('Failed to init Yandex SDK', error);
     }

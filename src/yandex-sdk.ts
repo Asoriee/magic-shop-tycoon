@@ -46,13 +46,11 @@ let catalogProducts: any[] = [];
 const LOCAL_STORAGE_KEY = 'magicShopTycoonSave';
 
 /**
- * Ждёт появления объекта YaGames в window (т.к. SDK грузится async).
- * Timeout 5 сек — после этого игра стартует без SDK (fallback).
- * На localhost пропускается сразу.
+ * Ожидает появления объекта YaGames в window.
+ * При синхронном подключении <script src="/sdk.js"> в <head> объект доступен сразу.
  */
 function waitForYaGames(timeoutMs = 5000): Promise<void> {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (isLocal || typeof (window as any).YaGames !== 'undefined') {
+    if (typeof (window as any).YaGames !== 'undefined') {
         return Promise.resolve();
     }
     return new Promise<void>((resolve) => {
@@ -61,10 +59,10 @@ function waitForYaGames(timeoutMs = 5000): Promise<void> {
             if (typeof (window as any).YaGames !== 'undefined') {
                 resolve();
             } else if (Date.now() >= deadline) {
-                console.warn('[SDK] YaGames not available after timeout, using fallback.');
+                console.warn('[Yandex SDK] YaGames not found after timeout, running with local fallback.');
                 resolve();
             } else {
-                setTimeout(check, 100);
+                setTimeout(check, 50);
             }
         };
         check();
@@ -72,28 +70,26 @@ function waitForYaGames(timeoutMs = 5000): Promise<void> {
 }
 
 export async function initYandexSdk() {
-    // Дождаться загрузки SDK-скрипта (он теперь async в index.html)
+    // Дождаться загрузки SDK-скрипта
     await waitForYaGames(5000);
 
     try {
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        if (isLocal) {
-            console.warn('Running locally. Yandex SDK is disabled to prevent console spam.');
-            ysdk = null;
-        } else if (typeof window.ysdk !== 'undefined') {
+        if (typeof window.ysdk !== 'undefined') {
             ysdk = window.ysdk;
         } else if (typeof (window as any).YaGames !== 'undefined') {
             ysdk = await (window as any).YaGames.init();
+            window.ysdk = ysdk; // Обязательное требование: экспорт ysdk в глобальный window для модерации и debug-панели
+            console.log('[Yandex SDK] Initialized successfully via YaGames.init()');
         } else {
-            console.warn('Yandex Games SDK not found, using local fallback.');
+            console.warn('[Yandex SDK] YaGames not found, running with local fallback.');
         }
 
         if (ysdk) {
+            window.ysdk = ysdk;
             try {
                 player = await ysdk.getPlayer();
             } catch (e) {
-                console.warn('Player API not available', e);
+                console.warn('[Yandex SDK] Player API not available:', e);
             }
         }
 
@@ -145,28 +141,31 @@ export async function initYandexSdk() {
 }
 
 export function signalGameReady() {
-    if (ysdk?.features?.LoadingAPI?.ready) {
+    const target = ysdk || (typeof window !== 'undefined' ? window.ysdk : null);
+    if (target?.features?.LoadingAPI?.ready) {
         try {
-            ysdk.features.LoadingAPI.ready();
-            console.log('Yandex SDK: LoadingAPI.ready() signaled.');
+            target.features.LoadingAPI.ready();
+            console.log('[Yandex SDK] LoadingAPI.ready() signaled.');
         } catch (e) {
-            console.warn('Failed to signal LoadingAPI.ready()', e);
+            console.warn('[Yandex SDK] Failed to signal LoadingAPI.ready()', e);
         }
     }
 }
 
 export function notifyGameplayStart() {
-    if (ysdk?.features?.GameplayAPI?.start) {
+    const target = ysdk || (typeof window !== 'undefined' ? window.ysdk : null);
+    if (target?.features?.GameplayAPI?.start) {
         try {
-            ysdk.features.GameplayAPI.start();
+            target.features.GameplayAPI.start();
         } catch (e) {}
     }
 }
 
 export function notifyGameplayStop() {
-    if (ysdk?.features?.GameplayAPI?.stop) {
+    const target = ysdk || (typeof window !== 'undefined' ? window.ysdk : null);
+    if (target?.features?.GameplayAPI?.stop) {
         try {
-            ysdk.features.GameplayAPI.stop();
+            target.features.GameplayAPI.stop();
         } catch (e) {}
     }
 }
@@ -176,7 +175,7 @@ export function notifyGameplayStop() {
 async function initPayments() {
     if (!ysdk) return;
     try {
-        payments = await ysdk.getPayments({ signed: true });
+        payments = await ysdk.getPayments({ signed: false });
         try {
             catalogProducts = await payments.getCatalog();
         } catch (e) {

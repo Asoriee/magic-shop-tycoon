@@ -32,9 +32,10 @@ def main():
         print(f"Файл {index_html} не найден!", file=sys.stderr)
         sys.exit(1)
 
-    # Проверка относительных путей в index.html
+    # Проверка относительных путей в index.html (за исключением обязательного для Яндекс Игр /sdk.js)
     html_content = index_html.read_text(encoding="utf-8")
-    if 'src="/' in html_content or 'href="/' in html_content:
+    content_without_sdk = html_content.replace('src="/sdk.js"', '').replace('src=\'/sdk.js\'', '')
+    if 'src="/' in content_without_sdk or 'href="/' in content_without_sdk:
         print("ПРЕДУПРЕЖДЕНИЕ: В dist/index.html обнаружены абсолютные пути (/), они должны быть относительными (./)!", file=sys.stderr)
 
     print(f"\n=== Создание ZIP-архива для Яндекс Игр: {output_zip.name} ===")

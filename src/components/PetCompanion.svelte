@@ -233,14 +233,21 @@
 
     @media (max-width: 768px) {
         .pet-container {
-            transform: translate(-160px, -140px);
+            transform: translate(-170px, -210px);
         }
     }
 
     @media (max-width: 600px) {
         .pet-container {
-            transform: translate(-100px, -150px);
+            transform: translate(-150px, -235px);
             scale: 0.85;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .pet-container {
+            transform: translate(-120px, -225px);
+            scale: 0.75;
         }
     }
 </style>

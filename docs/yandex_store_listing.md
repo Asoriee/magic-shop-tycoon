@@ -7,16 +7,16 @@
 ## 1. Русский язык (RU)
 
 ### Название * (лимит: до 50 символов)
-`Магический магазин: Алхимия`
-*(27 / 50 символов)*
+`Магический магазин`
+*(18 / 50 символов)*
 
 ### Описание для SEO (лимит: до 160 символов)
-`Магический Магазин — кликер-тайкун лавки зелий! Варите эликсиры в котле, призывайте питомцев, выполняйте заказы гильдии и станьте великим архимагом!`
+`Магический магазин — кликер-тайкун лавки зелий! Варите эликсиры в котле, призывайте питомцев, выполняйте заказы гильдии и станьте великим архимагом!`
 *(148 / 160 символов)*
 
 ### Об игре * (лимит: до 1000 символов)
 ```text
-Добро пожаловать в «Магический Магазин» — атмосферный кликер и экономический тайкун алхимической лавки!
+Добро пожаловать в «Магический магазин» — атмосферный кликер и экономический тайкун алхимической лавки!
 
 Возьмите под управление древнюю лавку магии:
 • Зельеварение: кликайте по котлу, удерживайте комбо без перегрева и создавайте мощные зелья.
@@ -55,16 +55,16 @@
 ## 2. Английский язык (EN)
 
 ### Title * (limit: up to 50 characters)
-`Magic Shop Tycoon: Alchemy`
-*(26 / 50 characters)*
+`Magic Shop`
+*(10 / 50 characters)*
 
 ### SEO Description (limit: up to 160 characters)
-`Magic Shop Tycoon is a fantasy idle clicker! Brew magical potions, summon pets, fulfill guild quests, collect artifacts, and build your wealthy magic empire!`
-*(157 / 160 characters)*
+`Magic Shop is a fantasy idle clicker! Brew magical potions, summon pets, fulfill guild quests, collect artifacts, and build your wealthy magic empire!`
+*(150 / 160 characters)*
 
 ### About the game * (limit: up to 1000 characters)
 ```text
-Welcome to Magic Shop Tycoon — an atmospheric idle clicker and management game for your own arcane store!
+Welcome to Magic Shop — an atmospheric idle clicker and management game for your own arcane store!
 
 Take charge of an ancient magic shop:
 • Potion Brewing: Tap the cauldron, sustain your brewing combo without overheating, and concoct legendary potions.
@@ -103,8 +103,8 @@ Helpful Tips:
 ## 3. Турецкий язык (TR)
 
 ### Başlık * (limit: en fazla 50 karakter)
-`Büyü Dükkânı: Simya`
-*(19 / 50 karakter)*
+`Büyü Dükkânı`
+*(12 / 50 karakter)*
 
 ### SEO Açıklaması (limit: en fazla 160 karakter)
 `Büyü Dükkânı, büyülü bir boşta tıklama oyunudur! İksirler kaynatın, yoldaşlar toplayın, lonca siparişlerini tamamlayın ve en zengin büyü dükkânını kurun!`
@@ -161,11 +161,11 @@ Faydalı İpuçları:
 - **Игра использует облачные сохранения**: `ВКЛЮЧЕНО` (активен, игра интегрирована с `ysdk.getPlayer().setData()`)
 - **Отсроченная публикация**: `ВЫКЛЮЧЕНО` (публиковать сразу после успешной модерации)
 
-### Комментарий разработчика (1937 / 2048 символов):
+### Комментарий разработчика:
 ```text
 Здравствуйте, уважаемая команда модерации Яндекс Игр!
 
-Игра «Магический Магазин: Алхимия и Фамильяры» — казуальный симулятор-тайкун с зельеварением, экспедициями питомцев, лавкой артефактов и сезонным календарем.
+Игра «Магический магазин» — казуальный симулятор-тайкун с зельеварением, экспедициями питомцев, лавкой артефактов и сезонным календарем.
 
 Информация для проверки (SDK v2 и регламент):
 

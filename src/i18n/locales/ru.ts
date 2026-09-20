@@ -2,7 +2,7 @@ import type { Translations } from '../types';
 
 export const ru: Translations = {
     meta: {
-        gameTitle: 'Магический Магазин: Алхимия и Фамильяры',
+        gameTitle: 'Магический магазин',
     },
     common: {
         gold: 'Золото',

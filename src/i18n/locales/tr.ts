@@ -2,7 +2,7 @@ import type { Translations } from '../types';
 
 export const tr: Translations = {
     meta: {
-        gameTitle: 'Büyü Dükkânı: Simya ve Yoldaşlar',
+        gameTitle: 'Büyü Dükkânı',
     },
     common: {
         gold: 'Altın',

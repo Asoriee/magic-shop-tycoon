@@ -16,6 +16,9 @@
         milestoneInfo,
         AVAILABLE_POTIONS,
         activeGuideModalId,
+        ingredientsCount,
+        potionsCount,
+        unlockedRecipes,
         type Potion
     } from './store';
     import { 
@@ -192,7 +195,137 @@
         isReady = true;
 
         if (typeof window !== 'undefined' && window.location?.search) {
-            const urlModal = new URLSearchParams(window.location.search).get('modal');
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('demo') === '1') {
+                const now = Date.now();
+                gameStore.update(s => ({
+                    ...s,
+                    gold: 48500,
+                    stardust: 850,
+                    totalStardustEarned: 850,
+                    unlockedPets: ['pet_rat', 'pet_owl', 'pet_spirit', 'pet_bat', 'pet_frog', 'pet_phoenix'],
+                    artifacts: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                    unlockedCollections: ['archmage_set'],
+                    artifactOvercharge: { 1: 2, 3: 1, 6: 3 },
+                    petLevels: { pet_rat: 4, pet_owl: 3, pet_spirit: 2, pet_bat: 2, pet_frog: 1, pet_phoenix: 2 },
+                    activeCompanionId: 'pet_rat',
+                    activeExpeditions: [
+                        { petId: 'pet_spirit', startTime: now - 3600 * 1000, durationMs: 2 * 3600 * 1000 },
+                        { petId: 'pet_bat', startTime: now - 3 * 3600 * 1000, durationMs: 1.5 * 3600 * 1000 }
+                    ],
+                    potionMastery: { potion_luck: 4, potion_wealth: 3, potion_focus: 2, potion_fire: 2, potion_swift: 1 },
+                    alchemyBrewsCount: 42,
+                    activeBuffs: [
+                        { potionId: 'potion_wealth', expiresAt: now + 240 * 1000, effect: 'idle_multiplier', value: 0.5 },
+                        { potionId: 'potion_luck', expiresAt: now + 165 * 1000, effect: 'click_multiplier', value: 0.25 }
+                    ],
+                    activeOrders: [
+                        {
+                            id: 'demo_order_1',
+                            name: 'Архимаг Валериус',
+                            icon: '🧙‍♂️',
+                            orderType: 'vip',
+                            requirements: [
+                                { type: 'potion', id: 'potion_wealth', count: 2 },
+                                { type: 'ingredient', id: 'moonpetal', count: 4 }
+                            ],
+                            rewardGold: 12500,
+                            rewardCrystals: 5,
+                            rewardChest: 'magical',
+                            isVip: true
+                        },
+                        {
+                            id: 'demo_order_2',
+                            name: 'Алхимик гильдии',
+                            icon: '🧪',
+                            orderType: 'potion',
+                            requirements: [
+                                { type: 'potion', id: 'potion_luck', count: 3 }
+                            ],
+                            rewardGold: 5800,
+                            rewardCrystals: 2,
+                            rewardChest: 'alchemist',
+                            isVip: false
+                        },
+                        {
+                            id: 'demo_order_3',
+                            name: 'Капитан стражи',
+                            icon: '🛡️',
+                            orderType: 'common',
+                            requirements: [
+                                { type: 'ingredient', id: 'fire_salamander', count: 3 },
+                                { type: 'ingredient', id: 'herb_mundane', count: 10 }
+                            ],
+                            rewardGold: 4200,
+                            rewardCrystals: 1,
+                            rewardChest: 'wooden',
+                            isVip: false
+                        },
+                        {
+                            id: 'demo_order_4',
+                            name: 'Звездочет Эрион',
+                            icon: '🔮',
+                            orderType: 'vip',
+                            requirements: [
+                                { type: 'potion', id: 'potion_focus', count: 2 },
+                                { type: 'ingredient', id: 'void_essence', count: 2 }
+                            ],
+                            rewardGold: 18000,
+                            rewardCrystals: 8,
+                            rewardChest: 'astral',
+                            isVip: true
+                        }
+                    ],
+                    upgrades: s.upgrades.map(u => {
+                        if (u.id === 'click1') return { ...u, level: 25 };
+                        if (u.id === 'idle1') return { ...u, level: 30 };
+                        if (u.id === 'idle_apprentice') return { ...u, level: 18 };
+                        if (u.id === 'click_gloves') return { ...u, level: 12 };
+                        if (u.id === 'idle2') return { ...u, level: 10 };
+                        if (u.id === 'click2') return { ...u, level: 8 };
+                        if (u.id === 'idle_distiller') return { ...u, level: 5 };
+                        if (u.id === 'click_crit') return { ...u, level: 4 };
+                        return u;
+                    })
+                }));
+                crystals.set(125);
+                potionsCount.set({
+                    potion_luck: 5,
+                    potion_wealth: 8,
+                    potion_void: 3,
+                    potion_focus: 4,
+                    potion_fire: 6,
+                    potion_swift: 4,
+                    potion_astral: 2
+                });
+                ingredientsCount.set({
+                    herb_mundane: 45,
+                    mushroom_gray: 32,
+                    toadstone: 28,
+                    moonpetal: 24,
+                    fairy_breath: 16,
+                    fire_salamander: 18,
+                    stardew: 12,
+                    void_essence: 9,
+                    troll_blood: 7,
+                    dragon_scale: 5,
+                    philosophers_tear: 3,
+                    time_crystal: 2
+                });
+                unlockedRecipes.set({
+                    'rec_luck': 3,
+                    'rec_wealth': 3,
+                    'rec_void': 2,
+                    'rec_focus': 3,
+                    'rec_sage': 1,
+                    'rec_fire': 3,
+                    'rec_berserk': 2,
+                    'rec_giant': 3,
+                    'rec_immortal': 1,
+                    'rec_chronos': 2
+                });
+            }
+            const urlModal = urlParams.get('modal');
             if (urlModal === 'shop') isShopOpen = true;
             if (urlModal === 'grimoire') isGrimoireOpen = true;
             if (urlModal === 'city') isCityOpen = true;

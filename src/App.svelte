@@ -196,8 +196,19 @@
 
         if (typeof window !== 'undefined' && window.location?.search) {
             const urlParams = new URLSearchParams(window.location.search);
+            const queryLang = urlParams.get('lang')?.toLowerCase();
+            if (queryLang === 'en' || queryLang === 'tr' || queryLang === 'ru') {
+                setLanguage(queryLang);
+            }
             if (urlParams.get('demo') === '1') {
                 const now = Date.now();
+                const isEn = queryLang === 'en';
+                const isTr = queryLang === 'tr';
+                const order1Name = isEn ? 'Archmage Valerius' : (isTr ? 'Başbüyücü Valerius' : 'Архимаг Валериус');
+                const order2Name = isEn ? 'Guild Alchemist' : (isTr ? 'Lonca Simyacısı' : 'Алхимик гильдии');
+                const order3Name = isEn ? 'Guard Captain' : (isTr ? 'Muhafız Kaptanı' : 'Капитан стражи');
+                const order4Name = isEn ? 'Stargazer Erion' : (isTr ? 'Yıldızbilimci Erion' : 'Звездочет Эрион');
+
                 gameStore.update(s => ({
                     ...s,
                     gold: 48500,
@@ -222,7 +233,7 @@
                     activeOrders: [
                         {
                             id: 'demo_order_1',
-                            name: 'Архимаг Валериус',
+                            name: order1Name,
                             icon: '🧙‍♂️',
                             orderType: 'vip',
                             requirements: [
@@ -236,7 +247,7 @@
                         },
                         {
                             id: 'demo_order_2',
-                            name: 'Алхимик гильдии',
+                            name: order2Name,
                             icon: '🧪',
                             orderType: 'potion',
                             requirements: [
@@ -249,7 +260,7 @@
                         },
                         {
                             id: 'demo_order_3',
-                            name: 'Капитан стражи',
+                            name: order3Name,
                             icon: '🛡️',
                             orderType: 'common',
                             requirements: [
@@ -263,7 +274,7 @@
                         },
                         {
                             id: 'demo_order_4',
-                            name: 'Звездочет Эрион',
+                            name: order4Name,
                             icon: '🔮',
                             orderType: 'vip',
                             requirements: [

@@ -1045,6 +1045,7 @@ export const tr: Translations = {
         received: 'Alındı',
         dayNum: '{day}. Gün',
         claimed: 'Alındı',
+        tomorrow: 'Yarın',
         claim: 'Al',
         claimToday: '{day}. Gün Ödülünü Al! ({reward})',
         alreadyClaimedToday: 'Bugünün ödülü alındı. Yeni hediye yarın hazır olacak!',

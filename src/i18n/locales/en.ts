@@ -1045,6 +1045,7 @@ export const en: Translations = {
         received: 'Received',
         dayNum: 'Day {day}',
         claimed: 'Claimed',
+        tomorrow: 'Tomorrow',
         claim: 'Claim',
         claimToday: 'Claim Day {day} Reward! ({reward})',
         alreadyClaimedToday: "Today's reward is claimed. Next gift available tomorrow!",

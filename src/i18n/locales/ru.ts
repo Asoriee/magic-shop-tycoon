@@ -1045,6 +1045,7 @@ export const ru: Translations = {
         received: 'Получено',
         dayNum: 'День {day}',
         claimed: 'Взято',
+        tomorrow: 'Завтра',
         claim: 'Забрать',
         claimToday: 'Забрать награду за {day}-й день! ({reward})',
         alreadyClaimedToday: 'Сегодняшняя награда забрана. Новый дар будет доступен завтра!',

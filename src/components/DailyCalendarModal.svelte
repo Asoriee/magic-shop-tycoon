@@ -19,8 +19,11 @@
     let claimFeedback: string | null = null;
     let feedbackTimeout: any = null;
 
-    $: currentDay = $gameStore?.calendarDay || 1;
     $: isReady = isCalendarRewardReady($gameStore);
+    $: rawDay = $gameStore?.calendarDay || 1;
+    $: rawSeason = $gameStore?.calendarSeason || 1;
+    $: activeSeason = (rawDay > 30 && isReady) ? rawSeason + 1 : rawSeason;
+    $: currentDay = (rawDay > 30 && isReady) ? 1 : rawDay;
     $: currentReward = CALENDAR_REWARDS[Math.min(29, Math.max(0, currentDay - 1))];
 
     $: if (isOpen) {
@@ -130,13 +133,13 @@
                                 <svg viewBox="0 0 24 24" width="12" height="12" fill="#ffd700">
                                     <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
                                 </svg>
-                                {$t('calendar.seasonBadge', { season: $gameStore.calendarSeason || 1 })}
+                                {$t('calendar.seasonBadge', { season: activeSeason })}
                             </span>
                         </div>
                         <p class="subtitle">
                             {$t('calendar.subtitle')}
-                            {#if ($gameStore.calendarSeason || 1) > 1}
-                                <span class="season-bonus-tag">({$t('calendar.seasonBonus', { percent: (($gameStore.calendarSeason || 1) - 1) * 15 })})</span>
+                            {#if activeSeason > 1}
+                                <span class="season-bonus-tag">({$t('calendar.seasonBonus', { percent: (activeSeason - 1) * 15 })})</span>
                             {/if}
                         </p>
                     </div>
@@ -197,14 +200,16 @@
                         </div>
                         <div class="days-grid">
                             {#each week.days as reward}
-                                {@const isPast = reward.day < currentDay || (reward.day === currentDay && !isReady)}
-                                {@const isToday = reward.day === currentDay}
+                                {@const isClaimed = reward.day < currentDay}
+                                {@const isCurrentReady = reward.day === currentDay && isReady}
+                                {@const isUpcoming = reward.day === currentDay && !isReady}
                                 {@const isFuture = reward.day > currentDay}
                                 <div 
                                     class="day-card"
-                                    class:past={isPast}
-                                    class:current={isToday}
-                                    class:ready={isToday && isReady}
+                                    class:past={isClaimed}
+                                    class:current={reward.day === currentDay && isReady}
+                                    class:ready={isCurrentReady}
+                                    class:upcoming={isUpcoming}
                                     class:future={isFuture}
                                     class:milestone={reward.isMilestone}
                                 >
@@ -227,23 +232,24 @@
                                     </div>
 
                                     <!-- Status Overlay / Stamp -->
-                                    {#if isPast}
+                                    {#if isClaimed}
                                         <div class="stamp-claimed">
                                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="#2ed573" stroke-width="3" fill="none">
                                                 <polyline points="20 6 9 17 4 12"/>
                                             </svg>
                                             <span>{$t('calendar.claimed')}</span>
                                         </div>
-                                    {:else if isToday && isReady}
+                                    {:else if isCurrentReady}
                                         <button class="claim-mini-btn" on:click={handleClaim}>
                                             {$t('calendar.claim')}
                                         </button>
-                                    {:else if isToday && !isReady}
-                                        <div class="stamp-claimed">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="#2ed573" stroke-width="3" fill="none">
-                                                <polyline points="20 6 9 17 4 12"/>
+                                    {:else if isUpcoming}
+                                        <div class="stamp-upcoming">
+                                            <svg viewBox="0 0 24 24" width="13" height="13" stroke="#ffd32a" stroke-width="2.2" fill="none">
+                                                <circle cx="12" cy="12" r="9"/>
+                                                <polyline points="12 7 12 12 15 14"/>
                                             </svg>
-                                            <span>{$t('calendar.claimed')}</span>
+                                            <span>{$t('calendar.tomorrow')}</span>
                                         </div>
                                     {:else}
                                         <div class="stamp-locked">
@@ -622,6 +628,25 @@
         color: #2ed573;
         font-weight: 700;
         margin-top: 4px;
+    }
+
+    .day-card.upcoming {
+        border-color: rgba(241, 196, 15, 0.4);
+        background: rgba(241, 196, 15, 0.06);
+    }
+
+    .stamp-upcoming {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.65rem;
+        color: #ffd32a;
+        font-weight: 700;
+        margin-top: 4px;
+        background: rgba(241, 196, 15, 0.12);
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(241, 196, 15, 0.25);
     }
 
     .stamp-locked {

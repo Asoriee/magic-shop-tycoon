@@ -283,8 +283,14 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             return state;
         }
 
-        const currentDay = Math.max(1, Math.min(30, state.calendarDay || 1));
-        const currentSeason = state.calendarSeason || 1;
+        let currentDay = state.calendarDay || 1;
+        let currentSeason = state.calendarSeason || 1;
+        if (currentDay > 30) {
+            currentDay = 1;
+            currentSeason += 1;
+        }
+        currentDay = Math.max(1, Math.min(30, currentDay));
+
         const seasonMultiplier = 1 + (currentSeason - 1) * 0.15;
         const reward = getCalendarReward(currentDay);
         const vipActive = get(isVip);
@@ -351,8 +357,7 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             }).catch(() => {});
         }
 
-        const nextDay = currentDay >= 30 ? 1 : currentDay + 1;
-        const nextSeason = currentDay >= 30 ? currentSeason + 1 : currentSeason;
+        const nextDay = currentDay >= 30 ? 31 : currentDay + 1;
 
         return {
             ...state,
@@ -363,7 +368,7 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             petLevels: nextPetLevels,
             hasRelicEternityEye: nextHasRelic,
             calendarDay: nextDay,
-            calendarSeason: nextSeason,
+            calendarSeason: currentSeason,
             calendarLastClaimDate: today
         };
     });

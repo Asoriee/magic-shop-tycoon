@@ -469,6 +469,13 @@ export async function loadGame(): Promise<void> {
             if (merged.calendarSeason === undefined || typeof merged.calendarSeason !== 'number') {
                 merged.calendarSeason = 1;
             }
+            if (merged.calendarDay > 30) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (merged.calendarLastClaimDate !== todayStr) {
+                    merged.calendarDay = 1;
+                    merged.calendarSeason = (merged.calendarSeason || 1) + 1;
+                }
+            }
             if (merged.hasCreatedShortcut === undefined) {
                 merged.hasCreatedShortcut = false;
             }

@@ -859,7 +859,9 @@ export async function createGameShortcut(): Promise<boolean> {
 // --- Player Auth API ---
 
 export function isGuestPlayer(): boolean {
-    if (!player || typeof player.getMode !== 'function') return false;
+    if (!player || typeof player.getMode !== 'function') {
+        return Boolean(ysdk && ysdk.auth && typeof ysdk.auth.openAuthDialog === 'function');
+    }
     return player.getMode() === 'lite';
 }
 
@@ -870,6 +872,8 @@ export async function promptPlayerAuth(): Promise<boolean> {
         player = await ysdk.getPlayer();
         await loadGame();
         await initPayments();
+        saveGame();
+        await flushCloudSave();
         return true;
     } catch (e) {
         console.warn('Auth dialog closed or rejected', e);

@@ -214,6 +214,9 @@ export async function checkPurchases(): Promise<number> {
             } else if (purchase.productID === 'pack_crystals_1000') {
                 crystals.update(n => n + 1250);
                 processed = true;
+            } else if (purchase.productID === 'no_ads' || purchase.productID === 'disable_ads' || purchase.productID === 'remove_ads' || purchase.productID === 'ad_block') {
+                gameStore.update(s => ({ ...s, hasNoAds: true }));
+                processed = true;
             }
 
             if (processed) {
@@ -302,6 +305,15 @@ export async function purchaseItem(itemId: string): Promise<void> {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
             console.warn('Failed to consume VIP purchase', e);
+        }
+    } else if (itemId === 'no_ads' || itemId === 'disable_ads' || itemId === 'remove_ads' || itemId === 'ad_block') {
+        gameStore.update(s => ({ ...s, hasNoAds: true }));
+        saveGame();
+        await flushCloudSave();
+        try {
+            await payments.consumePurchase(purchase.purchaseToken);
+        } catch (e) {
+            console.warn('Failed to consume no_ads purchase', e);
         }
     }
 }
@@ -467,6 +479,9 @@ export async function loadGame(): Promise<void> {
             if (merged.hasRelicEternityEye === undefined) {
                 merged.hasRelicEternityEye = false;
             }
+            if (merged.hasNoAds === undefined) {
+                merged.hasNoAds = false;
+            }
             
             // Restore missing upgrades from default state
             // Restore missing upgrades from default state with dynamic reactive getters
@@ -575,8 +590,9 @@ export function showRewardedAd(
     const onClose = isOptions ? onRewardOrOptions.onClose : onCloseParam;
     const onError = isOptions ? onRewardOrOptions.onError : onErrorParam;
 
-    // If user is VIP — skip ad and reward immediately
-    if (get(isVip)) {
+    // If user is VIP or has purchased ad removal — skip ad and reward immediately
+    const state = get(gameStore);
+    if (get(isVip) || state.hasNoAds) {
         onReward();
         if (onClose) onClose();
         return;
@@ -635,8 +651,9 @@ export function showRewardedAd(
 }
 
 export function showInterstitialAd(onClose?: () => void) {
-    // If user is VIP or cooldown hasn't passed — skip ad
-    if (get(isVip)) {
+    // If user is VIP or has purchased ad removal or cooldown hasn't passed — skip ad
+    const state = get(gameStore);
+    if (get(isVip) || state.hasNoAds) {
         if (onClose) onClose();
         return;
     }

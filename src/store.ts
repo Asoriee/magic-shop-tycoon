@@ -250,6 +250,7 @@ export interface GameState {
     hasCreatedShortcut?: boolean;
     artifactOvercharge?: Record<number, number>;
     hasRelicEternityEye?: boolean;
+    hasNoAds?: boolean;
 }
 
 // ============================================================
@@ -2073,7 +2074,8 @@ const defaultState: GameState = {
     calendarSeason: 1,
     hasCreatedShortcut: false,
     artifactOvercharge: {},
-    hasRelicEternityEye: false
+    hasRelicEternityEye: false,
+    hasNoAds: false
 };
 
 // --- Premium stores ---

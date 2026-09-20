@@ -10,7 +10,7 @@
         gameStore, 
         formatNumber 
     } from '../store';
-    import { purchaseItem, showRewardedAd, saveGame, getProductDisplayPrice } from '../yandex-sdk';
+    import { purchaseItem, showRewardedAd, saveGame, getProductDisplayPrice, checkPurchases } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
     import { t } from '../i18n';
 
@@ -40,6 +40,7 @@
     onMount(() => {
         updateGiftTimer();
         giftTimerInterval = setInterval(updateGiftTimer, 1000);
+        checkPurchases().catch(() => {});
     });
 
     onDestroy(() => {

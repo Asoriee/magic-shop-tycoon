@@ -178,8 +178,9 @@ export function getProductDisplayPrice(productId: string, fallback: string): str
     return found?.price || fallback;
 }
 
-async function checkPurchases() {
-    if (!payments) return;
+export async function checkPurchases(): Promise<number> {
+    if (!payments) return 0;
+    let restoredCount = 0;
     try {
         const purchasesList = await payments.getPurchases();
         // Consume any pending consumable purchases and activate VIP or credit crystals
@@ -200,7 +201,9 @@ async function checkPurchases() {
             }
 
             if (processed) {
+                restoredCount++;
                 saveGame();
+                await flushCloudSave();
                 try {
                     await payments.consumePurchase(purchase.purchaseToken);
                     console.log(`[IAP] Successfully consumed pending purchase: ${purchase.productID}`);
@@ -212,10 +215,15 @@ async function checkPurchases() {
     } catch (e) {
         console.warn('Failed to check purchases', e);
     }
+    return restoredCount;
 }
 
 export async function purchaseItem(itemId: string): Promise<void> {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (!payments && !isLocal && ysdk) {
+        await initPayments();
+    }
 
     if (!payments && !isLocal) {
         console.warn('Payments API not initialized');
@@ -246,6 +254,7 @@ export async function purchaseItem(itemId: string): Promise<void> {
     if (itemId === 'pack_crystals_100') {
         crystals.update(n => n + 100);
         saveGame();
+        await flushCloudSave();
         try {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
@@ -254,6 +263,7 @@ export async function purchaseItem(itemId: string): Promise<void> {
     } else if (itemId === 'pack_crystals_300') {
         crystals.update(n => n + 350);
         saveGame();
+        await flushCloudSave();
         try {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
@@ -262,6 +272,7 @@ export async function purchaseItem(itemId: string): Promise<void> {
     } else if (itemId === 'pack_crystals_1000') {
         crystals.update(n => n + 1250);
         saveGame();
+        await flushCloudSave();
         try {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
@@ -270,6 +281,7 @@ export async function purchaseItem(itemId: string): Promise<void> {
     } else if (itemId === 'vip_status' || itemId === 'vip_month') {
         activateVip30Days();
         saveGame();
+        await flushCloudSave();
         try {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
@@ -857,6 +869,7 @@ export async function promptPlayerAuth(): Promise<boolean> {
         await ysdk.auth.openAuthDialog();
         player = await ysdk.getPlayer();
         await loadGame();
+        await initPayments();
         return true;
     } catch (e) {
         console.warn('Auth dialog closed or rejected', e);

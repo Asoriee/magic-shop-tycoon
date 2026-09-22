@@ -259,68 +259,69 @@
         <div class="quests-list">
             {#each $gameStore.quests as quest (quest.id)}
                 <div class="quest-card" class:completed={quest.isCompleted && !quest.isClaimed} class:claimed={quest.isClaimed}>
-                    <div class="quest-icon-col">
-                        {#if quest.type === 'clicks'}
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="#74b9ff" stroke-width="1.5" stroke-dasharray="3 3"/>
-                                <polygon points="13,3 6,13 12,13 11,21 18,11 12,11" fill="#74b9ff"/>
-                            </svg>
-                        {:else if quest.type === 'buy_upgrades'}
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-                                <rect x="5" y="8" width="14" height="13" rx="3" fill="#fdcb6e" stroke="#e67e22" stroke-width="1.5"/>
-                                <path d="M9 8 V5 C9 3.5 15 3.5 15 5 V8" stroke="#f39c12" stroke-width="1.5"/>
-                                <polygon points="12,11 13.5,14 17,14.5 14.5,17 15,20.5 12,19 9,20.5 9.5,17 7,14.5 10.5,14" fill="#d35400"/>
-                            </svg>
-                        {:else if quest.type === 'brew_potions'}
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2ed573" stroke-width="1.8">
-                                <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
-                                <circle cx="12" cy="15" r="2" fill="#2ed573"/>
-                            </svg>
-                        {:else if quest.type === 'complete_orders'}
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#00cec9" stroke-width="1.8">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                <polyline points="10 9 9 9 8 9"/>
-                            </svg>
-                        {:else if quest.type === 'send_expeditions'}
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#e17055" stroke-width="1.8">
-                                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
-                            </svg>
+                    <div class="quest-top-row">
+                        <div class="quest-icon-col">
+                            {#if quest.type === 'clicks'}
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                                    <circle cx="12" cy="12" r="9" stroke="#74b9ff" stroke-width="1.5" stroke-dasharray="3 3"/>
+                                    <polygon points="13,3 6,13 12,13 11,21 18,11 12,11" fill="#74b9ff"/>
+                                </svg>
+                            {:else if quest.type === 'buy_upgrades'}
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                                    <rect x="5" y="8" width="14" height="13" rx="3" fill="#fdcb6e" stroke="#e67e22" stroke-width="1.5"/>
+                                    <path d="M9 8 V5 C9 3.5 15 3.5 15 5 V8" stroke="#f39c12" stroke-width="1.5"/>
+                                    <polygon points="12,11 13.5,14 17,14.5 14.5,17 15,20.5 12,19 9,20.5 9.5,17 7,14.5 10.5,14" fill="#d35400"/>
+                                </svg>
+                            {:else if quest.type === 'brew_potions'}
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2ed573" stroke-width="1.8">
+                                    <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
+                                    <circle cx="12" cy="15" r="2" fill="#2ed573"/>
+                                </svg>
+                            {:else if quest.type === 'complete_orders'}
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#00cec9" stroke-width="1.8">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                            {:else if quest.type === 'send_expeditions'}
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e17055" stroke-width="1.8">
+                                    <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                                </svg>
+                            {:else}
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                                    <circle cx="12" cy="12" r="9" fill="#a29bfe" opacity="0.3" stroke="#6c5ce7" stroke-width="1.5"/>
+                                    <polygon points="10,8 16,12 10,16" fill="#f1c40f"/>
+                                </svg>
+                            {/if}
+                        </div>
+
+                        <div class="quest-title-wrap">
+                            <span class="diff-badge diff-{quest.difficulty || 'medium'}">{getDifficultyLabel(quest.difficulty || 'medium')}</span>
+                            <span class="quest-title">{getTypeLabel(quest.type)}: {quest.target}</span>
+                        </div>
+
+                        {#if quest.rewardType === 'gold'}
+                            {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 30)}
+                            <div class="reward-pill gold-pill" title={$t('common.gold')}>
+                                <ResourceIcon type="gold" size={13} />
+                                <span>+{formatNumber(dynGold || 1000)}</span>
+                            </div>
+                        {:else if quest.rewardType === 'crystals'}
+                            <div class="reward-pill crystal-pill" title={$t('common.crystals')}>
+                                <ResourceIcon type="crystals" size={12} />
+                                <span>+{quest.rewardAmount || 10}</span>
+                            </div>
                         {:else}
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-                                <circle cx="12" cy="12" r="9" fill="#a29bfe" opacity="0.3" stroke="#6c5ce7" stroke-width="1.5"/>
-                                <polygon points="10,8 16,12 10,16" fill="#f1c40f"/>
-                            </svg>
+                            <div class="reward-pill crystal-pill" title={$t('common.crystals')}>
+                                <ResourceIcon type="crystals" size={12} />
+                                <span>+{quest.rewardAmount || 5}</span>
+                            </div>
                         {/if}
                     </div>
 
-                    <div class="quest-main-col">
-                        <div class="quest-header-row">
-                            <div class="title-with-diff">
-                                <span class="diff-badge diff-{quest.difficulty || 'medium'}">{getDifficultyLabel(quest.difficulty || 'medium')}</span>
-                                <span class="quest-title">{getTypeLabel(quest.type)}: {quest.target}</span>
-                            </div>
-                            {#if quest.rewardType === 'gold'}
-                                {@const dynGold = calculateQuestGoldReward(quest.rewardAmount || 30)}
-                                <div class="reward-pill gold-pill" title={$t('common.gold')}>
-                                    <ResourceIcon type="gold" size={14} />
-                                    <span>+{formatNumber(dynGold || 1000)}</span>
-                                </div>
-                            {:else if quest.rewardType === 'crystals'}
-                                <div class="reward-pill crystal-pill" title={$t('common.crystals')}>
-                                    <ResourceIcon type="crystals" size={13} />
-                                    <span>+{quest.rewardAmount || 10}</span>
-                                </div>
-                            {:else}
-                                <div class="reward-pill crystal-pill" title={$t('common.crystals')}>
-                                    <ResourceIcon type="crystals" size={13} />
-                                    <span>+{quest.rewardAmount || 5}</span>
-                                </div>
-                            {/if}
-                        </div>
-                        
+                    <div class="quest-bottom-row">
                         <div class="progress-wrap">
                             <div class="progress-bar-bg">
                                 <div 
@@ -332,33 +333,33 @@
                                 {Math.min(quest.current || 0, quest.target || 0)} / {quest.target || 0}
                             </span>
                         </div>
-                    </div>
 
-                    <div class="quest-action-col">
-                        {#if quest.isClaimed}
-                            <div class="claimed-pill">
-                                <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                                    <polyline points="3,8 6,11 13,4" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{$t('quests.claimed')}</span>
-                            </div>
-                        {:else if quest.isCompleted}
-                            <button 
-                                type="button"
-                                class="claim-btn" 
-                                bind:this={claimButtons[quest.id]}
-                                on:click={() => claim(quest.id)}
-                            >
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
-                                    <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5"/>
-                                </svg>
-                                <span>{$t('quests.claim')}</span>
-                            </button>
-                        {:else}
-                            <div class="in-progress-pill">
-                                {$t('quests.inProgress')}
-                            </div>
-                        {/if}
+                        <div class="quest-action-col">
+                            {#if quest.isClaimed}
+                                <div class="claimed-pill">
+                                    <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
+                                        <polyline points="3,8 6,11 13,4" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span>{$t('quests.claimed')}</span>
+                                </div>
+                            {:else if quest.isCompleted}
+                                <button 
+                                    type="button"
+                                    class="claim-btn" 
+                                    bind:this={claimButtons[quest.id]}
+                                    on:click={() => claim(quest.id)}
+                                >
+                                    <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
+                                        <polygon points="8,1 10,5 15,6 11,10 12,15 8,12 4,15 5,10 1,6 6,5"/>
+                                    </svg>
+                                    <span>{$t('quests.claim')}</span>
+                                </button>
+                            {:else}
+                                <div class="in-progress-pill">
+                                    {$t('quests.inProgress')}
+                                </div>
+                            {/if}
+                        </div>
                     </div>
                 </div>
             {/each}
@@ -641,10 +642,11 @@
         border-radius: 16px;
         padding: 12px 14px;
         display: flex;
-        align-items: center;
-        gap: 12px;
+        flex-direction: column;
+        gap: 10px;
         transition: all 0.2s;
         box-sizing: border-box;
+        width: 100%;
     }
 
     .quest-card.completed {
@@ -657,9 +659,16 @@
         opacity: 0.55;
     }
 
+    .quest-top-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+
     .quest-icon-col {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
         border-radius: 12px;
         background: rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -669,27 +678,13 @@
         flex-shrink: 0;
     }
 
-    .quest-main-col {
+    .quest-title-wrap {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 0;
-    }
-
-    .quest-header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .title-with-diff {
         display: flex;
         align-items: center;
         gap: 6px;
         min-width: 0;
-        flex: 1;
+        flex-wrap: wrap;
     }
 
     .diff-badge {
@@ -700,6 +695,7 @@
         text-transform: uppercase;
         letter-spacing: 0.3px;
         flex-shrink: 0;
+        line-height: 1.3;
     }
 
     .diff-easy {
@@ -722,12 +718,11 @@
     }
 
     .quest-title {
-        font-size: 0.92rem;
+        font-size: 0.88rem;
         font-weight: 700;
         color: #ffffff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        line-height: 1.25;
+        word-break: break-word;
     }
 
     .reward-pill {
@@ -736,12 +731,13 @@
         gap: 4px;
         background: rgba(162, 155, 254, 0.15);
         border: 1px solid rgba(162, 155, 254, 0.3);
-        padding: 2px 8px;
+        padding: 3px 8px;
         border-radius: 10px;
         font-size: 0.78rem;
-        font-weight: 700;
+        font-weight: 800;
         color: #d2a8ff;
         flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .reward-pill.gold-pill {
@@ -762,10 +758,19 @@
         color: #d2a8ff;
     }
 
-    .progress-wrap {
+    .quest-bottom-row {
         display: flex;
         align-items: center;
         gap: 10px;
+        width: 100%;
+    }
+
+    .progress-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
     }
 
     .progress-bar-bg {
@@ -792,12 +797,16 @@
         font-size: 0.76rem;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.75);
-        min-width: 55px;
+        min-width: 50px;
         text-align: right;
+        font-family: monospace;
+        white-space: nowrap;
     }
 
     .quest-action-col {
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
     }
 
     .claim-btn {
@@ -805,8 +814,8 @@
         color: #1e1035;
         border: none;
         border-radius: 10px;
-        padding: 8px 14px;
-        font-size: 0.84rem;
+        padding: 6px 14px;
+        font-size: 0.82rem;
         font-weight: 800;
         cursor: pointer;
         display: flex;
@@ -814,6 +823,7 @@
         gap: 5px;
         box-shadow: 0 3px 0 #b7791f, 0 4px 12px rgba(241, 196, 15, 0.4);
         transition: all 0.2s;
+        min-height: 32px;
     }
 
     .claim-btn:hover {
@@ -831,9 +841,9 @@
         align-items: center;
         gap: 5px;
         color: #2ecc71;
-        font-size: 0.8rem;
+        font-size: 0.76rem;
         font-weight: 700;
-        padding: 6px 10px;
+        padding: 4px 8px;
         background: rgba(46, 204, 113, 0.1);
         border-radius: 10px;
         border: 1px solid rgba(46, 204, 113, 0.25);
@@ -841,9 +851,11 @@
 
     .in-progress-pill {
         color: rgba(255, 255, 255, 0.4);
-        font-size: 0.78rem;
+        font-size: 0.74rem;
         font-weight: 600;
-        padding: 6px 10px;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
     }
 
     .empty-quests-card {
@@ -853,5 +865,136 @@
         background: rgba(0, 0, 0, 0.25);
         border-radius: 14px;
         border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 680px) {
+        .overlay {
+            padding: 0 !important;
+        }
+
+        .modal {
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            padding: 14px 10px 20px;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .guild-banner {
+            padding: 8px 10px;
+            border-radius: 12px;
+        }
+
+        .banner-title {
+            font-size: 0.84rem;
+        }
+
+        .banner-sub {
+            font-size: 0.72rem;
+        }
+
+        .completed-summary {
+            font-size: 0.76rem;
+            padding: 2px 8px;
+        }
+
+        .mastery-card {
+            padding: 10px 10px;
+            gap: 8px;
+            border-radius: 14px;
+        }
+
+        .mastery-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+        }
+
+        .mastery-name {
+            font-size: 0.86rem;
+        }
+
+        .mastery-sub {
+            font-size: 0.72rem;
+        }
+
+        .mastery-reward-tag {
+            padding: 3px 6px;
+            gap: 4px;
+        }
+
+        .m-loot {
+            font-size: 0.7rem;
+        }
+
+        .quest-card {
+            padding: 10px 10px;
+            border-radius: 14px;
+            gap: 8px;
+        }
+
+        .quest-icon-col {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+        }
+
+        .quest-icon-col :global(svg) {
+            width: 20px;
+            height: 20px;
+        }
+
+        .quest-title {
+            font-size: 0.82rem;
+        }
+
+        .diff-badge {
+            font-size: 0.58rem;
+            padding: 1px 4px;
+        }
+
+        .reward-pill {
+            font-size: 0.72rem;
+            padding: 2px 6px;
+        }
+
+        .progress-label {
+            font-size: 0.72rem;
+            min-width: 45px;
+        }
+
+        .claim-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            min-height: 34px;
+        }
+
+        .claimed-pill {
+            padding: 3px 6px;
+            font-size: 0.7rem;
+        }
+
+        .in-progress-pill {
+            padding: 3px 6px;
+            font-size: 0.7rem;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .mastery-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .mastery-action {
+            align-self: flex-end;
+        }
+        .quest-title {
+            font-size: 0.78rem;
+        }
+        .in-progress-pill {
+            display: none;
+        }
     }
 </style>

@@ -55,22 +55,28 @@
             }
             
             if (btn) {
+                gsap.killTweensOf(btn);
                 gsap.fromTo(btn, 
-                    { scale: 0.9 }, 
-                    { scale: 1, duration: 0.25, ease: 'back.out(2)' }
+                    { scale: 0.88, filter: 'brightness(1.4)' }, 
+                    { scale: 1, filter: 'brightness(1)', duration: 0.32, ease: 'back.out(2.4)' }
                 );
             }
         } else {
             if (btn) {
-                gsap.to(btn, {
-                    keyframes: [
-                        { x: -5, duration: 0.04 },
-                        { x: 5, duration: 0.04 },
-                        { x: -4, duration: 0.04 },
-                        { x: 4, duration: 0.04 },
-                        { x: 0, duration: 0.04 }
-                    ]
-                });
+                gsap.killTweensOf(btn);
+                gsap.fromTo(btn,
+                    { x: -6, borderColor: '#e74c3c' },
+                    { 
+                        keyframes: [
+                            { x: 6, duration: 0.04 },
+                            { x: -5, duration: 0.04 },
+                            { x: 4, duration: 0.04 },
+                            { x: -2, duration: 0.04 },
+                            { x: 0, borderColor: '', duration: 0.04 }
+                        ],
+                        ease: 'power1.inOut'
+                    }
+                );
             }
         }
     }

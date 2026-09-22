@@ -58,6 +58,12 @@
         const res = claimCalendarReward();
         if (res.success) {
             claimFeedback = res.rewardDesc || $t('calendar.received');
+            if (modalEl) {
+                gsap.fromTo(modalEl, 
+                    { scale: 0.98 }, 
+                    { scale: 1, duration: 0.35, ease: 'back.out(2)' }
+                );
+            }
             if (feedbackTimeout) clearTimeout(feedbackTimeout);
             feedbackTimeout = setTimeout(() => {
                 claimFeedback = null;

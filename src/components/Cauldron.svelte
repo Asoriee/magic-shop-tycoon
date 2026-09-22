@@ -77,17 +77,21 @@
 
         const isCrystal = false;
         
-        // Bounce animation - juicy click micro-scaling (stronger on crit or overheat)
-        const bounceScale = isCrit ? 0.82 : isOverheated ? 0.86 : 0.92;
+        // Tactile Squash & Stretch Juice (Elastic spring recovery)
         if (cauldronGroup) {
-            gsap.to(cauldronGroup, { 
-                scale: bounceScale, 
-                yoyo: true, 
-                repeat: 1, 
-                duration: isCrit ? 0.07 : 0.05, 
-                ease: "power1.inOut",
-                transformOrigin: "50% 100%"
-            });
+            gsap.killTweensOf(cauldronGroup);
+            const squashX = isCrit ? 1.16 : isOverheated ? 1.11 : 1.07;
+            const squashY = isCrit ? 0.82 : isOverheated ? 0.86 : 0.91;
+            gsap.fromTo(cauldronGroup, 
+                { scaleX: squashX, scaleY: squashY }, 
+                { 
+                    scaleX: 1, 
+                    scaleY: 1, 
+                    duration: isCrit ? 0.38 : 0.28, 
+                    ease: "elastic.out(1.2, 0.4)",
+                    transformOrigin: "50% 100%"
+                }
+            );
         }
 
         // Add floating text with pooling (keep max 8 active animations)
@@ -107,18 +111,34 @@
         }];
     }
 
-    // A Svelte action to animate and remove the effect
+    // A Svelte action to animate and remove the effect with vibrant physics arc
     function animateClick(node: HTMLElement, id: number) {
         if (node) {
-            gsap.to(node, {
-                y: -100,
-                x: `+=${(Math.random() - 0.5) * 50}`,
-                opacity: 0,
-                duration: 1.2,
-                ease: "power2.out",
+            const spreadX = (Math.random() - 0.5) * 70;
+            const rotateAngle = (Math.random() - 0.5) * 18;
+            const tl = gsap.timeline({
                 onComplete: () => {
                     clickEffects = clickEffects.filter(effect => effect.id !== id);
                 }
+            });
+
+            tl.fromTo(node,
+                { scale: 0.6, opacity: 0, rotation: 0 },
+                { scale: 1.18, opacity: 1, rotation: rotateAngle, duration: 0.14, ease: "back.out(2.2)" }
+            )
+            .to(node, {
+                y: -85,
+                x: spreadX,
+                scale: 1,
+                duration: 0.65,
+                ease: "power1.out"
+            }, "-=0.04")
+            .to(node, {
+                y: -120,
+                opacity: 0,
+                scale: 0.82,
+                duration: 0.32,
+                ease: "power2.in"
             });
         }
         

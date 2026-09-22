@@ -43,7 +43,13 @@ def main():
         for file_path in sorted(dist_dir.rglob("*")):
             if file_path.is_file():
                 arcname = file_path.relative_to(dist_dir).as_posix()
-                zipf.write(file_path, arcname=arcname)
+                zinfo = zipfile.ZipInfo.from_file(file_path, arcname=arcname)
+                # Standard Unix permissions: -rw-r--r-- (0o644) and Unix system (3)
+                # This ensures Linux unpackers on Yandex CDN / S3 grant read permissions
+                zinfo.create_system = 3
+                zinfo.external_attr = 0o644 << 16
+                with open(file_path, "rb") as f:
+                    zipf.writestr(zinfo, f.read(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
 
     # Проверка архива по требованиям Яндекс Игр
     print("\n=== Проверка архива на соответствие требованиям Яндекс Игр ===")

@@ -119,6 +119,14 @@ export default defineConfig({
     open: false,
   },
   build: {
+    assetsDir: '',
+    rollupOptions: {
+      output: {
+        entryFileNames: '[name]-[hash].js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: '[name]-[hash].[ext]',
+      },
+    },
     // Disable module preload polyfill injection — it also adds crossorigin links
     modulePreload: {
       polyfill: false,

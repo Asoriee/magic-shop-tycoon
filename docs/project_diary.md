@@ -81,6 +81,11 @@
      * `AlchemyTableModal.svelte`: индикаторы остатка попыток до перегрева (`.danger-label`) и шаги подсказок (`.hint-step-tag`) защищены от переносов.
      * `ShopModal.svelte`: прогресс ранговых рубежей магазина (`.milestone-step`) защищен от переносов.
      * `GrimoireModal.svelte`: бейджи вкладок гримуара (`.tab-badge`) зафиксированы на одну строку.
+13. **Mobile Dragon Gift Card Alignment & Centering Overhaul**:
+   - В `BankModal.svelte` исправлена асимметрия карточки «Дар Дракона» на мобильных устройствах:
+     * **Причина**: В `@media (max-width: 520px)` карточка переключалась в колоночный режим `flex-direction: column; text-align: center;`. При этом `.gift-title-row` (содержащий название «Дар Дракона» и бейдж «БЕСПЛАТНО») являлся flex-контейнером со стандартным `justify-content: flex-start`, из-за чего заголовок прижимался к левому краю, в то время как иконка сверху, описание и кнопка забора кристаллов центрировались.
+     * **Синхронизация брейкпоинта**: Брейкпоинт мобильной адаптации в `BankModal.svelte` синхронизирован с `PremiumModal.svelte` до `@media (max-width: 680px)`.
+     * **Полная центровка элементов**: Добавлено правило `.gift-title-row { justify-content: center; }`, а также задано явное центрирование для блока действия (`.gift-action`), кнопки (`.claim-gift-btn { max-width: 220px; justify-content: center; }`) и таймера кулдауна (`.gift-cooldown-badge { margin: 0 auto; }`).
 
 ---
 

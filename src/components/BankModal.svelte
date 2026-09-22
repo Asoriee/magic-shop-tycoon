@@ -1242,7 +1242,7 @@
     }
 
     /* Mobile adjustments */
-    @media (max-width: 520px) {
+    @media (max-width: 680px) {
         .starter-card-body {
             flex-direction: column;
             text-align: center;
@@ -1285,6 +1285,31 @@
         .dragon-gift-card {
             flex-direction: column;
             text-align: center;
+            gap: 10px;
+            padding: 14px 12px;
+        }
+        .gift-info {
+            width: 100%;
+        }
+        .gift-title-row {
+            justify-content: center;
+        }
+        .gift-desc {
+            text-align: center;
+            margin: 0;
+        }
+        .gift-action {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .claim-gift-btn {
+            width: 100%;
+            max-width: 220px;
+            justify-content: center;
+        }
+        .gift-cooldown-badge {
+            margin: 0 auto;
         }
     }
 </style>

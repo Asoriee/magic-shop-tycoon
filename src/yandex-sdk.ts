@@ -6,6 +6,7 @@ import {
     vipExpiresAt, 
     vipLastDailyClaimDate, 
     activateVip30Days, 
+    applyStarterPackReward, 
     ingredientsCount, 
     potionsCount, 
     unlockedRecipes, 
@@ -213,6 +214,9 @@ export async function checkPurchases(): Promise<number> {
             } else if (purchase.productID === 'pack_crystals_1000') {
                 crystals.update(n => n + 1250);
                 processed = true;
+            } else if (purchase.productID === 'starter_pack') {
+                applyStarterPackReward();
+                processed = true;
             } else if (purchase.productID === 'no_ads' || purchase.productID === 'disable_ads' || purchase.productID === 'remove_ads' || purchase.productID === 'ad_block') {
                 gameStore.update(s => ({ ...s, hasNoAds: true }));
                 processed = true;
@@ -262,6 +266,9 @@ export async function purchaseItem(itemId: string): Promise<void> {
         } else if (itemId === 'vip_status' || itemId === 'vip_month') {
             activateVip30Days();
             saveGame();
+        } else if (itemId === 'starter_pack') {
+            applyStarterPackReward();
+            saveGame();
         }
         return;
     }
@@ -295,6 +302,15 @@ export async function purchaseItem(itemId: string): Promise<void> {
             await payments.consumePurchase(purchase.purchaseToken);
         } catch (e) {
             console.warn('Failed to consume purchase', e);
+        }
+    } else if (itemId === 'starter_pack') {
+        applyStarterPackReward();
+        saveGame();
+        await flushCloudSave();
+        try {
+            await payments.consumePurchase(purchase.purchaseToken);
+        } catch (e) {
+            console.warn('Failed to consume starter_pack purchase', e);
         }
     } else if (itemId === 'vip_status' || itemId === 'vip_month') {
         activateVip30Days();

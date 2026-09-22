@@ -67,6 +67,8 @@
                 showMessage($t('treasury.msgCrystals300'));
             } else if (itemId === 'pack_crystals_1000') {
                 showMessage($t('treasury.msgCrystals1000'));
+            } else if (itemId === 'starter_pack') {
+                showMessage($t('treasury.msgStarterPackSuccess'));
             } else if (itemId === 'vip_status' || itemId === 'vip_month') {
                 showMessage($t('treasury.msgVipSuccess'));
             }
@@ -153,6 +155,87 @@
         {/if}
 
         <div class="treasury-container">
+
+            <!-- 0. STARTER PACK (Limited Beginner Offer) -->
+            {#if !$gameStore?.hasBoughtStarterPack}
+                <div class="starter-pack-card">
+                    <div class="starter-glow"></div>
+                    <div class="starter-ribbon-badge">
+                        <span class="ribbon-disc">{$t('treasury.starterBadge')}</span>
+                        <span class="ribbon-val">{$t('treasury.starterValue')}</span>
+                    </div>
+
+                    <div class="starter-card-body">
+                        <div class="starter-visual-box">
+                            <svg viewBox="0 0 74 74" width="68" height="68" class="starter-chest-svg">
+                                <defs>
+                                    <radialGradient id="starterAura" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="#ffeaa7" stop-opacity="0.9"/>
+                                        <stop offset="50%" stop-color="#a855f7" stop-opacity="0.45"/>
+                                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                                    </radialGradient>
+                                    <linearGradient id="starterGoldStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffeaa7"/>
+                                        <stop offset="50%" stop-color="#f59e0b"/>
+                                        <stop offset="100%" stop-color="#d97706"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="37" cy="37" r="34" fill="url(#starterAura)"/>
+                                <!-- Magical Chest -->
+                                <rect x="12" y="34" width="50" height="28" rx="4" fill="#2d134d" stroke="url(#starterGoldStroke)" stroke-width="1.8"/>
+                                <path d="M10 34 Q37 14 64 34 Z" fill="#441a75" stroke="url(#starterGoldStroke)" stroke-width="1.8"/>
+                                <!-- Huge Blue Core Gem Emerging -->
+                                <polygon points="37,8 47,24 37,38 27,24" fill="#38bdf8" stroke="#bae6fd" stroke-width="1.5"/>
+                                <polygon points="37,8 37,38 27,24" fill="#0284c7"/>
+                                <polygon points="37,8 47,24 37,38" fill="#7dd3fc"/>
+                                <!-- Sparkles -->
+                                <polygon points="18,16 20,21 25,23 20,25 18,30 16,25 11,23 16,21" fill="#fde047"/>
+                                <polygon points="56,18 57,22 61,23 57,24 56,28 55,24 51,23 55,22" fill="#fde047"/>
+                                <circle cx="37" cy="48" r="3.5" fill="#f59e0b" stroke="#fff" stroke-width="0.8"/>
+                            </svg>
+                        </div>
+
+                        <div class="starter-info-box">
+                            <div class="starter-heading-row">
+                                <h3 class="starter-title">{$t('treasury.starterTitle')}</h3>
+                            </div>
+                            <p class="starter-desc">{$t('treasury.starterDesc')}</p>
+
+                            <ul class="starter-perks-list">
+                                <li>
+                                    <ResourceIcon type="crystals" size={15} />
+                                    <span>{@html $t('treasury.starterPerkCrystals')}</span>
+                                </li>
+                                <li>
+                                    <ResourceIcon type="vip" size={15} />
+                                    <span>{@html $t('treasury.starterPerkVip')}</span>
+                                </li>
+                                <li>
+                                    <ResourceIcon type="gold" size={15} />
+                                    <span>{@html $t('treasury.starterPerkGold')}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="starter-action-box">
+                            <button 
+                                type="button" 
+                                class="buy-starter-btn" 
+                                on:click={() => handleBuy('starter_pack')} 
+                                disabled={isPurchasing}
+                                title="{$t('treasury.starterBuyCta')}"
+                            >
+                                {#if isPurchasing}
+                                    <span class="btn-spinner"></span>
+                                {:else}
+                                    <span class="starter-yan-price">{getProductDisplayPrice('starter_pack', `69 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
+                                    <span class="starter-cta-label">{$t('treasury.starterBuyCta')}</span>
+                                {/if}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {/if}
 
             <!-- 1. VIP Flagship Card (30 days pass) -->
             <div class="vip-card" class:vip-active={$isVip}>
@@ -537,8 +620,19 @@
         background: none;
         border: none;
         color: #b2bec3;
-        font-size: 1.4rem;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
         cursor: pointer;
+        transition: color 0.15s, background 0.15s;
+    }
+
+    .close-btn:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
     }
 
     .purchase-message {
@@ -565,6 +659,153 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+    }
+
+    /* 0. Starter Pack Card */
+    .starter-pack-card {
+        position: relative;
+        background: linear-gradient(135deg, rgba(68, 26, 117, 0.95) 0%, rgba(32, 10, 62, 0.98) 100%);
+        border: 2px solid #f59e0b;
+        border-radius: 18px;
+        padding: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 24px rgba(245, 158, 11, 0.22), 0 0 16px rgba(168, 85, 247, 0.25);
+        transition: transform 0.2s, box-shadow 0.2s;
+        animation: starterPulse 3.5s infinite ease-in-out;
+    }
+
+    @keyframes starterPulse {
+        0%, 100% {
+            box-shadow: 0 6px 22px rgba(245, 158, 11, 0.22), 0 0 14px rgba(168, 85, 247, 0.25);
+        }
+        50% {
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.42), 0 0 22px rgba(241, 196, 15, 0.4);
+        }
+    }
+
+    .starter-ribbon-badge {
+        position: absolute;
+        top: 16px;
+        right: -35px;
+        width: 140px;
+        background: linear-gradient(135deg, #e74c3c, #d63031);
+        color: #ffffff;
+        padding: 4px 0;
+        font-size: 0.62rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transform: rotate(45deg);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.1;
+        z-index: 5;
+        pointer-events: none;
+    }
+
+    .ribbon-disc {
+        font-size: 0.74rem;
+        color: #ffeaa7;
+    }
+
+    .ribbon-val {
+        font-size: 0.58rem;
+        opacity: 0.95;
+    }
+
+    .starter-card-body {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .starter-visual-box {
+        flex-shrink: 0;
+    }
+
+    .starter-info-box {
+        flex: 1;
+    }
+
+    .starter-title {
+        margin: 0 0 4px;
+        font-size: 1.08rem;
+        font-weight: 800;
+        color: #ffeaa7;
+        letter-spacing: 0.2px;
+    }
+
+    .starter-desc {
+        margin: 0 0 8px;
+        font-size: 0.78rem;
+        color: #dcdde1;
+        line-height: 1.25;
+    }
+
+    .starter-perks-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .starter-perks-list li {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.78rem;
+        color: #f1f2f6;
+    }
+
+    .starter-action-box {
+        flex-shrink: 0;
+    }
+
+    .buy-starter-btn {
+        min-height: 48px;
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
+        border: 1.5px solid #fffbeb;
+        border-radius: 12px;
+        color: #1a0a2a;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.45);
+        transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .buy-starter-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    }
+
+    .buy-starter-btn:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+    .starter-yan-price {
+        font-size: 1.05rem;
+        font-weight: 900;
+        line-height: 1.1;
+    }
+
+    .starter-cta-label {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        opacity: 0.9;
     }
 
     /* 1. VIP Card */
@@ -957,6 +1198,7 @@
 
     .buy-pack-btn {
         width: 100%;
+        min-height: 44px;
         margin-top: auto;
         background: linear-gradient(135deg, #0984e3, #74b9ff);
         border: none;
@@ -966,6 +1208,9 @@
         font-size: 0.92rem;
         font-weight: 800;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: filter 0.15s, transform 0.15s;
     }
 
@@ -998,6 +1243,22 @@
 
     /* Mobile adjustments */
     @media (max-width: 520px) {
+        .starter-card-body {
+            flex-direction: column;
+            text-align: center;
+        }
+        .starter-heading-row {
+            justify-content: center;
+        }
+        .starter-action-box {
+            width: 100%;
+        }
+        .buy-starter-btn {
+            width: 100%;
+        }
+        .starter-perks-list li {
+            justify-content: center;
+        }
         .vip-content {
             flex-direction: column;
             text-align: center;

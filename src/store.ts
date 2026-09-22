@@ -251,6 +251,7 @@ export interface GameState {
     artifactOvercharge?: Record<number, number>;
     hasRelicEternityEye?: boolean;
     hasNoAds?: boolean;
+    hasBoughtStarterPack?: boolean;
 }
 
 // ============================================================
@@ -2075,7 +2076,8 @@ const defaultState: GameState = {
     hasCreatedShortcut: false,
     artifactOvercharge: {},
     hasRelicEternityEye: false,
-    hasNoAds: false
+    hasNoAds: false,
+    hasBoughtStarterPack: false
 };
 
 // --- Premium stores ---
@@ -2122,13 +2124,31 @@ export const isVipDailyRewardAvailable = derived([_isVipDerived, vipLastDailyCla
 });
 
 export function activateVip30Days(): void {
+    activateVipDays(30, 50);
+}
+
+export function activateVipDays(days: number, instantCrystals: number = 0): void {
     const now = Date.now();
     const currentExpiry = get(vipExpiresAt) || 0;
     const base = currentExpiry > now ? currentExpiry : now;
-    const newExpiry = base + 30 * 24 * 60 * 60 * 1000;
+    const newExpiry = base + days * 24 * 60 * 60 * 1000;
     vipExpiresAt.set(newExpiry);
-    // Instant bonus: +50 crystals upon activation or renewal
-    crystals.update(c => c + 50);
+    if (instantCrystals > 0) {
+        crystals.update(c => c + instantCrystals);
+    }
+}
+
+export function applyStarterPackReward(): void {
+    // 1. +150 Crystals
+    crystals.update(c => c + 150);
+    // 2. 3 Days of VIP
+    activateVipDays(3);
+    // 3. 30 Minutes of idle gold (or minimum 25,000)
+    const idle = get(stableIdleIncome) || 0;
+    const bonusGold = Math.max(25000, Math.round(idle * 1800));
+    gameStore.addGold(bonusGold);
+    // 4. Mark as purchased
+    gameStore.markStarterPackBought();
 }
 
 export function claimVipDailyReward(): boolean {
@@ -2870,6 +2890,7 @@ function createGameStore() {
         claimDragonGift: () => update(state => ({ ...state, lastDragonGiftTime: Date.now() })),
         claimFreeTimeSkip: () => update(state => ({ ...state, lastFreeTimeSkipTime: Date.now() })),
         setActiveCompanion: (petId: string) => update(state => ({ ...state, activeCompanionId: petId })),
+        markStarterPackBought: () => update(state => ({ ...state, hasBoughtStarterPack: true })),
         markGuideAsViewed: (guideId: string) => update(state => {
             const existing = state.viewedGuides || [];
             if (existing.includes(guideId)) return state;

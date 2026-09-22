@@ -30,7 +30,6 @@
     // Multi-open toggle: 1 or 5 chests
     let openMultiplier: 1 | 5 = 1;
 
-    // Phase: 'shop' | 'animating' | 'loot'
     let phase: 'shop' | 'animating' | 'loot' = 'shop';
     let currentResult: ChestResult | null = null;
     let droppedItems: ChestDropItem[] = [];
@@ -1144,6 +1143,7 @@
         padding: 24px;
         max-height: 90vh;
         overflow-y: auto;
+        overflow-x: hidden;
         width: 100%;
         max-width: 620px;
         box-sizing: border-box;
@@ -1214,9 +1214,10 @@
 
     .loot-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
         gap: 10px;
         width: 100%;
+        box-sizing: border-box;
     }
 
     .loot-card {
@@ -1232,6 +1233,9 @@
         gap: 6px;
         box-shadow: var(--glow, none);
         transition: transform 0.2s;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .loot-card:hover {
@@ -1269,15 +1273,23 @@
         font-weight: 700;
         color: #ffffff;
         line-height: 1.2;
-        max-width: 90px;
+        width: 100%;
+        max-width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        box-sizing: border-box;
     }
 
     .loot-rarity, .loot-detail {
         font-size: 0.7rem;
         font-weight: 700;
+        width: 100%;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: border-box;
     }
 
     .gold-text {
@@ -1323,10 +1335,42 @@
         box-shadow: 0 1px 0 #00886c;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
+        .overlay {
+            padding: 0 !important;
+        }
+
+        .cinematic-overlay {
+            padding: 0 !important;
+        }
+
         .modal {
             padding: 16px 12px;
             max-height: 94vh;
+        }
+
+        .loot-stage {
+            padding: 14px 8px 24px;
+            max-height: 100dvh;
+            height: 100%;
+            gap: 10px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .loot-header {
+            gap: 6px;
+        }
+
+        .loot-title {
+            font-size: 1.25rem;
+        }
+
+        .summary-chip {
+            padding: 3px 8px;
+            font-size: 0.74rem;
+            gap: 4px;
         }
 
         .chest-card {
@@ -1342,7 +1386,82 @@
         }
 
         .loot-grid {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .loot-card {
+            padding: 8px 3px;
+            border-radius: 10px;
+            gap: 4px;
+            min-width: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .loot-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .loot-icon :global(svg) {
+            width: 28px;
+            height: 28px;
+        }
+
+        .loot-name {
+            font-size: 0.7rem;
+            width: 100%;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            line-height: 1.15;
+        }
+
+        .loot-rarity, .loot-detail {
+            font-size: 0.62rem;
+            width: 100%;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            line-height: 1.15;
+        }
+
+        .card-count-badge {
+            top: 3px;
+            right: 3px;
+            font-size: 0.58rem;
+            padding: 1px 3px;
+            border-radius: 4px;
+        }
+
+        .collect-btn {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            width: 100%;
+            max-width: 280px;
+            justify-content: center;
+            padding: 11px 20px;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            margin-bottom: max(6px, env(safe-area-inset-bottom));
+        }
+    }
+
+    @media (max-width: 340px) {
+        .loot-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
         }
     }
 </style>

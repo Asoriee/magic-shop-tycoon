@@ -252,6 +252,16 @@ export interface GameState {
     hasRelicEternityEye?: boolean;
     hasNoAds?: boolean;
     hasBoughtStarterPack?: boolean;
+    luckyWheel?: LuckyWheelState;
+}
+
+export interface LuckyWheelState {
+    lastFreeSpinTimestamp: number;
+    adSpinsCount: number;
+    lastAdSpinTimestamp: number;
+    adSpinsDate: string;
+    pityProgress: number;
+    totalSpins: number;
 }
 
 // ============================================================
@@ -2077,7 +2087,15 @@ const defaultState: GameState = {
     artifactOvercharge: {},
     hasRelicEternityEye: false,
     hasNoAds: false,
-    hasBoughtStarterPack: false
+    hasBoughtStarterPack: false,
+    luckyWheel: {
+        lastFreeSpinTimestamp: 0,
+        adSpinsCount: 0,
+        lastAdSpinTimestamp: 0,
+        adSpinsDate: '',
+        pityProgress: 0,
+        totalSpins: 0
+    }
 };
 
 // --- Premium stores ---
@@ -3930,4 +3948,398 @@ export function unlockRandomRecipe(preferRarity?: Rarity): string | null {
     const recipe = pickRandom(candidates);
     unlockedRecipes.update(r => ({ ...r, [recipe.id]: 3 }));
     return recipe.id;
+}
+
+// ============================================================
+// MONETIZATION: ARCHMAGE LUCKY WHEEL (КОЛЕСО ФОРТУНЫ АРХИМАГА)
+// ============================================================
+
+export interface LuckyWheelSector {
+    index: number;
+    titleKey: string;
+    descriptionKey: string;
+    type: 'gold' | 'crystals' | 'frenzy' | 'chest' | 'reagents' | 'timewarp' | 'jackpot';
+    weight: number;
+    badge: string;
+    amount?: number;
+    chestType?: ChestType;
+    iconSvg: string;
+}
+
+export interface LuckyWheelReward {
+    sectorIndex: number;
+    title: string;
+    description: string;
+    type: 'gold' | 'crystals' | 'frenzy' | 'chest' | 'reagents' | 'timewarp' | 'jackpot';
+    goldAmount?: number;
+    crystalAmount?: number;
+    chestResult?: ChestResult;
+    reagentsCount?: number;
+    isPityBonus?: boolean;
+    pityChestResult?: ChestResult;
+}
+
+export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
+    {
+        index: 0,
+        titleKey: 'luckyWheel.sectorGoldTitle',
+        descriptionKey: 'luckyWheel.sectorGoldDesc',
+        type: 'gold',
+        weight: 250, // 25%
+        badge: '30m',
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <circle cx="20" cy="22" r="14" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+            <circle cx="20" cy="22" r="10" stroke="#fef3c7" stroke-width="1.5" stroke-dasharray="3 2"/>
+            <text x="20" y="27" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">G</text>
+            <polygon points="12,10 14,14 18,15 14,17 12,21 10,17 6,15 10,14" fill="#fef08a"/>
+            <polygon points="28,8 29,11 32,12 29,13 28,16 27,13 24,12 27,11" fill="#fef08a"/>
+        </svg>`
+    },
+    {
+        index: 1,
+        titleKey: 'luckyWheel.sectorCrystals3Title',
+        descriptionKey: 'luckyWheel.sectorCrystals3Desc',
+        type: 'crystals',
+        weight: 200, // 20%
+        badge: '+3💎',
+        amount: 3,
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <polygon points="20,6 30,16 20,34 10,16" fill="#38bdf8" stroke="#0284c7" stroke-width="1.8"/>
+            <polygon points="20,6 30,16 20,22" fill="#7dd3fc"/>
+            <polygon points="20,6 10,16 20,22" fill="#bae6fd"/>
+            <circle cx="20" cy="18" r="3" fill="#fff" opacity="0.8"/>
+        </svg>`
+    },
+    {
+        index: 2,
+        titleKey: 'luckyWheel.sectorFrenzyTitle',
+        descriptionKey: 'luckyWheel.sectorFrenzyDesc',
+        type: 'frenzy',
+        weight: 180, // 18%
+        badge: 'x3 (3м)',
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <path d="M16 8 L24 8 L26 16 L31 28 Q33 34 20 34 Q7 34 9 28 L14 16 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
+            <rect x="14" y="4" width="12" height="4" rx="1.5" fill="#f97316"/>
+            <path d="M18 20 Q20 14 24 22 Q22 28 18 20 Z" fill="#fef08a"/>
+            <circle cx="20" cy="27" r="2" fill="#fff"/>
+        </svg>`
+    },
+    {
+        index: 3,
+        titleKey: 'luckyWheel.sectorChestTitle',
+        descriptionKey: 'luckyWheel.sectorChestDesc',
+        type: 'chest',
+        weight: 140, // 14%
+        badge: 'Сундук',
+        chestType: 'alchemist',
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <rect x="6" y="16" width="28" height="18" rx="3" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+            <path d="M6 16 Q20 8 34 16 Z" fill="#0369a1" stroke="#38bdf8" stroke-width="1.8"/>
+            <circle cx="20" cy="24" r="4" fill="#f59e0b" stroke="#fff" stroke-width="1"/>
+            <line x1="6" y1="16" x2="34" y2="16" stroke="#fef08a" stroke-width="1.5"/>
+        </svg>`
+    },
+    {
+        index: 4,
+        titleKey: 'luckyWheel.sectorReagentsTitle',
+        descriptionKey: 'luckyWheel.sectorReagentsDesc',
+        type: 'reagents',
+        weight: 100, // 10%
+        badge: '+5 трав',
+        amount: 5,
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <path d="M20 34 Q8 26 14 12 Q20 8 20 8 Q20 8 20 12 Q26 26 20 34 Z" fill="#10b981" stroke="#047857" stroke-width="1.8"/>
+            <path d="M20 34 L20 14" stroke="#a7f3d0" stroke-width="1.5"/>
+            <path d="M20 22 Q24 18 26 20" stroke="#a7f3d0" stroke-width="1.2"/>
+            <path d="M20 26 Q16 22 14 24" stroke="#a7f3d0" stroke-width="1.2"/>
+        </svg>`
+    },
+    {
+        index: 5,
+        titleKey: 'luckyWheel.sectorTimeWarpTitle',
+        descriptionKey: 'luckyWheel.sectorTimeWarpDesc',
+        type: 'timewarp',
+        weight: 70, // 7%
+        badge: '1 час',
+        amount: 1,
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <circle cx="20" cy="20" r="14" fill="#6366f1" stroke="#4338ca" stroke-width="2"/>
+            <circle cx="20" cy="20" r="11" fill="#1e1b4b"/>
+            <line x1="20" y1="20" x2="20" y2="13" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            <line x1="20" y1="20" x2="25" y2="20" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="20" cy="20" r="2.5" fill="#fef08a"/>
+        </svg>`
+    },
+    {
+        index: 6,
+        titleKey: 'luckyWheel.sectorCrystals10Title',
+        descriptionKey: 'luckyWheel.sectorCrystals10Desc',
+        type: 'crystals',
+        weight: 45, // 4.5%
+        badge: '+10💎',
+        amount: 10,
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <polygon points="12,18 20,4 28,18 20,36" fill="#a855f7" stroke="#7e22ce" stroke-width="1.8"/>
+            <polygon points="20,4 28,18 20,24" fill="#c084fc"/>
+            <polygon points="20,4 12,18 20,24" fill="#e9d5ff"/>
+            <polygon points="6,20 12,10 18,20 12,30" fill="#38bdf8" opacity="0.8"/>
+            <polygon points="22,20 28,10 34,20 28,30" fill="#f59e0b" opacity="0.8"/>
+        </svg>`
+    },
+    {
+        index: 7,
+        titleKey: 'luckyWheel.sectorJackpotTitle',
+        descriptionKey: 'luckyWheel.sectorJackpotDesc',
+        type: 'jackpot',
+        weight: 15, // 1.5%
+        badge: 'ДЖЕКПОТ',
+        amount: 50,
+        chestType: 'astral',
+        iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
+            <circle cx="20" cy="20" r="16" fill="url(#jackpotAura)" stroke="#f59e0b" stroke-width="2"/>
+            <polygon points="20,5 24,14 34,15 26,22 29,32 20,26 11,32 14,22 6,15 16,14" fill="#fef08a" stroke="#d97706" stroke-width="1.2"/>
+            <circle cx="20" cy="20" r="4" fill="#fff"/>
+        </svg>`
+    }
+];
+
+/**
+ * Weighted random selector for Lucky Wheel sectors (Total Weight = 1000)
+ */
+export function rollLuckyWheelSectorIndex(): number {
+    const roll = Math.random() * 1000;
+    let accumulated = 0;
+    for (const sector of LUCKY_WHEEL_SECTORS) {
+        accumulated += sector.weight;
+        if (roll < accumulated) {
+            return sector.index;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Check whether the daily free spin is available (24h cooldown)
+ */
+export function canLuckyWheelFreeSpin(): boolean {
+    const lw = get(gameStore).luckyWheel;
+    if (!lw || !lw.lastFreeSpinTimestamp) return true;
+    return Date.now() - lw.lastFreeSpinTimestamp >= 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Get remaining cooldown in seconds for the free spin
+ */
+export function timeUntilLuckyWheelFreeSpinSec(): number {
+    const lw = get(gameStore).luckyWheel;
+    if (!lw || !lw.lastFreeSpinTimestamp) return 0;
+    const elapsed = Date.now() - lw.lastFreeSpinTimestamp;
+    const cooldownMs = 24 * 60 * 60 * 1000;
+    return Math.max(0, Math.ceil((cooldownMs - elapsed) / 1000));
+}
+
+/**
+ * Check whether a rewarded ad spin is available (max 5 per day, 30 min cooldown)
+ */
+export function canLuckyWheelAdSpin(): { allowed: boolean; remainingSec: number; spinsLeftToday: number } {
+    const lw = get(gameStore).luckyWheel || {
+        lastFreeSpinTimestamp: 0,
+        adSpinsCount: 0,
+        lastAdSpinTimestamp: 0,
+        adSpinsDate: '',
+        pityProgress: 0,
+        totalSpins: 0
+    };
+    const today = new Date().toISOString().split('T')[0];
+    const adCount = lw.adSpinsDate === today ? (lw.adSpinsCount || 0) : 0;
+    const spinsLeftToday = Math.max(0, 5 - adCount);
+    const elapsedSinceLastAd = Date.now() - (lw.lastAdSpinTimestamp || 0);
+    const cooldownMs = 30 * 60 * 1000;
+    const remainingSec = Math.max(0, Math.ceil((cooldownMs - elapsedSinceLastAd) / 1000));
+    const allowed = spinsLeftToday > 0 && remainingSec === 0;
+    return { allowed, remainingSec, spinsLeftToday };
+}
+
+/**
+ * Derived store: whether a free spin or ad spin is currently available (for HUD notification badge)
+ */
+export const isLuckyWheelReady = derived(gameStore, $state => {
+    const lw = $state?.luckyWheel;
+    if (!lw || !lw.lastFreeSpinTimestamp) return true;
+    const now = Date.now();
+    // 1. Free spin ready?
+    if (now - lw.lastFreeSpinTimestamp >= 24 * 3600 * 1000) return true;
+    // 2. Ad spin ready?
+    const today = new Date().toISOString().split('T')[0];
+    const adCount = lw.adSpinsDate === today ? (lw.adSpinsCount || 0) : 0;
+    if (adCount < 5 && now - (lw.lastAdSpinTimestamp || 0) >= 30 * 60 * 1000) return true;
+    return false;
+});
+
+/**
+ * Distribute reward for a given sector
+ */
+function applySectorReward(sector: LuckyWheelSector): {
+    goldWon?: number;
+    crystalsWon?: number;
+    chestRes?: ChestResult;
+    reagentsCount?: number;
+} {
+    if (sector.type === 'gold') {
+        const idle = get(stableIdleIncome) || 0;
+        const goldWon = Math.max(5000, Math.round(idle * 1800)); // 30 min of idle income
+        gameStore.addGold(goldWon);
+        return { goldWon };
+    }
+    if (sector.type === 'crystals') {
+        const amt = sector.amount || 3;
+        crystals.update(c => c + amt);
+        return { crystalsWon: amt };
+    }
+    if (sector.type === 'frenzy') {
+        // Frenzy: +200% gold for 3 minutes (x3 profit)
+        gameStore.update(s => ({
+            ...s,
+            activeBuffs: [
+                ...s.activeBuffs,
+                {
+                    potionId: 'frenzy_lucky_wheel',
+                    expiresAt: Date.now() + 3 * 60 * 1000,
+                    effect: 'gold_multiplier',
+                    value: 2.0
+                }
+            ]
+        }));
+        return {};
+    }
+    if (sector.type === 'chest') {
+        const chestRes = openChest(sector.chestType || 'alchemist');
+        return { chestRes };
+    }
+    if (sector.type === 'reagents') {
+        const addCount = sector.amount || 5;
+        ingredientsCount.update(counts => {
+            const next = { ...counts };
+            for (const ing of AVAILABLE_INGREDIENTS) {
+                next[ing.id] = (next[ing.id] ?? 0) + addCount;
+            }
+            return next;
+        });
+        return { reagentsCount: addCount };
+    }
+    if (sector.type === 'timewarp') {
+        useFreeTimeSkip(1);
+        return {};
+    }
+    if (sector.type === 'jackpot') {
+        crystals.update(c => c + 50);
+        const chestRes = openChest('astral');
+        return { crystalsWon: 50, chestRes };
+    }
+    return {};
+}
+
+/**
+ * Execute a Lucky Wheel spin session.
+ * Handles single spins ('free', 'ad', 'crystal') and batch spins ('crystal10').
+ * Advances the Pity Meter (0/10) and triggers the guaranteed Archmage bonus chest on 10/10.
+ */
+export function executeLuckyWheelSpin(
+    mode: 'free' | 'ad' | 'crystal' | 'crystal10',
+    preRolledSectorIndex?: number
+): { success: boolean; rewards: LuckyWheelReward[]; reason?: string } {
+    const state = get(gameStore);
+    const lw = state.luckyWheel || {
+        lastFreeSpinTimestamp: 0,
+        adSpinsCount: 0,
+        lastAdSpinTimestamp: 0,
+        adSpinsDate: '',
+        pityProgress: 0,
+        totalSpins: 0
+    };
+    const today = new Date().toISOString().split('T')[0];
+    const now = Date.now();
+
+    // 1. Validation & Payment
+    if (mode === 'free') {
+        if (!canLuckyWheelFreeSpin()) {
+            return { success: false, rewards: [], reason: translate('luckyWheel.freeCooldownWait') };
+        }
+    } else if (mode === 'ad') {
+        const adCheck = canLuckyWheelAdSpin();
+        if (!adCheck.allowed) {
+            return { success: false, rewards: [], reason: translate('luckyWheel.adCooldownWait') };
+        }
+    } else if (mode === 'crystal') {
+        if (get(crystals) < 10) {
+            return { success: false, rewards: [], reason: translate('common.notEnoughCrystals') };
+        }
+        crystals.update(c => c - 10);
+    } else if (mode === 'crystal10') {
+        if (get(crystals) < 90) {
+            return { success: false, rewards: [], reason: translate('common.notEnoughCrystals') };
+        }
+        crystals.update(c => c - 90);
+    }
+
+    const spinCount = mode === 'crystal10' ? 10 : 1;
+    const rewards: LuckyWheelReward[] = [];
+    let currentPity = lw.pityProgress || 0;
+
+    for (let i = 0; i < spinCount; i++) {
+        // Roll sector (or use pre-rolled on single spin if provided)
+        const sectorIndex = (i === 0 && typeof preRolledSectorIndex === 'number') 
+            ? preRolledSectorIndex 
+            : rollLuckyWheelSectorIndex();
+        const sector = LUCKY_WHEEL_SECTORS[sectorIndex];
+
+        // Apply primary reward
+        const outcome = applySectorReward(sector);
+
+        currentPity += 1;
+        let isPityBonus = false;
+        let pityChestResult: ChestResult | undefined;
+
+        // Pity guarantee trigger at 10 spins:
+        if (currentPity >= 10) {
+            isPityBonus = true;
+            pityChestResult = openChest('astral'); // Bonus Astral / Archmage chest!
+            currentPity = 0;
+        }
+
+        rewards.push({
+            sectorIndex,
+            title: translate(sector.titleKey),
+            description: translate(sector.descriptionKey),
+            type: sector.type,
+            goldAmount: outcome.goldWon,
+            crystalAmount: outcome.crystalsWon,
+            chestResult: outcome.chestRes,
+            reagentsCount: outcome.reagentsCount,
+            isPityBonus,
+            pityChestResult
+        });
+    }
+
+    // 2. Update state in store
+    gameStore.update(s => {
+        const prevLw = s.luckyWheel || lw;
+        const nextAdCount = mode === 'ad'
+            ? (prevLw.adSpinsDate === today ? (prevLw.adSpinsCount || 0) + 1 : 1)
+            : (prevLw.adSpinsDate === today ? (prevLw.adSpinsCount || 0) : 0);
+
+        return {
+            ...s,
+            luckyWheel: {
+                lastFreeSpinTimestamp: mode === 'free' ? now : (prevLw.lastFreeSpinTimestamp || 0),
+                adSpinsCount: nextAdCount,
+                lastAdSpinTimestamp: mode === 'ad' ? now : (prevLw.lastAdSpinTimestamp || 0),
+                adSpinsDate: today,
+                pityProgress: currentPity,
+                totalSpins: (prevLw.totalSpins || 0) + spinCount
+            }
+        };
+    });
+
+    return { success: true, rewards };
 }

@@ -19,6 +19,7 @@
         ingredientsCount,
         potionsCount,
         unlockedRecipes,
+        isLuckyWheelReady,
         type Potion
     } from './store';
     import { 
@@ -45,6 +46,7 @@
     import DailyCalendarModal from './components/DailyCalendarModal.svelte';
     import LeaderboardModal from './components/LeaderboardModal.svelte';
     import MechanicGuideModal from './components/MechanicGuideModal.svelte';
+    import LuckyWheelModal from './components/LuckyWheelModal.svelte';
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import { isSoundMuted, toggleSound } from './audio';
@@ -56,6 +58,7 @@
     let isCityOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'city';
     let isPremiumOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'premium';
     let isDailyCalendarOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'calendar';
+    let isLuckyWheelOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'wheel';
 
     $: isCalendarReady = isCalendarRewardReady($gameStore);
 
@@ -343,6 +346,7 @@
             if (urlModal === 'premium') isPremiumOpen = true;
             if (urlModal === 'leaderboard') isLeaderboardOpen = true;
             if (urlModal === 'calendar') isDailyCalendarOpen = true;
+            if (urlModal === 'wheel') isLuckyWheelOpen = true;
         }
 
         await tick();
@@ -551,6 +555,28 @@
                     <circle cx="8" cy="17" r="1.4" fill="#a29bfe"/>
                     <circle cx="12" cy="17" r="1.4" fill="#74b9ff"/>
                     <circle cx="16" cy="17" r="1.4" fill="#ffd32a"/>
+                </svg>
+            </button>
+
+            <!-- Archmage Lucky Wheel Button -->
+            <button 
+                type="button" 
+                class="hud-icon-btn wheel-btn" 
+                title="{$t('luckyWheel.title')}" 
+                on:click={() => isLuckyWheelOpen = true}
+                aria-label="{$t('luckyWheel.title')}"
+            >
+                {#if $isLuckyWheelReady}
+                    <span class="wheel-notify-dot" title="{$t('luckyWheel.readyTooltip')}"></span>
+                {/if}
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="3 1.5"/>
+                    <circle cx="12" cy="12" r="6" stroke="#fbbf24" stroke-width="1.2"/>
+                    <line x1="12" y1="2" x2="12" y2="22" stroke="#f59e0b" stroke-width="1.2"/>
+                    <line x1="2" y1="12" x2="22" y2="12" stroke="#f59e0b" stroke-width="1.2"/>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" stroke="#f59e0b" stroke-width="1"/>
+                    <line x1="4.93" y1="19.07" x2="19.07" y2="4.93" stroke="#f59e0b" stroke-width="1"/>
+                    <circle cx="12" cy="12" r="2.5" fill="#f59e0b" stroke="#fff" stroke-width="0.8"/>
                 </svg>
             </button>
 
@@ -792,6 +818,11 @@
         onOpenVip={() => { isDailyCalendarOpen = false; isPremiumOpen = true; }} 
     />
 
+    <LuckyWheelModal 
+        isOpen={isLuckyWheelOpen} 
+        onClose={() => { isLuckyWheelOpen = false; }} 
+    />
+
     <LeaderboardModal 
         isOpen={isLeaderboardOpen} 
         onClose={() => { isLeaderboardOpen = false; }} 
@@ -851,6 +882,8 @@
         -webkit-backdrop-filter: blur(12px);
         box-sizing: border-box;
         gap: 12px;
+        width: 100%;
+        max-width: 100vw;
     }
 
     /* Shop Rank / Crest Box */
@@ -1107,6 +1140,22 @@
         border-radius: 50%;
         box-shadow: 0 0 8px #ffd32a;
         animation: pulseRewardDot 1.5s infinite ease-in-out;
+    }
+    .hud-icon-btn.wheel-btn:hover {
+        border-color: #f59e0b;
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+    }
+    .wheel-notify-dot {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        background: #f59e0b;
+        border: 1.5px solid #110722;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #f59e0b;
+        animation: pulseRewardDot 1.4s infinite ease-in-out;
     }
     .hud-icon-btn.leaderboard-btn:hover {
         border-color: #f1c40f;
@@ -1377,11 +1426,15 @@
             padding-left: max(6px, env(safe-area-inset-left));
             padding-right: max(6px, env(safe-area-inset-right));
             padding-bottom: 6px;
-            gap: 5px;
+            gap: 4px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
+            max-width: 100vw;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
             /* Mobile: disable expensive backdrop-filter — use solid bg instead */
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
@@ -1389,47 +1442,47 @@
         }
 
         .hud-crest-box {
-            padding: 3px 6px;
+            padding: 2px 6px;
             order: 1;
             flex-shrink: 1;
             min-width: 0;
-            max-width: 48%;
+            max-width: 44%;
         }
 
         .crest-tier {
-            font-size: 0.72rem;
+            font-size: 0.70rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .crest-bonus {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             flex-shrink: 0;
         }
 
         .hud-controls-cluster {
-            gap: 4px;
+            gap: 3px;
             order: 2;
             flex-shrink: 0;
         }
 
         .hud-icon-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 31px;
+            height: 31px;
+            border-radius: 9px;
         }
         .hud-icon-btn::after {
             inset: -4px;
         }
 
         .hud-icon-btn svg {
-            width: 17px;
-            height: 17px;
+            width: 15px;
+            height: 15px;
         }
 
         .lang-label {
-            font-size: 0.70rem;
+            font-size: 0.65rem;
             font-weight: 800;
         }
 
@@ -1549,11 +1602,44 @@
         }
     }
 
-    @media (max-width: 360px) {
+    @media (max-width: 390px) {
         .master-hud-panel {
             padding-left: max(4px, env(safe-area-inset-left));
             padding-right: max(4px, env(safe-area-inset-right));
+            gap: 3px;
+        }
+
+        .hud-crest-box {
+            padding: 2px 4px;
             gap: 4px;
+            max-width: 38%;
+        }
+
+        .crest-meta {
+            min-width: 0;
+        }
+
+        .crest-bonus {
+            display: none;
+        }
+
+        .hud-controls-cluster {
+            gap: 2.5px;
+        }
+
+        .hud-icon-btn {
+            width: 27px;
+            height: 27px;
+            border-radius: 7px;
+        }
+
+        .hud-icon-btn svg {
+            width: 13.5px;
+            height: 13.5px;
+        }
+
+        .lang-label {
+            font-size: 0.58rem;
         }
 
         .hud-chips-row {

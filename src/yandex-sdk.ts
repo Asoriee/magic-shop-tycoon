@@ -510,6 +510,16 @@ export async function loadGame(): Promise<void> {
             if (merged.hasNoAds === undefined) {
                 merged.hasNoAds = false;
             }
+            if (!merged.luckyWheel || typeof merged.luckyWheel !== 'object') {
+                merged.luckyWheel = {
+                    lastFreeSpinTimestamp: 0,
+                    adSpinsCount: 0,
+                    lastAdSpinTimestamp: 0,
+                    adSpinsDate: '',
+                    pityProgress: 0,
+                    totalSpins: 0
+                };
+            }
             
             // Restore missing upgrades from default state
             // Restore missing upgrades from default state with dynamic reactive getters

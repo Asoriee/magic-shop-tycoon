@@ -652,6 +652,21 @@
         box-sizing: border-box;
     }
 
+    /* Mobile: backdrop-filter is very expensive on WebKit/iOS — use solid bg */
+    @media (max-width: 768px) {
+        .spark-overlay {
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            background: rgba(8, 3, 18, 0.93);
+        }
+
+        .spark-ambient-glow {
+            /* filter:blur(40px) on mobile = expensive offscreen pass, just hide */
+            filter: none;
+            opacity: 0;
+        }
+    }
+
     .spark-ambient-glow {
         position: absolute;
         width: 320px;

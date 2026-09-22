@@ -21,9 +21,9 @@
             if (heat > 0) {
                 // Decay speed decreases with higher heat upgrade level
                 const decayAmount = Math.max(0.6, 2.2 - ($heatBonusLevel * 0.25));
-                heat = Math.max(0, heat - decayAmount);
+                heat = Math.max(0, heat - decayAmount * 2); // *2 to compensate 200ms interval
             }
-        }, 100);
+        }, 200); // 200ms instead of 100ms — halves DOM updates (5/sec vs 10/sec)
     });
 
     onDestroy(() => {
@@ -207,7 +207,6 @@
                     ry="{9 + (heat * 0.1)}" 
                     fill={heat > 85 ? "#ff7675" : "#f39c12"} 
                     opacity="{heat / 120}" 
-                    style="filter: blur(5px)"
                 />
             {/if}
             
@@ -367,13 +366,13 @@
 
     .alchemical-pedestal {
         transition: opacity 0.3s ease;
-        filter: drop-shadow(0 0 5px rgba(162, 155, 254, 0.35));
+        /* Animate opacity instead of filter:drop-shadow — opacity is compositor-only, filter causes repaint */
         animation: pulsePedestal 3.8s ease-in-out infinite alternate;
     }
 
     @keyframes pulsePedestal {
-        0% { filter: drop-shadow(0 0 4px rgba(162, 155, 254, 0.3)); }
-        100% { filter: drop-shadow(0 0 9px rgba(241, 196, 15, 0.55)); }
+        0%   { opacity: 0.5; }
+        100% { opacity: 1; }
     }
 
     .cauldron-container {

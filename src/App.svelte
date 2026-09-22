@@ -1376,6 +1376,10 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
+            /* Mobile: disable expensive backdrop-filter — use solid bg instead */
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            background: rgba(16, 7, 34, 0.97);
         }
 
         .hud-crest-box {
@@ -1484,6 +1488,10 @@
             gap: 2px;
             border-radius: 16px;
             box-sizing: border-box;
+            /* Mobile: disable expensive backdrop-filter — use solid bg instead */
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            background: rgba(13, 5, 28, 0.98);
         }
 
         .hub-portal-btn {

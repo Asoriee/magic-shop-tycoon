@@ -63,9 +63,10 @@
 
     function dropCoin() {
         if (!petNode) return;
-        // Cute jump
+        // Cute jump — overwrite:'auto' prevents conflict with the infinite hover tween
         gsap.to(petNode, {
             y: -18,
+            overwrite: 'auto',
             duration: 0.15,
             yoyo: true,
             repeat: 1,

@@ -2,8 +2,12 @@
     import { onMount, onDestroy } from 'svelte';
     import gsap from 'gsap';
 
+    // Detect mobile once at init — reduces GPU load on small screens
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
     // Generate star and bubble positions ONCE at module init
-    const stars = Array.from({ length: 200 }, () => ({
+    // Mobile: 80 stars / 12 bubbles — Desktop: 200 stars / 32 bubbles
+    const stars = Array.from({ length: isMobile ? 80 : 200 }, () => ({
         cx: Math.random() * 2000 - 500,
         cy: Math.random() * 2000 - 500,
         r: Math.random() * 2 + 0.5,
@@ -12,7 +16,7 @@
 
     const bubbleColors = ['#a29bfe', '#74b9ff', '#fd79a8', '#55efc4', '#ffeaa7'];
 
-    const bubbles = Array.from({ length: 32 }, () => ({
+    const bubbles = Array.from({ length: isMobile ? 12 : 32 }, () => ({
         cx: Math.random() * 1000,
         r: Math.random() * 12 + 8, // 8px to 20px radius for clear visibility
         color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
@@ -24,8 +28,8 @@
     let bubblesLayer: SVGGElement;
 
     onMount(() => {
-        // Layer 1: Stars slow rotation
-        if (starsLayer) {
+        // Layer 1: Stars slow rotation — skipped on mobile (200 nodes rotating = heavy repaint)
+        if (!isMobile && starsLayer) {
             gsap.to(starsLayer, {
                 rotation: 360,
                 duration: 200,
@@ -94,7 +98,8 @@
     <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
         <defs>
             <filter id="fog" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="30" />
+                <!-- Reduced stdDeviation on mobile to avoid CPU-heavy SVG blur -->
+                <feGaussianBlur stdDeviation={isMobile ? 8 : 20} />
             </filter>
             <filter id="bubbleGlow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
@@ -128,7 +133,8 @@
         <!-- Layer 3: Bubbles with glowing gradient and shine -->
         <g bind:this={bubblesLayer}>
             {#each bubbles as bubble}
-                <g class="bubble-group" filter="url(#bubbleGlow)">
+                <!-- On mobile, skip bubbleGlow filter (each filter = separate composited layer) -->
+                <g class="bubble-group" filter={isMobile ? undefined : "url(#bubbleGlow)"} >
                     <!-- Bubble body with translucent fill and vibrant colored stroke -->
                     <circle 
                         cx={bubble.cx}

@@ -43,7 +43,8 @@
 
     $: if (isOpen) {
         tick().then(() => {
-            if (overlayEl && modalEl) {
+            const isDemo = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).has('demo');
+            if (overlayEl && modalEl && !isDemo) {
                 gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25 });
                 gsap.fromTo(modalEl,
                     { y: 35, opacity: 0, scale: 0.94 },
@@ -296,7 +297,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 200;
+        z-index: 1000;
         backdrop-filter: blur(10px);
         padding: 12px;
         box-sizing: border-box;
@@ -582,8 +583,26 @@
         background: rgba(241, 196, 15, 0.5);
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 540px) {
+    /* Responsive adjustments: Mobile Fullscreen at max-width 680px matching other hub modals */
+    @media (max-width: 680px) {
+        .overlay {
+            padding: 0;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
+            border-radius: 0;
+            border: none;
+            box-sizing: border-box;
+        }
+
         .master-header {
             padding: 14px 14px 10px;
         }

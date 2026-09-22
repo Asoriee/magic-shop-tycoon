@@ -1,159 +1,108 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import gsap from 'gsap';
-
-    // Detect mobile once at init — reduces GPU load on small screens
+    // Detect mobile once at init — reduces node count on small screens
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
     // Generate star and bubble positions ONCE at module init
-    // Mobile: 80 stars / 12 bubbles — Desktop: 200 stars / 32 bubbles
-    const stars = Array.from({ length: isMobile ? 80 : 200 }, () => ({
+    // Mobile: 60 stars / 12 bubbles — Desktop: 150 stars / 24 bubbles
+    const stars = Array.from({ length: isMobile ? 60 : 150 }, () => ({
         cx: Math.random() * 2000 - 500,
         cy: Math.random() * 2000 - 500,
-        r: Math.random() * 2 + 0.5,
-        opacity: Math.random() * 0.8 + 0.2
+        r: Math.random() * 1.8 + 0.5,
+        opacity: Math.random() * 0.75 + 0.25
     }));
 
     const bubbleColors = ['#a29bfe', '#74b9ff', '#fd79a8', '#55efc4', '#ffeaa7'];
 
-    const bubbles = Array.from({ length: isMobile ? 12 : 32 }, () => ({
-        cx: Math.random() * 1000,
-        r: Math.random() * 12 + 8, // 8px to 20px radius for clear visibility
-        color: bubbleColors[Math.floor(Math.random() * bubbleColors.length)],
-        duration: Math.random() * 8 + 7 // 7 to 15 seconds
+    // Negative animation delays ensure bubbles are already distributed vertically across screen on first paint!
+    const bubbles = Array.from({ length: isMobile ? 12 : 24 }, (_, i) => ({
+        id: i,
+        cx: Math.random() * 960 + 20,
+        r: Math.random() * 10 + 7, // 7px to 17px radius
+        color: bubbleColors[i % bubbleColors.length],
+        duration: (Math.random() * 6 + 9).toFixed(2), // 9s to 15s
+        delay: (-(Math.random() * 15)).toFixed(2), // negative delay for instant screen dispersion
+        swayDuration: (Math.random() * 2 + 2.8).toFixed(2), // 2.8s to 4.8s
+        swayDelay: (-(Math.random() * 4)).toFixed(2)
     }));
-
-    let starsLayer: SVGGElement;
-    let runesLayer: SVGGElement;
-    let bubblesLayer: SVGGElement;
-
-    onMount(() => {
-        // Layer 1: Stars slow rotation — skipped on mobile (200 nodes rotating = heavy repaint)
-        if (!isMobile && starsLayer) {
-            gsap.to(starsLayer, {
-                rotation: 360,
-                duration: 200,
-                repeat: -1,
-                ease: 'linear',
-                transformOrigin: 'center center'
-            });
-        }
-
-        // Layer 2: Runes/Fog opacity pulsation
-        if (runesLayer) {
-            gsap.to(runesLayer, {
-                opacity: 0.4,
-                duration: 4,
-                yoyo: true,
-                repeat: -1,
-                ease: 'sine.inOut'
-            });
-        }
-
-        // Layer 3: Bubbles — immediate distribution across viewport
-        if (bubblesLayer) {
-            const bubbleGroups = bubblesLayer.querySelectorAll('.bubble-group');
-            bubbleGroups.forEach((group, i) => {
-                if (!group) return;
-                const dur = bubbles[i]?.duration || 10;
-                
-                // Vertical rise
-                const tween = gsap.fromTo(group, 
-                    { y: 1050, opacity: 0 },
-                    {
-                        y: -80,
-                        opacity: 0.85,
-                        duration: dur,
-                        repeat: -1,
-                        ease: 'none'
-                    }
-                );
-                
-                // Immediately distribute across the height so bubbles are visible right on load!
-                tween.progress(Math.random());
-
-                // Horizontal gentle sway
-                gsap.to(group, {
-                    x: `+=${(Math.random() - 0.5) * 50}`,
-                    duration: 2.5 + Math.random() * 2,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'sine.inOut'
-                });
-            });
-        }
-    });
-
-    onDestroy(() => {
-        const targets = [starsLayer, runesLayer, bubblesLayer].filter(Boolean);
-        if (targets.length) gsap.killTweensOf(targets);
-        if (bubblesLayer) {
-            const bubbleGroups = bubblesLayer.querySelectorAll('.bubble-group');
-            if (bubbleGroups.length) gsap.killTweensOf(bubbleGroups);
-        }
-    });
 </script>
 
 <div class="parallax-bg">
     <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
         <defs>
-            <filter id="fog" x="-20%" y="-20%" width="140%" height="140%">
-                <!-- Reduced stdDeviation on mobile to avoid CPU-heavy SVG blur -->
-                <feGaussianBlur stdDeviation={isMobile ? 8 : 20} />
-            </filter>
-            <filter id="bubbleGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
-                <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                </feMerge>
-            </filter>
+            <!-- Hardware Shaded Fog Gradients (Zero Gaussian Blur overhead, 100% GPU fragment shader) -->
+            <radialGradient id="fogGradViolet" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#a29bfe" stop-opacity="0.45"/>
+                <stop offset="50%" stop-color="#a29bfe" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#a29bfe" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="fogGradBlue" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#74b9ff" stop-opacity="0.4"/>
+                <stop offset="55%" stop-color="#74b9ff" stop-opacity="0.16"/>
+                <stop offset="100%" stop-color="#74b9ff" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="fogGradPink" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#fd79a8" stop-opacity="0.38"/>
+                <stop offset="55%" stop-color="#fd79a8" stop-opacity="0.14"/>
+                <stop offset="100%" stop-color="#fd79a8" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="fogGradTeal" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#00cec9" stop-opacity="0.32"/>
+                <stop offset="55%" stop-color="#00cec9" stop-opacity="0.12"/>
+                <stop offset="100%" stop-color="#00cec9" stop-opacity="0"/>
+            </radialGradient>
         </defs>
 
-        <!-- Layer 1: Stars — pre-generated coordinates -->
-        <g bind:this={starsLayer} style="will-change: transform">
+        <!-- Layer 1: Stars (Slow CSS rotation on desktop, static on mobile to eliminate paint) -->
+        <g class={isMobile ? 'stars-layer-mobile' : 'stars-layer-desktop'}>
             {#each stars as star}
                 <circle cx={star.cx} cy={star.cy} r={star.r} fill="#ffffff" opacity={star.opacity} />
             {/each}
         </g>
 
-        <!-- Layer 2: Runes / Fog -->
-        <g bind:this={runesLayer} filter="url(#fog)" opacity="0.6" style="will-change: opacity">
-            <circle cx="200" cy="300" r="150" fill="#a29bfe" opacity="0.5" />
-            <circle cx="800" cy="700" r="200" fill="#74b9ff" opacity="0.4" />
-            <circle cx="600" cy="200" r="120" fill="#fd79a8" opacity="0.4" />
-            <circle cx="300" cy="800" r="180" fill="#00cec9" opacity="0.3" />
+        <!-- Layer 2: Mystical Fog & Runes (Compositor-only CSS breathing, zero blur filter) -->
+        <g class="runes-layer">
+            <circle cx="200" cy="300" r="180" fill="url(#fogGradViolet)" />
+            <circle cx="800" cy="700" r="230" fill="url(#fogGradBlue)" />
+            <circle cx="600" cy="200" r="150" fill="url(#fogGradPink)" />
+            <circle cx="300" cy="800" r="210" fill="url(#fogGradTeal)" />
             
             <!-- Magic Runes/Shapes -->
-            <path d="M 300 400 L 350 350 L 400 450 Z" fill="none" stroke="#ffeaa7" stroke-width="8" opacity="0.5"/>
-            <path d="M 700 300 Q 750 200 800 300 T 900 300" fill="none" stroke="#55efc4" stroke-width="12" opacity="0.4"/>
-            <path d="M 150 700 L 250 700 L 200 800 Z" fill="none" stroke="#fab1a0" stroke-width="6" opacity="0.6"/>
+            <path d="M 300 400 L 350 350 L 400 450 Z" fill="none" stroke="#ffeaa7" stroke-width="6" opacity="0.45"/>
+            <path d="M 700 300 Q 750 200 800 300 T 900 300" fill="none" stroke="#55efc4" stroke-width="9" opacity="0.38"/>
+            <path d="M 150 700 L 250 700 L 200 800 Z" fill="none" stroke="#fab1a0" stroke-width="5" opacity="0.5"/>
         </g>
 
-        <!-- Layer 3: Bubbles with glowing gradient and shine -->
-        <g bind:this={bubblesLayer}>
-            {#each bubbles as bubble}
-                <!-- On mobile, skip bubbleGlow filter (each filter = separate composited layer) -->
-                <g class="bubble-group" filter={isMobile ? undefined : "url(#bubbleGlow)"} >
-                    <!-- Bubble body with translucent fill and vibrant colored stroke -->
-                    <circle 
-                        cx={bubble.cx}
-                        cy="0" 
-                        r={bubble.r}
-                        fill={bubble.color}
-                        fill-opacity="0.22"
-                        stroke={bubble.color} 
-                        stroke-width="2.5"
-                        stroke-opacity="0.85"
-                    />
-                    <!-- Bubble highlight reflection -->
-                    <circle 
-                        cx={bubble.cx - bubble.r * 0.35}
-                        cy={-bubble.r * 0.35}
-                        r={bubble.r * 0.28}
-                        fill="#ffffff"
-                        opacity="0.75"
-                    />
+        <!-- Layer 3: Bubbles (Pure CSS GPU Composited animations — zero JS ticker load) -->
+        <g class="bubbles-layer">
+            {#each bubbles as bubble (bubble.id)}
+                <g 
+                    class="bubble-rise"
+                    style="transform-origin: {bubble.cx}px 0px; animation-duration: {bubble.duration}s; animation-delay: {bubble.delay}s;"
+                >
+                    <g 
+                        class="bubble-sway"
+                        style="animation-duration: {bubble.swayDuration}s; animation-delay: {bubble.swayDelay}s;"
+                    >
+                        <!-- Translucent body with vibrant stroke -->
+                        <circle 
+                            cx={bubble.cx}
+                            cy="0" 
+                            r={bubble.r}
+                            fill={bubble.color}
+                            fill-opacity="0.24"
+                            stroke={bubble.color} 
+                            stroke-width="2"
+                            stroke-opacity="0.85"
+                        />
+                        <!-- Highlight reflection -->
+                        <circle 
+                            cx={bubble.cx - bubble.r * 0.35}
+                            cy={-bubble.r * 0.35}
+                            r={bubble.r * 0.28}
+                            fill="#ffffff"
+                            opacity="0.75"
+                        />
+                    </g>
                 </g>
             {/each}
         </g>
@@ -170,5 +119,66 @@
         pointer-events: none;
         overflow: hidden;
         background: radial-gradient(circle at center, #1e1e38 0%, #0a0a14 100%);
+    }
+
+    /* Desktop stars gentle rotation */
+    .stars-layer-desktop {
+        animation: spinStars 280s linear infinite;
+        transform-origin: 500px 500px;
+        will-change: transform;
+    }
+
+    @keyframes spinStars {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Fog breathing via compositor-only opacity */
+    .runes-layer {
+        animation: fogBreathe 5s ease-in-out infinite alternate;
+        will-change: opacity;
+    }
+
+    @keyframes fogBreathe {
+        0%   { opacity: 0.4; }
+        100% { opacity: 0.8; }
+    }
+
+    /* GPU Composited Bubble Keyframes */
+    .bubble-rise {
+        animation-name: bubbleRiseKeyframe;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        will-change: transform, opacity;
+    }
+
+    @keyframes bubbleRiseKeyframe {
+        0% {
+            transform: translate3d(0, 1050px, 0);
+            opacity: 0;
+        }
+        8% {
+            opacity: 0.85;
+        }
+        90% {
+            opacity: 0.85;
+        }
+        100% {
+            transform: translate3d(0, -80px, 0);
+            opacity: 0;
+        }
+    }
+
+    .bubble-sway {
+        animation-name: bubbleSwayKeyframe;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        will-change: transform;
+    }
+
+    @keyframes bubbleSwayKeyframe {
+        0%   { transform: translate3d(-18px, 0, 0); }
+        100% { transform: translate3d(18px, 0, 0); }
     }
 </style>

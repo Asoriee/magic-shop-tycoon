@@ -252,40 +252,29 @@
                     cy="80" 
                     rx="55" 
                     ry="10" 
-                    fill={heat > 80 ? "#ff7675" : heat > 40 ? "#f39c12" : "#a29bfe"}
-                >
-                    {#if heat <= 40}
-                        <animate attributeName="fill" values="#a29bfe;#6c5ce7;#a29bfe" dur="3s" repeatCount="indefinite" />
-                    {/if}
-                </ellipse>
+                    class="potion-liquid"
+                    class:overheat-liquid={heat > 80}
+                    class:hot-liquid={heat > 40 && heat <= 80}
+                    class:normal-liquid={heat <= 40}
+                />
 
-                <!-- Bubbles inside cauldron potion -->
+                <!-- Bubbles inside cauldron potion (100% GPU-composited CSS keyframes, zero SMIL layout overhead) -->
                 <g class="cauldron-bubbles">
-                    <circle cx="78" cy="80" r="6" fill={heat > 60 ? "#ffeaa7" : "#fd79a8"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
-                        <animate attributeName="cy" values="84; 52; 44" dur="{heat > 60 ? '1.1s' : '1.8s'}" repeatCount="indefinite" />
-                        <animate attributeName="r" values="4; 7; 1" dur="{heat > 60 ? '1.1s' : '1.8s'}" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '1.1s' : '1.8s'}" repeatCount="indefinite" />
-                    </circle>
-                    <circle cx="118" cy="80" r="8" fill={heat > 60 ? "#ff7675" : "#74b9ff"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
-                        <animate attributeName="cy" values="84; 48; 38" dur="{heat > 60 ? '1.3s' : '2.2s'}" repeatCount="indefinite" begin="0.4s"/>
-                        <animate attributeName="r" values="5; 9; 1" dur="{heat > 60 ? '1.3s' : '2.2s'}" repeatCount="indefinite" begin="0.4s"/>
-                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '1.3s' : '2.2s'}" repeatCount="indefinite" begin="0.4s"/>
-                    </circle>
-                    <circle cx="98" cy="80" r="5" fill="#ffeaa7" stroke="#ffffff" stroke-width="1.5" opacity="0.85">
-                        <animate attributeName="cy" values="82; 55; 42" dur="{heat > 60 ? '0.9s' : '1.5s'}" repeatCount="indefinite" begin="0.8s"/>
-                        <animate attributeName="r" values="4; 6; 1" dur="{heat > 60 ? '0.9s' : '1.5s'}" repeatCount="indefinite" begin="0.8s"/>
-                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '0.9s' : '1.5s'}" repeatCount="indefinite" begin="0.8s"/>
-                    </circle>
-                    <circle cx="86" cy="80" r="7" fill={heat > 60 ? "#f39c12" : "#a29bfe"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
-                        <animate attributeName="cy" values="84; 45; 32" dur="{heat > 60 ? '1.5s' : '2.5s'}" repeatCount="indefinite" begin="1.2s"/>
-                        <animate attributeName="r" values="4; 8; 1" dur="{heat > 60 ? '1.5s' : '2.5s'}" repeatCount="indefinite" begin="1.2s"/>
-                        <animate attributeName="opacity" values="0.7; 0.9; 0" dur="{heat > 60 ? '1.5s' : '2.5s'}" repeatCount="indefinite" begin="1.2s"/>
-                    </circle>
-                    <circle cx="110" cy="80" r="5" fill={heat > 60 ? "#fdcb6e" : "#55efc4"} stroke="#ffffff" stroke-width="1.5" opacity="0.85">
-                        <animate attributeName="cy" values="84; 58; 46" dur="{heat > 60 ? '1.1s' : '1.9s'}" repeatCount="indefinite" begin="1.6s"/>
-                        <animate attributeName="r" values="3; 6; 1" dur="{heat > 60 ? '1.1s' : '1.9s'}" repeatCount="indefinite" begin="1.6s"/>
-                        <animate attributeName="opacity" values="0.8; 0.9; 0" dur="{heat > 60 ? '1.1s' : '1.9s'}" repeatCount="indefinite" begin="1.6s"/>
-                    </circle>
+                    <g class="cauldron-bubble b1" style="transform-origin: 78px 80px;">
+                        <circle cx="78" cy="80" r="6" fill={heat > 60 ? "#ffeaa7" : "#fd79a8"} stroke="#ffffff" stroke-width="1.5" opacity="0.88" />
+                    </g>
+                    <g class="cauldron-bubble b2" style="transform-origin: 118px 80px;">
+                        <circle cx="118" cy="80" r="8" fill={heat > 60 ? "#ff7675" : "#74b9ff"} stroke="#ffffff" stroke-width="1.5" opacity="0.88" />
+                    </g>
+                    <g class="cauldron-bubble b3" style="transform-origin: 98px 80px;">
+                        <circle cx="98" cy="80" r="5" fill="#ffeaa7" stroke="#ffffff" stroke-width="1.5" opacity="0.88" />
+                    </g>
+                    <g class="cauldron-bubble b4" style="transform-origin: 86px 80px;">
+                        <circle cx="86" cy="80" r="7" fill={heat > 60 ? "#f39c12" : "#a29bfe"} stroke="#ffffff" stroke-width="1.5" opacity="0.88" />
+                    </g>
+                    <g class="cauldron-bubble b5" style="transform-origin: 110px 80px;">
+                        <circle cx="110" cy="80" r="5" fill={heat > 60 ? "#fdcb6e" : "#55efc4"} stroke="#ffffff" stroke-width="1.5" opacity="0.88" />
+                    </g>
                 </g>
             </g>
         </svg>
@@ -457,21 +446,94 @@
         }
     }
 
+    /* Liquid pulse when cold */
+    .potion-liquid.normal-liquid {
+        fill: #a29bfe;
+        animation: potionPulse 3.5s ease-in-out infinite alternate;
+    }
+    .potion-liquid.hot-liquid {
+        fill: #f39c12;
+    }
+    .potion-liquid.overheat-liquid {
+        fill: #ff7675;
+    }
+
+    @keyframes potionPulse {
+        0%   { fill: #a29bfe; }
+        100% { fill: #6c5ce7; }
+    }
+
+    /* GPU-Composited Cauldron Bubble Keyframes (Zero CPU SMIL) */
+    .cauldron-bubble {
+        will-change: transform, opacity;
+        animation-timing-function: ease-out;
+        animation-iteration-count: infinite;
+    }
+
+    .cauldron-bubble.b1 {
+        animation-name: cauldronBubbleRise1;
+        animation-duration: 1.5s;
+    }
+    .cauldron-bubble.b2 {
+        animation-name: cauldronBubbleRise2;
+        animation-duration: 1.8s;
+        animation-delay: 0.35s;
+    }
+    .cauldron-bubble.b3 {
+        animation-name: cauldronBubbleRise3;
+        animation-duration: 1.3s;
+        animation-delay: 0.7s;
+    }
+    .cauldron-bubble.b4 {
+        animation-name: cauldronBubbleRise4;
+        animation-duration: 2.0s;
+        animation-delay: 1.05s;
+    }
+    .cauldron-bubble.b5 {
+        animation-name: cauldronBubbleRise5;
+        animation-duration: 1.6s;
+        animation-delay: 1.4s;
+    }
+
+    @keyframes cauldronBubbleRise1 {
+        0%   { transform: translate3d(0, 4px, 0) scale(0.6); opacity: 0.75; }
+        55%  { transform: translate3d(-2px, -26px, 0) scale(1.15); opacity: 0.95; }
+        100% { transform: translate3d(-3px, -36px, 0) scale(0.2); opacity: 0; }
+    }
+    @keyframes cauldronBubbleRise2 {
+        0%   { transform: translate3d(0, 4px, 0) scale(0.6); opacity: 0.75; }
+        55%  { transform: translate3d(3px, -30px, 0) scale(1.2); opacity: 0.95; }
+        100% { transform: translate3d(4px, -42px, 0) scale(0.2); opacity: 0; }
+    }
+    @keyframes cauldronBubbleRise3 {
+        0%   { transform: translate3d(0, 2px, 0) scale(0.6); opacity: 0.75; }
+        55%  { transform: translate3d(-1px, -24px, 0) scale(1.1); opacity: 0.95; }
+        100% { transform: translate3d(-2px, -35px, 0) scale(0.2); opacity: 0; }
+    }
+    @keyframes cauldronBubbleRise4 {
+        0%   { transform: translate3d(0, 4px, 0) scale(0.6); opacity: 0.75; }
+        55%  { transform: translate3d(-3px, -34px, 0) scale(1.25); opacity: 0.95; }
+        100% { transform: translate3d(-4px, -46px, 0) scale(0.2); opacity: 0; }
+    }
+    @keyframes cauldronBubbleRise5 {
+        0%   { transform: translate3d(0, 4px, 0) scale(0.6); opacity: 0.75; }
+        55%  { transform: translate3d(2px, -22px, 0) scale(1.1); opacity: 0.95; }
+        100% { transform: translate3d(3px, -33px, 0) scale(0.2); opacity: 0; }
+    }
+
+    /* Floating Tap Numbers (Hardware text-stroke replaces 40 raster shadow passes) */
     .floating-text {
         position: absolute;
-        color: #fff;
-        font-weight: bold;
-        font-size: 1.8rem;
+        color: #ffffff;
+        font-weight: 900;
+        font-size: 1.85rem;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        text-shadow: 
-            -1px -1px 0 #d4af37,
-             1px -1px 0 #d4af37,
-            -1px  1px 0 #d4af37,
-             1px  1px 0 #d4af37,
-             0px  2px 5px rgba(0,0,0,0.8);
+        -webkit-text-stroke: 1.2px #d4af37;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.85);
         pointer-events: none;
         z-index: 1000;
         will-change: transform, opacity;
+        transform: translate3d(0, 0, 0);
     }
 
     .crystal-float {
@@ -487,26 +549,21 @@
         color: #ffeaa7;
         font-size: 2.2rem;
         font-weight: 900;
-        text-shadow: 
-            0 0 8px #ff7675,
-            0 0 16px #d63031,
-            -1px -1px 0 #d63031,
-             1px  1px 0 #2d3436;
+        -webkit-text-stroke: 1.4px #d63031;
+        text-shadow: 0 0 10px #ff7675, 0 2px 6px rgba(0, 0, 0, 0.9);
         animation: crit-pop 0.3s ease-out;
     }
 
     .combo-text {
         color: #ffeaa7;
-        font-size: 1.9rem;
-        text-shadow: 
-            0 0 8px #f39c12,
-            -1px -1px 0 #d35400,
-             1px  1px 0 #2d3436;
+        font-size: 1.95rem;
+        -webkit-text-stroke: 1.2px #d35400;
+        text-shadow: 0 0 8px #f39c12, 0 2px 5px rgba(0, 0, 0, 0.85);
     }
 
     @keyframes crit-pop {
-        0% { transform: scale(0.6); }
-        50% { transform: scale(1.25); }
+        0%   { transform: scale(0.6); }
+        50%  { transform: scale(1.25); }
         100% { transform: scale(1); }
     }
 </style>

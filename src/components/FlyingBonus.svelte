@@ -278,14 +278,13 @@
                     <stop offset="100%" stop-color="#6c5ce7"/>
                 </radialGradient>
 
-                <!-- Filter Glow -->
-                <filter id="flyerGlowFilter" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="3.5" result="blur"/>
-                    <feMerge>
-                        <feMergeNode in="blur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                </filter>
+                <!-- Soft Glow Halo (Zero Gaussian Blur overhead) -->
+                <radialGradient id="sparkHaloGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                    <stop offset="40%" stop-color="#f1c40f" stop-opacity="0.55"/>
+                    <stop offset="75%" stop-color="#e67e22" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#a29bfe" stop-opacity="0"/>
+                </radialGradient>
             </defs>
 
             <!-- Comet Stardust Tail (Trailing Wisps) -->
@@ -298,6 +297,9 @@
 
             <!-- Outer Pulsing Energy Halo -->
             <circle cx="45" cy="45" r="26" fill="url(#flyerAuraGrad)" class="pulse-aura"/>
+
+            <!-- Soft Core Glow Halo -->
+            <circle cx="45" cy="45" r="16" fill="url(#sparkHaloGrad)"/>
 
             <!-- Orbital Runic Arc 1 (Tilted Clockwise) -->
             <ellipse 
@@ -328,7 +330,6 @@
                 d="M 45 12 Q 45 45 12 45 Q 45 45 45 78 Q 45 45 78 45 Q 45 45 45 12 Z" 
                 fill="#ffffff" 
                 opacity="0.95" 
-                filter="url(#flyerGlowFilter)"
                 class="spark-flare"
             />
 
@@ -341,7 +342,7 @@
             />
 
             <!-- Radiant Spark Core -->
-            <circle cx="45" cy="45" r="9" fill="url(#sparkCoreGrad)" filter="url(#flyerGlowFilter)"/>
+            <circle cx="45" cy="45" r="9" fill="url(#sparkCoreGrad)"/>
             <circle cx="45" cy="45" r="4.5" fill="#ffffff"/>
         </svg>
     </div>

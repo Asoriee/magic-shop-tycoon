@@ -23,42 +23,17 @@
     $: activeAura = getPetAuraDetails(activePet.id, petLevel, $currentLang);
 
     onMount(() => {
-        // 1. Hovering animation (entire pet)
-        if (petNode) {
-            gsap.to(petNode, {
-                y: -12,
-                duration: 2.2,
-                yoyo: true,
-                repeat: -1,
-                ease: "sine.inOut"
-            });
-        }
-
-        // 2. Breathing animation (body scales slightly)
-        if (bodyGroup) {
-            gsap.to(bodyGroup, {
-                scaleY: 1.06,
-                scaleX: 0.97,
-                duration: 1.6,
-                yoyo: true,
-                repeat: -1,
-                transformOrigin: "center bottom",
-                ease: "sine.inOut"
-            });
-        }
-
-        // Passive Income Tick listener (checks every 1.5 seconds)
+        // Passive Income Tick listener (checks every 2.2s when tab is active)
         idleLoop = setInterval(() => {
-            if ($currentIdleIncome > 0) {
+            if ($currentIdleIncome > 0 && typeof document !== 'undefined' && !document.hidden) {
                 dropCoin();
             }
-        }, 1500);
+        }, 2200);
     });
 
     onDestroy(() => {
         if (idleLoop) clearInterval(idleLoop);
-        const targets = [petNode, bodyGroup].filter(Boolean);
-        if (targets.length) gsap.killTweensOf(targets);
+        if (petNode) gsap.killTweensOf(petNode);
     });
 
     function dropCoin() {
@@ -161,11 +136,20 @@
         title={activePet ? `${getPetName(activePet.id, $currentLang)}: ${activeAura.badge}` : ''}
     >
         <svg width="140" height="140" viewBox="0 0 140 140">
-            <g bind:this={petNode} class="pet-group">
-                <!-- Aura glow -->
-                <circle cx="70" cy="70" r="38" fill={activeAura.isLegendary ? "rgba(241, 196, 15, 0.45)" : "rgba(155, 89, 182, 0.35)"} filter="blur(10px)"/>
+            <defs>
+                <!-- Hardware Shaded Pet Aura (Zero filter overhead, pure GPU fragment shader) -->
+                <radialGradient id="petAuraGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color={activeAura.isLegendary ? "#f1c40f" : "#a29bfe"} stop-opacity="0.52"/>
+                    <stop offset="60%" stop-color={activeAura.isLegendary ? "#f39c12" : "#8e44ad"} stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color={activeAura.isLegendary ? "#e67e22" : "#2c3e50"} stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+
+            <g bind:this={petNode} class="pet-group pet-hover-anim">
+                <!-- Aura glow using shader gradient -->
+                <circle cx="70" cy="70" r="42" fill="url(#petAuraGlow)"/>
                 
-                <g bind:this={bodyGroup} class="companion-body">
+                <g class="companion-body pet-breathe-anim">
                     <!-- Dynamic rendering of the active pet SVG icon scaled to 100x100 centered -->
                     <g transform="translate(20, 20) scale(2.5)">
                         {@html activePet.icon}
@@ -177,6 +161,27 @@
 </div>
 
 <style>
+    /* CSS Hardware Composited Hover & Breathe (Zero JS main-thread load) */
+    .pet-hover-anim {
+        animation: petHoverKeyframe 2.4s ease-in-out infinite alternate;
+        will-change: transform;
+    }
+
+    @keyframes petHoverKeyframe {
+        0%   { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(0, -11px, 0); }
+    }
+
+    .pet-breathe-anim {
+        animation: petBreatheKeyframe 1.8s ease-in-out infinite alternate;
+        transform-origin: 70px 105px;
+        will-change: transform;
+    }
+
+    @keyframes petBreatheKeyframe {
+        0%   { transform: scale3d(1, 1, 1); }
+        100% { transform: scale3d(0.97, 1.05, 1); }
+    }
     .pet-container {
         position: absolute;
         top: 50%;

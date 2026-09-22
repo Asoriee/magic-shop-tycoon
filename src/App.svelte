@@ -1487,6 +1487,9 @@
 
         .buff-capsule {
             padding: 2px 5px;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            background: rgba(18, 8, 38, 0.96);
         }
 
         .master-hub-dock {

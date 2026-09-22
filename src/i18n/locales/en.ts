@@ -236,6 +236,9 @@ export const en: Translations = {
         recipeKnown: 'Recipe known',
         unlockCrystals: 'Unlock ingredient with crystals',
         unlockAd: 'Unlock ingredient with ad',
+        cauldronTab: 'Cauldron',
+        toCauldron: 'To Cauldron',
+        openRecipeBook: 'Open Recipe Book',
     },
     grimoire: {
         title: 'Grand Grimoire',

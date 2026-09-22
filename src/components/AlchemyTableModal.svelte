@@ -27,6 +27,8 @@
 
     let slots: [string | null, string | null, string | null] = [null, null, null];
     let lastResonanceMsg: string | null = null;
+    let mobileSubTab: 'cauldron' | 'book' = 
+        (typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('subtab') === 'book') ? 'book' : 'cauldron';
 
     type ToastType = 'success' | 'warning' | 'burn';
     let toast: { text: string; type: ToastType } | null = null;
@@ -306,7 +308,36 @@
         </div>
     {/if}
 
-    <div class="content-grid">
+    <!-- MOBILE SUB-TABS (visible only on <=680px) -->
+    <div class="alchemy-subtabs-bar">
+        <button 
+            type="button"
+            class="subtab-btn" 
+            class:active={mobileSubTab === 'cauldron'}
+            on:click={() => mobileSubTab = 'cauldron'}
+        >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
+            </svg>
+            <span>{$t('alchemy.cauldronTab')}</span>
+        </button>
+        <button 
+            type="button"
+            class="subtab-btn" 
+            class:active={mobileSubTab === 'book'}
+            on:click={() => mobileSubTab = 'book'}
+        >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
+            </svg>
+            <span>{$t('alchemy.recipeBook')}</span>
+            <span class="subtab-count-badge">
+                {Object.values($unlockedRecipes).filter(l => l === 3).length}/{RECIPES.length}
+            </span>
+        </button>
+    </div>
+
+    <div class="content-grid" class:mobile-view-cauldron={mobileSubTab === 'cauldron'} class:mobile-view-book={mobileSubTab === 'book'}>
         <!-- LEFT: CAULDRON + BREW -->
         <div class="brew-panel">
             {#if isOverheated}
@@ -476,6 +507,20 @@
                 {/if}
             </button>
 
+            <!-- Mobile quick-open Recipe Book banner -->
+            <button type="button" class="mobile-book-banner" on:click={() => mobileSubTab = 'book'}>
+                <div class="mbb-left">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="#f1c40f">
+                        <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
+                    </svg>
+                    <span>{$t('alchemy.openRecipeBook')}</span>
+                </div>
+                <div class="mbb-right">
+                    <span class="mbb-badge">{Object.values($unlockedRecipes).filter(l => l === 3).length}/{RECIPES.length}</span>
+                    <span class="mbb-arrow">→</span>
+                </div>
+            </button>
+
             <div class="picker-wrap">
                 <div class="picker-header-row">
                     <p class="picker-label">{$t('alchemy.inventoryLabel')}</p>
@@ -524,7 +569,12 @@
                     </svg>
                     {$t('alchemy.recipeBook')} ({RECIPES.length})
                 </div>
-                <span class="book-sub">{$t('alchemy.recipesUnlocked', { current: Object.values($unlockedRecipes).filter(l => l === 3).length, total: RECIPES.length })}</span>
+                <div class="book-header-actions">
+                    <span class="book-sub">{$t('alchemy.recipesUnlocked', { current: Object.values($unlockedRecipes).filter(l => l === 3).length, total: RECIPES.length })}</span>
+                    <button type="button" class="mobile-to-cauldron-btn" on:click={() => mobileSubTab = 'cauldron'}>
+                        {$t('alchemy.toCauldron')} →
+                    </button>
+                </div>
             </div>
 
             {#each RECIPES as recipe}
@@ -704,11 +754,21 @@
 .close-btn{position:absolute;right:14px;top:14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:white;border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s,transform 0.15s}
 .close-btn:hover{background:rgba(255,255,255,0.18);transform:scale(1.05)}
 
-.content-grid{display:grid;grid-template-columns:1fr 1fr;min-height:0;height:100%}
-@media(max-width:640px){.content-grid{grid-template-columns:1fr}}
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 0;
+    height: 100%;
+}
 
-.brew-panel{display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 14px 20px;border-right:1px solid rgba(255,255,255,0.06)}
-@media(max-width:640px){.brew-panel{border-right:none;border-bottom:1px solid rgba(255,255,255,0.06)}}
+.brew-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 14px 20px;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
 
 .danger-bar{
     width:100%;
@@ -856,11 +916,29 @@
 .recipe-book{display:flex;flex-direction:column;gap:12px;padding:16px 14px 20px;overflow-y:auto;max-height:85vh}
 .recipe-book::-webkit-scrollbar{width:4px}.recipe-book::-webkit-scrollbar-thumb{background:rgba(162,155,254,0.3);border-radius:10px}
 
+.alchemy-subtabs-bar {
+    display: none;
+}
+
+.mobile-book-banner {
+    display: none;
+}
+
 .book-title-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 4px;
+}
+
+.book-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-to-cauldron-btn {
+    display: none;
 }
 
 .book-title{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:800;color:#f1c40f;text-transform:uppercase;letter-spacing:.8px}
@@ -1180,5 +1258,280 @@
 @keyframes intenseSteam {
     0% { transform: translateY(0) scale(1); opacity: 0.65; }
     100% { transform: translateY(-18px) scale(1.6); opacity: 0; }
+}
+
+/* Ensure desktop always displays both columns side-by-side */
+@media (min-width: 681px) {
+    .content-grid.mobile-view-cauldron .recipe-book,
+    .content-grid.mobile-view-book .brew-panel {
+        display: flex !important;
+    }
+}
+
+/* Mobile & Small Screen Adaptations */
+@media (max-width: 680px) {
+    .alchemy-subtabs-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 8px 10px;
+        background: rgba(10, 4, 20, 0.92);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(8px);
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .subtab-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .subtab-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    .subtab-btn.active {
+        background: linear-gradient(135deg, rgba(162, 155, 254, 0.3) 0%, rgba(108, 92, 231, 0.3) 100%);
+        border-color: #a29bfe;
+        color: #fff;
+        box-shadow: 0 0 12px rgba(162, 155, 254, 0.25);
+    }
+
+    .subtab-count-badge {
+        font-size: 0.68rem;
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(241, 196, 15, 0.2);
+        color: #f1c40f;
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        font-weight: 800;
+    }
+
+    .mobile-book-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 9px 12px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.12) 0%, rgba(162, 155, 254, 0.1) 100%);
+        border: 1px solid rgba(241, 196, 15, 0.3);
+        border-radius: 14px;
+        color: #ffeaa7;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-sizing: border-box;
+        transition: all 0.2s;
+    }
+
+    .mobile-book-banner:hover {
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.2) 0%, rgba(162, 155, 254, 0.18) 100%);
+    }
+
+    .mbb-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mbb-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .mbb-badge {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        padding: 2px 6px;
+        font-size: 0.7rem;
+        color: #f1c40f;
+        font-weight: 800;
+    }
+
+    .mbb-arrow {
+        font-size: 0.9rem;
+        color: #f1c40f;
+    }
+
+    .mobile-to-cauldron-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 8px;
+        background: rgba(162, 155, 254, 0.15);
+        border: 1px solid rgba(162, 155, 254, 0.3);
+        color: #d2a8ff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .content-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: auto !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .content-grid.mobile-view-cauldron .brew-panel {
+        display: flex !important;
+    }
+    .content-grid.mobile-view-cauldron .recipe-book {
+        display: none !important;
+    }
+
+    .content-grid.mobile-view-book .brew-panel {
+        display: none !important;
+    }
+    .content-grid.mobile-view-book .recipe-book {
+        display: flex !important;
+    }
+
+    .brew-panel {
+        border-right: none !important;
+        border-bottom: none !important;
+        padding: 12px 10px 24px;
+        gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .cauldron-wrap svg {
+        width: 126px;
+        height: 105px;
+    }
+
+    .slots-row {
+        gap: 8px;
+    }
+
+    .slot {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+    }
+
+    .slot-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .brew-btn {
+        padding: 10px 20px;
+        font-size: 0.88rem;
+        max-width: 100%;
+    }
+
+    .recipe-book {
+        border-top: none;
+        padding: 10px 10px 24px;
+        overflow-y: visible !important;
+        max-height: none !important;
+        width: 100%;
+        box-sizing: border-box;
+        gap: 10px;
+    }
+
+    .book-title {
+        font-size: 0.78rem;
+    }
+
+    .book-sub {
+        font-size: 0.68rem;
+    }
+
+    .recipe-entry {
+        padding: 10px 10px;
+        border-radius: 14px;
+        gap: 8px;
+    }
+
+    .r-pot-icon {
+        width: 34px;
+        height: 40px;
+    }
+
+    .r-pot-name {
+        font-size: 0.82rem;
+    }
+
+    .r-ing {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+    }
+
+    .r-ing-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .r-result {
+        width: 30px;
+        height: 36px;
+    }
+
+    .rp {
+        font-size: 0.85rem;
+    }
+
+    .hint-actions-row {
+        width: 100%;
+        gap: 6px;
+    }
+
+    .hint-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 7px 10px;
+        font-size: 0.74rem;
+        min-height: 36px;
+    }
+
+    .quick-brew-btn {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 14px;
+        font-size: 0.82rem;
+        justify-content: center;
+        min-height: 38px;
+    }
+}
+
+@media (max-width: 380px) {
+    .subtab-btn {
+        font-size: 0.74rem;
+        padding: 6px 4px;
+        gap: 4px;
+    }
+    .subtab-count-badge {
+        font-size: 0.62rem;
+        padding: 1px 4px;
+    }
+    .book-header-actions {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
 }
 </style>

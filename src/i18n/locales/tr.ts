@@ -236,6 +236,9 @@ export const tr: Translations = {
         recipeKnown: 'Tarif öğrenildi',
         unlockCrystals: 'Malzemeyi kristalle aç',
         unlockAd: 'Malzemeyi reklamla aç',
+        cauldronTab: 'Kazan',
+        toCauldron: 'Kazana Dön',
+        openRecipeBook: 'Tarif Kitabını Aç',
     },
     grimoire: {
         title: 'Büyük Grimoire',

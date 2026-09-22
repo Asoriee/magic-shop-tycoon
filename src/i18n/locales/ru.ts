@@ -236,6 +236,9 @@ export const ru: Translations = {
         recipeKnown: 'Рецепт изучен',
         unlockCrystals: 'Открыть ингредиент за кристаллы',
         unlockAd: 'Открыть ингредиент за рекламу',
+        cauldronTab: 'Котёл',
+        toCauldron: 'К котлу',
+        openRecipeBook: 'Открыть Книгу Рецептов',
     },
     grimoire: {
         title: 'Великий Гримуар',

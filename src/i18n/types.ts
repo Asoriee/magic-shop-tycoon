@@ -176,6 +176,9 @@ export interface Translations {
         recipeKnown?: string;
         unlockCrystals?: string;
         unlockAd?: string;
+        cauldronTab?: string;
+        toCauldron?: string;
+        openRecipeBook?: string;
         [key: string]: any;
     };
     grimoire: {

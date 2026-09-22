@@ -153,20 +153,26 @@ export function signalGameReady() {
     }
 }
 
+let isGameplayActive = false;
+
 export function notifyGameplayStart() {
+    if (isGameplayActive) return;
     const target = ysdk || (typeof window !== 'undefined' ? window.ysdk : null);
     if (target?.features?.GameplayAPI?.start) {
         try {
             target.features.GameplayAPI.start();
+            isGameplayActive = true;
         } catch (e) {}
     }
 }
 
 export function notifyGameplayStop() {
+    if (!isGameplayActive) return;
     const target = ysdk || (typeof window !== 'undefined' ? window.ysdk : null);
     if (target?.features?.GameplayAPI?.stop) {
         try {
             target.features.GameplayAPI.stop();
+            isGameplayActive = false;
         } catch (e) {}
     }
 }
@@ -644,7 +650,7 @@ export function showRewardedAd(
         return;
     }
 
-    try { ysdk.features?.GameplayAPI?.stop(); } catch(e) {}
+    notifyGameplayStop();
     ysdk.adv.showRewardedVideo({
         callbacks: {
             onOpen: () => {
@@ -657,14 +663,14 @@ export function showRewardedAd(
             onClose: () => {
                 isAdPlaying = false;
                 setAdAudioMute(false);
-                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
+                notifyGameplayStart();
                 if (onClose) onClose();
             }, 
             onError: (e: any) => {
                 console.error('Error while showing rewarded ad:', e);
                 isAdPlaying = false;
                 setAdAudioMute(false);
-                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
+                notifyGameplayStart();
                 if (onError) onError(e);
                 else if (onClose) onClose();
             }
@@ -691,18 +697,18 @@ export function showInterstitialAd(onClose?: () => void) {
         // Fallback for testing
         isAdPlaying = true;
         setAdAudioMute(true);
-        try { (ysdk as any)?.features?.GameplayAPI?.stop(); } catch(e) {}
+        notifyGameplayStop();
         setTimeout(() => {
             lastInterstitialTime = Date.now();
             isAdPlaying = false;
             setAdAudioMute(false);
-            try { (ysdk as any)?.features?.GameplayAPI?.start(); } catch(e) {}
+            notifyGameplayStart();
             if (onClose) onClose();
         }, 1000);
         return;
     }
 
-    try { ysdk.features?.GameplayAPI?.stop(); } catch(e) {}
+    notifyGameplayStop();
     ysdk.adv.showFullscreenAdv({
         callbacks: {
             onOpen: () => {
@@ -715,14 +721,14 @@ export function showInterstitialAd(onClose?: () => void) {
                 }
                 isAdPlaying = false;
                 setAdAudioMute(false);
-                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
+                notifyGameplayStart();
                 if (onClose) onClose();
             },
             onError: (e: any) => {
                 console.error('Error while showing interstitial ad:', e);
                 isAdPlaying = false;
                 setAdAudioMute(false);
-                try { ysdk.features?.GameplayAPI?.start(); } catch(e) {}
+                notifyGameplayStart();
                 if (onClose) onClose();
             }
         }

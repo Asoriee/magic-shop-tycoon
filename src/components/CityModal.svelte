@@ -427,7 +427,7 @@
     /* Master Tabs Bar */
     .city-tabs-bar {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         background: rgba(8, 3, 16, 0.85);
         border-bottom: 2px solid rgba(241, 196, 15, 0.25);
         padding: 4px 6px 0;

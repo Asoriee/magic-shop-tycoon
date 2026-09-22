@@ -886,6 +886,13 @@
             box-sizing: border-box;
         }
 
+        .embedded-modal {
+            height: auto !important;
+            max-height: none !important;
+            padding: 0 !important;
+            gap: 10px;
+        }
+
         .guild-banner {
             padding: 8px 10px;
             border-radius: 12px;
@@ -905,32 +912,100 @@
         }
 
         .mastery-card {
-            padding: 10px 10px;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            grid-template-areas:
+                "icon details"
+                "action action";
+            padding: 10px 12px;
+            gap: 8px 10px;
             border-radius: 14px;
+            box-sizing: border-box;
+            width: 100%;
         }
 
         .mastery-icon-box {
-            width: 38px;
-            height: 38px;
+            grid-area: icon;
+            align-self: start;
+            width: 40px;
+            height: 40px;
             border-radius: 10px;
         }
 
+        .mastery-details {
+            grid-area: details;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .mastery-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            min-width: 0;
+        }
+
         .mastery-name {
-            font-size: 0.86rem;
+            font-size: 0.88rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .mastery-counter {
+            font-size: 0.74rem;
+            padding: 2px 7px;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .mastery-sub {
             font-size: 0.72rem;
+            line-height: 1.25;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .mastery-action {
+            grid-area: action;
+            width: 100%;
         }
 
         .mastery-reward-tag {
-            padding: 3px 6px;
-            gap: 4px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(241, 196, 15, 0.2);
         }
 
         .m-loot {
-            font-size: 0.7rem;
+            font-size: 0.74rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .mastery-claim-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            box-sizing: border-box;
+        }
+
+        .mastery-action .claimed-pill {
+            width: 100%;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: 5px 10px;
         }
 
         .quest-card {
@@ -987,13 +1062,6 @@
     }
 
     @media (max-width: 380px) {
-        .mastery-card {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .mastery-action {
-            align-self: flex-end;
-        }
         .quest-title {
             font-size: 0.78rem;
         }

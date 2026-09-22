@@ -1065,8 +1065,8 @@
     }
 
     .hud-icon-btn {
-        width: 34px;
-        height: 34px;
+        width: 38px;
+        height: 38px;
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.07);
         border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1077,6 +1077,12 @@
         cursor: pointer;
         transition: all 0.18s ease;
         padding: 0;
+        position: relative;
+    }
+    .hud-icon-btn::after {
+        content: '';
+        position: absolute;
+        inset: -3px;
     }
     .hud-icon-btn:hover {
         background: rgba(255, 255, 255, 0.16);
@@ -1409,14 +1415,17 @@
         }
 
         .hud-icon-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 9px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+        }
+        .hud-icon-btn::after {
+            inset: -4px;
         }
 
         .hud-icon-btn svg {
-            width: 15px;
-            height: 15px;
+            width: 17px;
+            height: 17px;
         }
 
         .lang-label {

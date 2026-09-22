@@ -278,10 +278,10 @@
 
     .guide-close-btn {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        width: 34px;
-        height: 34px;
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(241, 196, 15, 0.3);
         border-radius: 50%;
@@ -305,7 +305,7 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        padding-right: 32px;
+        padding-right: 48px;
     }
 
     .guide-icon-badge {

@@ -427,9 +427,9 @@
         border: 1px solid rgba(255,255,255,0.15);
         color: white;
         border-radius: 50%;
-        width: 32px; height: 32px;
+        width: 44px; height: 44px;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 1rem;
         transition: all 0.2s;
         display: flex;
         align-items: center;

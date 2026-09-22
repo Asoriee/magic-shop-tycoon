@@ -414,11 +414,24 @@
     }
 
     .close-btn {
-        background: none;
-        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
         color: #b2bec3;
-        font-size: 1.4rem;
+        font-size: 1.2rem;
         cursor: pointer;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+        background: rgba(231, 76, 60, 0.2);
+        border-color: #e74c3c;
+        color: #ff7675;
     }
 
     .no-income-warning {

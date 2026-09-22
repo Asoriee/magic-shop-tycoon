@@ -907,18 +907,21 @@
 
     .close-btn {
         position: absolute;
-        right: 16px;
-        top: 16px;
+        right: 14px;
+        top: 14px;
         background: rgba(255,255,255,0.07);
         border: 1px solid rgba(255,255,255,0.12);
         color: white;
         border-radius: 50%;
-        width: 30px; height: 30px;
+        width: 44px; height: 44px;
         cursor: pointer;
-        font-size: 0.85rem;
-        transition: background 0.2s;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.15s;
     }
-    .close-btn:hover { background: rgba(255,255,255,0.15); }
+    .close-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.05); }
 
     /* Toast */
     .pet-toast {

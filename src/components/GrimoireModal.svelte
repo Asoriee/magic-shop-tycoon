@@ -369,10 +369,10 @@
 
     .close-btn {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        width: 34px;
-        height: 34px;
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.14);
@@ -396,7 +396,7 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        padding-right: 40px;
+        padding-right: 50px;
     }
 
     .grimoire-icon-wrapper {

@@ -701,8 +701,8 @@
     color: #74b9ff;
 }
 
-.close-btn{position:absolute;right:16px;top:16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:white;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:0.85rem;transition:background 0.2s}
-.close-btn:hover{background:rgba(255,255,255,0.15)}
+.close-btn{position:absolute;right:14px;top:14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:white;border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s,transform 0.15s}
+.close-btn:hover{background:rgba(255,255,255,0.18);transform:scale(1.05)}
 
 .content-grid{display:grid;grid-template-columns:1fr 1fr;min-height:0;height:100%}
 @media(max-width:640px){.content-grid{grid-template-columns:1fr}}

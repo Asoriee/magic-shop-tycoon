@@ -393,10 +393,10 @@
     .close-btn {
         background: rgba(255, 255, 255, 0.07);
         border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
+        border-radius: 12px;
         color: #bdc3c7;
-        width: 34px;
-        height: 34px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;

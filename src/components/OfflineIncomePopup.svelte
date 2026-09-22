@@ -357,10 +357,10 @@
     /* Close Button */
     .close-btn {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        width: 32px;
-        height: 32px;
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.15);

@@ -793,8 +793,8 @@
         position: absolute;
         top: 0;
         right: 0;
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.15);
         color: white;
@@ -803,7 +803,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        font-size: 1.1rem;
         transition: all 0.2s;
     }
 

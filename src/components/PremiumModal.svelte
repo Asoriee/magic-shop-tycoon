@@ -333,16 +333,16 @@
 
     .close-btn {
         position: absolute;
-        top: 14px;
-        right: 16px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 10px;
+        top: 12px;
+        right: 14px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 12px;
         color: #b2bec3;
         font-size: 1.1rem;
         cursor: pointer;
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -359,7 +359,7 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        padding-right: 36px;
+        padding-right: 50px;
     }
 
     .master-icon-wrap {

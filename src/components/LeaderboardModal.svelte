@@ -226,6 +226,7 @@
         gap: 12px;
         position: relative;
         padding-bottom: 8px;
+        padding-right: 48px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
@@ -262,17 +263,18 @@
         border: 1px solid rgba(255, 255, 255, 0.15);
         color: white;
         border-radius: 50%;
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 0.85rem;
-        transition: background 0.2s;
+        font-size: 1rem;
+        transition: background 0.2s, transform 0.15s;
     }
     .close-btn:hover {
         background: rgba(255, 255, 255, 0.18);
+        transform: scale(1.05);
     }
 
     .info-banner {

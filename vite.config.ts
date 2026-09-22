@@ -81,14 +81,49 @@ function yandexSdkDevMockPlugin(): Plugin {
   };
 }
 
+/**
+ * Yandex Games Compatibility Plugin
+ * 
+ * Problem: Vite adds crossorigin="anonymous" to all <script type="module"> and <link rel="stylesheet">
+ * tags. Yandex S3 CDN does NOT return CORS headers (Access-Control-Allow-Origin), which causes
+ * browsers to abort requests with ERR_ABORTED even though the HTTP status is 404/200.
+ * 
+ * Fix: Strip all crossorigin attributes from the final HTML output.
+ * Also inject Cache-Control no-cache meta tags so Yandex CDN does not serve stale 404 responses.
+ */
+function yandexGamesCompatPlugin(): Plugin {
+  return {
+    name: 'yandex-games-compat',
+    // Only run during build, not dev server
+    apply: 'build',
+    transformIndexHtml(html: string): string {
+      return html
+        // Remove crossorigin attribute (causes ERR_ABORTED on Yandex S3 due to missing CORS headers)
+        .replace(/\s+crossorigin(?:="[^"]*")?/g, '')
+        // Inject no-cache meta tags right after <head> open tag
+        .replace(
+          '<head>',
+          '<head>\n    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n    <meta http-equiv="Pragma" content="no-cache" />\n    <meta http-equiv="Expires" content="0" />'
+        );
+    }
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   base: './',
-  plugins: [svelte(), yandexSdkDevMockPlugin()],
+  plugins: [svelte(), yandexSdkDevMockPlugin(), yandexGamesCompatPlugin()],
   server: {
     host: '0.0.0.0',
     port: 5173,
     open: false,
   },
+  build: {
+    // Disable module preload polyfill injection — it also adds crossorigin links
+    modulePreload: {
+      polyfill: false,
+    },
+  },
 })
+
 

@@ -294,7 +294,7 @@
                 </button>
             {/if}
             <div class="orders-count-badge">
-                {$gameStore.activeOrders.length} / 4
+                {$gameStore.activeOrders.length}&nbsp;/&nbsp;4
             </div>
         </div>
     </div>
@@ -373,7 +373,7 @@
                                     {/if}
                                 </div>
                                 <span class="req-name">{itemName}</span>
-                                <span class="req-qty">{current} / {req.count}</span>
+                                <span class="req-qty">{current}&nbsp;/&nbsp;{req.count}</span>
                             </div>
                         {/each}
                     </div>
@@ -521,6 +521,8 @@
         font-size: 0.82rem;
         font-weight: 700;
         color: #f1c40f;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     /* Grid of orders */
@@ -762,6 +764,8 @@
     .req-qty {
         font-weight: 700;
         font-size: 0.78rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .enough .req-qty {

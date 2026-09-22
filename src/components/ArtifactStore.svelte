@@ -491,6 +491,8 @@
         padding: 1px 5px;
         border-radius: 6px;
         color: #dfe6e9;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .category-tab-btn.done .tab-badge {
@@ -503,44 +505,28 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 9px 12px;
-        background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(155, 89, 182, 0.12) 100%);
-        border: 1px solid var(--accent-color, rgba(241, 196, 15, 0.3));
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-left: 4px solid var(--accent-color, #f1c40f);
+        padding: 10px 14px;
         border-radius: 12px;
-        margin-bottom: 10px;
-        flex-shrink: 0;
+        margin-bottom: 12px;
         transition: all 0.3s ease;
     }
 
     .synergy-banner.completed {
-        background: linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(241, 196, 15, 0.2) 100%);
-        border-color: rgba(46, 204, 113, 0.5);
-    }
-
-    .synergy-banner.all-relics {
-        background: linear-gradient(135deg, rgba(241, 196, 15, 0.08) 0%, rgba(108, 92, 231, 0.12) 100%);
-        border-color: rgba(241, 196, 15, 0.25);
-    }
-
-    .synergy-banner.standalone {
-        background: linear-gradient(135deg, rgba(104, 109, 224, 0.1) 0%, rgba(72, 52, 212, 0.15) 100%);
-        border-color: rgba(104, 109, 224, 0.35);
+        border-color: rgba(46, 204, 113, 0.4);
+        border-left-color: #2ecc71;
+        background: linear-gradient(135deg, rgba(46, 204, 113, 0.12) 0%, rgba(46, 204, 113, 0.02) 100%);
     }
 
     .synergy-icon {
         flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .mini-pet-icon {
         width: 32px;
         height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
     }
 
     .synergy-info {
@@ -555,12 +541,17 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 8px;
     }
 
     .synergy-name {
         font-size: 0.88rem;
         font-weight: 700;
         color: #ffeaa7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
     }
 
     .synergy-count {
@@ -571,6 +562,8 @@
         padding: 2px 8px;
         border-radius: 10px;
         border: 1px solid rgba(241, 196, 15, 0.3);
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .synergy-count.done {

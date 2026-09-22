@@ -377,7 +377,7 @@
                         <div class="danger-info-col">
                             <div class="danger-title-row">
                                 <span class="danger-label" class:danger-critical={isDangerouslyClose}>
-                                    {$brewAttemptsLeft <= 1 ? $t('alchemy.brewLastChance') : `${$brewAttemptsLeft} / ${$maxBrewAttempts}`}
+                                    {$brewAttemptsLeft <= 1 ? $t('alchemy.brewLastChance') : `${$brewAttemptsLeft}\u00A0/\u00A0${$maxBrewAttempts}`}
                                 </span>
                                 <div class="pips">
                                     {#each Array.from({ length: $maxBrewAttempts }, (_, i) => i + 1) as p}
@@ -805,7 +805,7 @@
     gap: 8px;
 }
 
-.danger-label{font-size:0.75rem;font-weight:700}
+.danger-label{font-size:0.75rem;font-weight:700;white-space:nowrap;flex-shrink:0}
 .danger-label.danger-critical{color:#ff4757;text-shadow:0 0 8px rgba(255,71,87,0.4)}
 
 .resonance-subtext {
@@ -1024,6 +1024,8 @@
 .hint-step-tag {
     font-size: 0.68rem;
     opacity: 0.75;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .r-desc{font-size:.72rem;color:rgba(255,255,255,0.6);font-style:italic;padding:4px 8px;background:rgba(0,184,148,0.08);border-left:2px solid #00b894;border-radius:0 6px 6px 0}

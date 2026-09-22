@@ -390,7 +390,7 @@
                         {isResonanceReady ? $t('chests.resonanceActive') : $t('chests.resonanceScale')}
                     </span>
                 </div>
-                <span class="resonance-percent">{resonanceProgress}% / 100%</span>
+                <span class="resonance-percent">{resonanceProgress}%&nbsp;/&nbsp;100%</span>
             </div>
 
             <div class="resonance-track">
@@ -844,22 +844,30 @@
         display: flex;
         align-items: center;
         gap: 6px;
+        min-width: 0;
+        flex: 1;
     }
 
     .resonance-icon {
         font-size: 1rem;
+        flex-shrink: 0;
     }
 
     .resonance-title {
         font-size: 0.86rem;
         font-weight: 800;
         color: #ffeaa7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .resonance-percent {
         font-size: 0.8rem;
         font-weight: 800;
         color: #a29bfe;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .resonance-track {

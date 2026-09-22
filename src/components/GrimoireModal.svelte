@@ -568,6 +568,8 @@
         align-items: center;
         gap: 3px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .info-badge {

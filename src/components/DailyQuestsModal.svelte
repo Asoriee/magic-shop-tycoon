@@ -202,7 +202,7 @@
                 </div>
             </div>
             <div class="completed-summary">
-                {$gameStore.quests.filter(q => q.isClaimed).length} / {$gameStore.quests.length}
+                {$gameStore.quests.filter(q => q.isClaimed).length}&nbsp;/&nbsp;{$gameStore.quests.length}
             </div>
         </div>
         
@@ -218,7 +218,7 @@
             <div class="mastery-details">
                 <div class="mastery-top">
                     <span class="mastery-name">{$t('quests.masterChest')}</span>
-                    <span class="mastery-counter">{completedCount} / {totalQuests}</span>
+                    <span class="mastery-counter">{completedCount}&nbsp;/&nbsp;{totalQuests}</span>
                 </div>
                 <div class="mastery-sub">
                     {#if $gameStore.dailyBonusClaimed}
@@ -330,7 +330,7 @@
                                 ></div>
                             </div>
                             <span class="progress-label">
-                                {Math.min(quest.current || 0, quest.target || 0)} / {quest.target || 0}
+                                {Math.min(quest.current || 0, quest.target || 0)}&nbsp;/&nbsp;{quest.target || 0}
                             </span>
                         </div>
 
@@ -474,6 +474,8 @@
         font-size: 0.82rem;
         font-weight: 700;
         color: #f1c40f;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     /* Daily Mastery Card */
@@ -540,6 +542,8 @@
         padding: 1px 7px;
         border-radius: 8px;
         border: 1px solid rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .mastery-sub {

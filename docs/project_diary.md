@@ -67,6 +67,20 @@
      * **Быстрый переход**: На панели котла добавлен баннер прямого перехода `📖 Открыть Книгу Рецептов (X/14) →`, а внутри книги — обратная кнопка `← К котлу`.
      * **Ликвидация конфликта прокрутки**: На мобильных экранах для `.recipe-book` установлено `overflow-y: visible; max-height: none`, список рецептов прокручивается нативно и плавно.
      * **Десктоп не затронут**: На экранах `>680px` подвкладки скрыты (`display: none`), панели котла и книги отображаются одновременно в две колонки (`grid-template-columns: 1fr 1fr`).
+12. **Mobile Fraction & Slash Line-Wrap Elimination**:
+   - Проведено комплексное исправление некрасивых переносов строк вокруг символа слэша `/` (например, `35% /` на первой строке и `100%` на второй) по всему интерфейсу игры:
+     * `ChestShopModal.svelte`: шкала астрального резонанса (`.resonance-percent`) переведена на `white-space: nowrap; flex-shrink: 0`, в шаблоне использован неразрывный пробел `&nbsp;/&nbsp;`, заголовок шкалы защищен от выталкивания (`overflow: hidden; text-overflow: ellipsis; min-width: 0`).
+     * `DailyQuestsModal.svelte`: счетчики контрактов дня (`.completed-summary`, `.mastery-counter`) и шкалы выполнения заданий (`.progress-label`) защищены через `white-space: nowrap; flex-shrink: 0`.
+     * `CustomerOrders.svelte`: бейдж активных заказов (`.orders-count-badge`) и счетчики нужных ингредиентов (`.req-qty`) защищены от разбиения.
+     * `CollectionsTab.svelte`: числовой прогресс реликвий витрин (`.progress-nums`) переведен на `white-space: nowrap; flex-shrink: 0`.
+     * `ArtifactStore.svelte`: синергетические счетчики коллекций (`.synergy-count`) и бейджи вкладок (`.tab-badge`) зафиксированы на одну строку.
+     * `FamiliarsModal.svelte`: счетчик собранных питомцев (`.sub-pill`) защищен от переноса.
+     * `DailyCalendarModal.svelte`: индикатор недельного прогресса (`.week-progress-pill`) защищен от переноса.
+     * `OfflineIncomePopup.svelte`: таймер и вместимость офлайн-хранилища (`.storage-values`) переведены на неразрывный пробел и `nowrap`.
+     * `InventoryModal.svelte`: бейджи уровней мастерства зелий (`.mastery-badge`, `.mastery-xp`) зафиксированы от переносов.
+     * `AlchemyTableModal.svelte`: индикаторы остатка попыток до перегрева (`.danger-label`) и шаги подсказок (`.hint-step-tag`) защищены от переносов.
+     * `ShopModal.svelte`: прогресс ранговых рубежей магазина (`.milestone-step`) защищен от переносов.
+     * `GrimoireModal.svelte`: бейджи вкладок гримуара (`.tab-badge`) зафиксированы на одну строку.
 
 ---
 

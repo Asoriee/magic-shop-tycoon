@@ -216,7 +216,7 @@
                 <div class="storage-labels">
                     <span class="storage-name">{$t('offlineIncome.maxLimitReached')}</span>
                     <span class="storage-values">
-                        {formatDuration(Math.min(offlineSeconds, maxOfflineSeconds))} / {formatCapacity(maxOfflineSeconds)}
+                        {formatDuration(Math.min(offlineSeconds, maxOfflineSeconds))}&nbsp;/&nbsp;{formatCapacity(maxOfflineSeconds)}
                         {#if $isVip}
                             <span class="vip-capacity-chip">+5 {$t('common.hour')} {$t('common.vip')}</span>
                         {/if}
@@ -495,6 +495,8 @@
         gap: 4px;
         color: #dfe6e9;
         font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .vip-capacity-chip {

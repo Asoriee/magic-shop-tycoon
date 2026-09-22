@@ -629,6 +629,8 @@
         font-weight: 800;
         padding: 2px 8px;
         border-radius: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .week-progress-pill.pill-done {

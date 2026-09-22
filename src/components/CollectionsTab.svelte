@@ -64,7 +64,7 @@
                 </div>
 
                 <div class="vitrine-progress-badge">
-                    <span class="progress-nums">{ownedArtifactsCount} / {totalArtifacts}</span>
+                    <span class="progress-nums">{ownedArtifactsCount}&nbsp;/&nbsp;{totalArtifacts}</span>
                     <span class="progress-pct">{progressPct}%</span>
                 </div>
             </div>
@@ -255,6 +255,8 @@
         font-size: 0.95rem;
         font-weight: 900;
         color: #ffd700;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .progress-pct {

@@ -721,11 +721,15 @@
     .mastery-badge {
         font-weight: 700;
         color: #ffd32a;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .mastery-xp {
         color: #a4b0be;
         font-size: 0.68rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .mastery-bar-bg {

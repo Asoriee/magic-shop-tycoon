@@ -1005,6 +1005,8 @@
         border-radius: 10px;
         font-size: 0.72rem;
         border: 1px solid rgba(255,255,255,0.1);
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .gold-pill {

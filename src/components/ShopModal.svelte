@@ -198,7 +198,7 @@
                     <span class="milestone-mult-pill">x{$milestoneInfo.multiplier.toFixed(2)}</span>
                 </div>
                 <div class="milestone-step-wrap">
-                    <span class="milestone-step">{$milestoneInfo.progress} / {$milestoneInfo.stepTarget} {$t('common.level')}</span>
+                    <span class="milestone-step">{$milestoneInfo.progress}&nbsp;/&nbsp;{$milestoneInfo.stepTarget} {$t('common.level')}</span>
                     <MechanicHelpButton guideId="shop_milestones" compact={true} />
                 </div>
             </div>
@@ -636,6 +636,8 @@
         color: rgba(255, 255, 255, 0.7);
         font-size: 0.78rem;
         font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .milestone-bar {

@@ -98,6 +98,18 @@
         { titleKey: 'calendar.week3', days: CALENDAR_REWARDS.slice(14, 21), milestoneKey: 'calendar.milestoneWeek3' },
         { titleKey: 'calendar.week4', days: CALENDAR_REWARDS.slice(21, 30), milestoneKey: 'calendar.milestoneWeek4' }
     ];
+
+    function getWeekStats(wIdx: number, curDay: number, ready: boolean) {
+        const startDay = wIdx * 7 + 1;
+        const total = wIdx === 3 ? (CALENDAR_REWARDS.length - 21) : 7;
+        const endDay = startDay + total - 1;
+        const effectiveClaimedDay = ready ? (curDay - 1) : curDay;
+        const completed = Math.max(0, Math.min(total, effectiveClaimedDay - startDay + 1));
+        const isCurrentWeek = curDay >= startDay && curDay <= endDay;
+        const isCompleted = completed >= total;
+        const percent = Math.min(100, Math.round((completed / total) * 100));
+        return { startDay, endDay, total, completed, isCurrentWeek, isCompleted, percent };
+    }
 </script>
 
 {#if isOpen}
@@ -188,16 +200,40 @@
             <!-- 4 Weeks Calendar Body -->
             <div class="calendar-scroll-area">
                 {#each WEEKS as week, wIdx}
-                    <div class="week-section">
+                    {@const stats = getWeekStats(wIdx, currentDay, isReady)}
+                    <div class="week-section" class:week-active={stats.isCurrentWeek} class:week-done={stats.isCompleted}>
                         <div class="week-header">
-                            <span class="week-title">{$t(week.titleKey)}</span>
-                            <span class="week-milestone-hint">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="#ffd32a" style="vertical-align: middle; margin-right: 4px;">
-                                    <path d="M6 3h12v4c0 3.3-2.7 6-6 6s-6-2.7-6-6V3zm0 2H4c0 2.2 1.8 4 4 4h.4C7.5 8.2 6.8 6.7 6.5 5H6zm12 0h.5c-.3 1.7-1 3.2-1.9 4H17c2.2 0 4-1.8 4-4h-2zm-7 10.9V18H8v2h8v-2h-3v-2.1c3.5-.5 6-3.4 6-6.9V3H5v6c0 3.5 2.5 6.4 6 6.9z"/>
-                                </svg>
-                                {$t(week.milestoneKey)}
-                            </span>
+                            <div class="week-header-left">
+                                <span class="week-title">{$t(week.titleKey)}</span>
+                                {#if stats.isCurrentWeek}
+                                    <span class="active-week-badge">{$t('calendar.currentWeekBadge')}</span>
+                                {/if}
+                            </div>
+                            <div class="week-header-right">
+                                <span class="week-milestone-hint">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd32a" style="vertical-align: -1px; margin-right: 2px;">
+                                        <path d="M6 3h12v4c0 3.3-2.7 6-6 6s-6-2.7-6-6V3zm0 2H4c0 2.2 1.8 4 4 4h.4C7.5 8.2 6.8 6.7 6.5 5H6zm12 0h.5c-.3 1.7-1 3.2-1.9 4H17c2.2 0 4-1.8 4-4h-2zm-7 10.9V18H8v2h8v-2h-3v-2.1c3.5-.5 6-3.4 6-6.9V3H5v6c0 3.5 2.5 6.4 6 6.9z"/>
+                                    </svg>
+                                    {$t(week.milestoneKey)}
+                                </span>
+                                <span class="week-progress-pill" class:pill-done={stats.isCompleted}>
+                                    {#if stats.isCompleted}
+                                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2ed573" stroke-width="3">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        <span>{$t('calendar.weekCompleted')}</span>
+                                    {:else}
+                                        <span>{$t('calendar.weekProgress', { completed: stats.completed, total: stats.total })}</span>
+                                    {/if}
+                                </span>
+                            </div>
                         </div>
+
+                        <!-- Sleek Weekly Progress Track -->
+                        <div class="week-progress-track">
+                            <div class="week-progress-fill" style="width: {stats.percent}%"></div>
+                        </div>
+
                         <div class="days-grid">
                             {#each week.days as reward}
                                 {@const isClaimed = reward.day < currentDay}
@@ -213,6 +249,16 @@
                                     class:future={isFuture}
                                     class:milestone={reward.isMilestone}
                                 >
+                                    <!-- Grand Milestone Banner on 7th card of week -->
+                                    {#if reward.isMilestone}
+                                        <div class="milestone-ribbon-tag">
+                                            <svg viewBox="0 0 24 24" width="9" height="9" fill="#ffd700">
+                                                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                            </svg>
+                                            <span>{$t('calendar.superReward')}</span>
+                                        </div>
+                                    {/if}
+
                                     <!-- Day Header -->
                                     <div class="day-card-header">
                                         <span class="day-num">{$t('calendar.dayNum', { day: reward.day })}</span>
@@ -222,12 +268,15 @@
                                     </div>
 
                                     <!-- Icon -->
-                                    <div class="reward-icon-wrap">
+                                    <div class="reward-icon-wrap" class:icon-milestone={reward.isMilestone}>
+                                        {#if reward.isMilestone}
+                                            <div class="milestone-aura"></div>
+                                        {/if}
                                         {@html reward.iconSvg}
                                     </div>
 
                                     <!-- Label -->
-                                    <div class="reward-label">
+                                    <div class="reward-label" class:label-milestone={reward.isMilestone}>
                                         {getRewardLabel(reward, $isVip)}
                                     </div>
 
@@ -499,33 +548,103 @@
     }
 
     .week-section {
-        background: rgba(0, 0, 0, 0.22);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
         padding: 12px 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .week-section.week-active {
+        border-color: rgba(241, 196, 15, 0.4);
+        background: linear-gradient(180deg, rgba(241, 196, 15, 0.05) 0%, rgba(0, 0, 0, 0.3) 100%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 14px rgba(241, 196, 15, 0.08);
+    }
+
+    .week-section.week-done {
+        border-color: rgba(46, 204, 113, 0.3);
     }
 
     .week-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        font-size: 0.82rem;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+
+    .week-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .week-title {
-        font-weight: 700;
+        font-weight: 800;
         color: #a29bfe;
+        font-size: 0.86rem;
+        letter-spacing: 0.4px;
+    }
+
+    .active-week-badge {
+        background: rgba(241, 196, 15, 0.15);
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        color: #f1c40f;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 6px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
+    }
+
+    .week-header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
     .week-milestone-hint {
         color: #ffd32a;
-        font-size: 0.76rem;
+        font-size: 0.74rem;
         font-weight: 600;
+    }
+
+    .week-progress-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #dcdde1;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 8px;
+    }
+
+    .week-progress-pill.pill-done {
+        background: rgba(46, 204, 113, 0.15);
+        border-color: rgba(46, 204, 113, 0.4);
+        color: #2ed573;
+    }
+
+    .week-progress-track {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .week-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6c5ce7, #f1c40f);
+        border-radius: 2px;
+        transition: width 0.3s ease;
     }
 
     .days-grid {
@@ -562,9 +681,53 @@
     }
 
     .day-card.milestone {
-        background: linear-gradient(160deg, rgba(155, 89, 182, 0.18) 0%, rgba(241, 196, 15, 0.12) 100%);
-        border-color: rgba(241, 196, 15, 0.45);
-        box-shadow: 0 0 12px rgba(241, 196, 15, 0.15);
+        background: linear-gradient(160deg, rgba(108, 92, 231, 0.22) 0%, rgba(241, 196, 15, 0.18) 100%);
+        border: 1.5px solid rgba(241, 196, 15, 0.55);
+        box-shadow: 0 0 16px rgba(241, 196, 15, 0.2);
+    }
+
+    .milestone-ribbon-tag {
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #d35400, #f1c40f);
+        color: #1a0a2a;
+        font-size: 0.54rem;
+        font-weight: 900;
+        letter-spacing: 0.3px;
+        padding: 1px 6px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        white-space: nowrap;
+        z-index: 4;
+    }
+
+    .reward-icon-wrap.icon-milestone {
+        position: relative;
+    }
+
+    .milestone-aura {
+        position: absolute;
+        inset: -4px;
+        background: radial-gradient(circle, rgba(241, 196, 15, 0.35) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: pulseAura 2.2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAura {
+        0%, 100% { transform: scale(0.9); opacity: 0.6; }
+        50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .label-milestone {
+        color: #ffeaa7;
+        font-weight: 800;
+        text-shadow: 0 0 8px rgba(241, 196, 15, 0.4);
     }
 
     .day-card.current.ready {

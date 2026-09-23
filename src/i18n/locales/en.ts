@@ -1153,6 +1153,8 @@ export const en: Translations = {
         pityActive: 'Pity ready! Next spin unlocks an Astral Chest!',
         winTitle: 'Fortune Favors You!',
         pityBonusBadge: 'PITY BONUS: ASTRAL CHEST!',
+        pityBonusDesc: 'Pity meter is full! You received an Astral Chest with legendary gifts!',
+        chestItemsCount: 'items received',
         claimReward: 'Claim Reward',
         spinning: 'Spinning the wheel...',
         freeCooldownWait: 'Free spin is still recharging.',

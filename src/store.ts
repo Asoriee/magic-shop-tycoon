@@ -2882,16 +2882,34 @@ function createGameStore() {
             const durationMultiplier = 1 + (masteryLvl * 0.10);
             const durationMs = Math.round(potion.durationMin * durationMultiplier * 60 * 1000);
 
-            const newBuff: ActiveBuff = {
-                potionId,
-                expiresAt: Date.now() + durationMs,
-                effect: potion.effect,
-                value: potion.value
-            };
+            const now = Date.now();
+            const currentBuffs = state.activeBuffs || [];
+            const existingIdx = currentBuffs.findIndex(b => b.potionId === potionId);
+            let nextBuffs: ActiveBuff[];
+            if (existingIdx >= 0) {
+                const existing = currentBuffs[existingIdx];
+                const baseTime = existing.expiresAt > now ? existing.expiresAt : now;
+                nextBuffs = [...currentBuffs];
+                nextBuffs[existingIdx] = {
+                    ...existing,
+                    expiresAt: baseTime + durationMs,
+                    value: potion.value
+                };
+            } else {
+                nextBuffs = [
+                    ...currentBuffs,
+                    {
+                        potionId,
+                        expiresAt: now + durationMs,
+                        effect: potion.effect,
+                        value: potion.value
+                    }
+                ];
+            }
 
             return {
                 ...state,
-                activeBuffs: [...state.activeBuffs, newBuff],
+                activeBuffs: nextBuffs,
                 activeExpeditions: updatedExpeditions,
                 potionMasteryXp: nextMasteryXp,
                 potionMastery: nextMastery
@@ -2899,9 +2917,21 @@ function createGameStore() {
         }),
         removeExpiredBuffs: () => update(state => {
             const now = Date.now();
-            const validBuffs = state.activeBuffs.filter(b => b.expiresAt > now);
-            if (validBuffs.length !== state.activeBuffs.length) {
-                return { ...state, activeBuffs: validBuffs };
+            const currentBuffs = state.activeBuffs || [];
+            const validBuffs = currentBuffs.filter(b => b.expiresAt > now);
+            // Consolidate duplicates if any were stored in older saves
+            const map = new Map<string, ActiveBuff>();
+            for (const b of validBuffs) {
+                const existing = map.get(b.potionId);
+                if (!existing) {
+                    map.set(b.potionId, { ...b });
+                } else {
+                    existing.expiresAt = Math.max(existing.expiresAt, b.expiresAt);
+                }
+            }
+            const deduped = Array.from(map.values());
+            if (deduped.length !== currentBuffs.length) {
+                return { ...state, activeBuffs: deduped };
             }
             return state;
         }),
@@ -4206,19 +4236,38 @@ function applySectorReward(sector: LuckyWheelSector): {
         return { crystalsWon: amt };
     }
     if (sector.type === 'frenzy') {
-        // Frenzy: +200% gold for 3 minutes (x3 profit)
-        gameStore.update(s => ({
-            ...s,
-            activeBuffs: [
-                ...s.activeBuffs,
-                {
-                    potionId: 'frenzy_lucky_wheel',
-                    expiresAt: Date.now() + 3 * 60 * 1000,
-                    effect: 'gold_multiplier',
+        // Frenzy: +200% gold for 3 minutes (x3 profit). Stacks duration if already active.
+        const now = Date.now();
+        const duration = 3 * 60 * 1000;
+        gameStore.update(s => {
+            const currentBuffs = s.activeBuffs || [];
+            const existingIdx = currentBuffs.findIndex(b => b.potionId === 'frenzy_lucky_wheel');
+            let nextBuffs: ActiveBuff[];
+            if (existingIdx >= 0) {
+                const existing = currentBuffs[existingIdx];
+                const baseTime = existing.expiresAt > now ? existing.expiresAt : now;
+                nextBuffs = [...currentBuffs];
+                nextBuffs[existingIdx] = {
+                    ...existing,
+                    expiresAt: baseTime + duration,
                     value: 2.0
-                }
-            ]
-        }));
+                };
+            } else {
+                nextBuffs = [
+                    ...currentBuffs,
+                    {
+                        potionId: 'frenzy_lucky_wheel',
+                        expiresAt: now + duration,
+                        effect: 'gold_multiplier',
+                        value: 2.0
+                    }
+                ];
+            }
+            return {
+                ...s,
+                activeBuffs: nextBuffs
+            };
+        });
         return {};
     }
     if (sector.type === 'chest') {

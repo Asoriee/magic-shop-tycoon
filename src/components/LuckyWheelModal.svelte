@@ -522,7 +522,7 @@
                                 <span class="reward-quant crystal-quant">+{reward.crystalAmount} 💎</span>
                             {/if}
                             {#if reward.chestResult}
-                                <span class="reward-quant chest-quant">📦 {reward.chestResult.drops.length} предметов получено</span>
+                                <span class="reward-quant chest-quant">📦 {reward.chestResult.drops.length} {$t('luckyWheel.chestItemsCount')}</span>
                             {/if}
                         </div>
                     </div>
@@ -537,7 +537,7 @@
                                 {$t('luckyWheel.pityBonusBadge')}
                             </div>
                             <p class="pity-bonus-desc">
-                                Шкала Удачи заполнена! Вы получили Астральный Сундук с легендарными дарами!
+                                {$t('luckyWheel.pityBonusDesc')}
                             </p>
                         </div>
                     {/if}

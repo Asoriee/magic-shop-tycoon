@@ -97,7 +97,19 @@
     let nowTime = getServerTime();
 
     $: totalCityNotifications = $readyOrdersCount + $unclaimedQuestsCount;
-    $: liveBuffs = ($gameStore?.activeBuffs || []).filter(b => b.expiresAt > nowTime);
+    $: liveBuffs = (() => {
+        const raw = ($gameStore?.activeBuffs || []).filter(b => b.expiresAt > nowTime);
+        const map = new Map<string, typeof raw[0]>();
+        for (const b of raw) {
+            const existing = map.get(b.potionId);
+            if (!existing) {
+                map.set(b.potionId, { ...b });
+            } else {
+                existing.expiresAt = Math.max(existing.expiresAt, b.expiresAt);
+            }
+        }
+        return Array.from(map.values());
+    })();
 
     function formatBuffTime(expiresAt: number): string {
         const diff = Math.max(0, Math.floor((expiresAt - nowTime) / 1000));
@@ -107,11 +119,17 @@
     }
 
     function getPotionSvg(potionId: string): string {
+        if (potionId === 'frenzy_lucky_wheel') {
+            return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ffd700" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+        }
         const found = AVAILABLE_POTIONS.find((p: Potion) => p.id === potionId);
         return found?.icon || '';
     }
 
     function getPotionName(potionId: string): string {
+        if (potionId === 'frenzy_lucky_wheel') {
+            return $t('luckyWheel.sectorFrenzyTitle');
+        }
         const found = AVAILABLE_POTIONS.find((p: Potion) => p.id === potionId);
         return found?.name || $t('common.potion');
     }

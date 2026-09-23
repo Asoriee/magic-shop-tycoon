@@ -1153,6 +1153,8 @@ export const tr: Translations = {
         pityActive: 'Garanti hazır! Sıradaki çevirme Astral Sandık açar!',
         winTitle: 'Tebrikler, Kazandınız!',
         pityBonusBadge: 'GARANTİ BONUSU: ASTRAL SANDIK!',
+        pityBonusDesc: 'Şans çubuğu doldu! Efsanevi hediyeler içeren bir Astral Sandık kazandınız!',
+        chestItemsCount: 'öğe kazanıldı',
         claimReward: 'Ödülü Al',
         spinning: 'Çark dönüyor...',
         freeCooldownWait: 'Ücretsiz çevirme henüz dolmadı.',

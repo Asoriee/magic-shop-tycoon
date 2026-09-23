@@ -3960,6 +3960,7 @@ export interface LuckyWheelSector {
     descriptionKey: string;
     type: 'gold' | 'crystals' | 'frenzy' | 'chest' | 'reagents' | 'timewarp' | 'jackpot';
     weight: number;
+    badgeKey: string;
     badge: string;
     amount?: number;
     chestType?: ChestType;
@@ -3986,6 +3987,7 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorGoldDesc',
         type: 'gold',
         weight: 250, // 25%
+        badgeKey: 'luckyWheel.sectorBadgeGold',
         badge: '30m',
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
             <circle cx="20" cy="22" r="14" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
@@ -4001,7 +4003,8 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorCrystals3Desc',
         type: 'crystals',
         weight: 200, // 20%
-        badge: '+3💎',
+        badgeKey: 'luckyWheel.sectorBadgeCrystals3',
+        badge: '+3 💎',
         amount: 3,
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
             <polygon points="20,6 30,16 20,34 10,16" fill="#38bdf8" stroke="#0284c7" stroke-width="1.8"/>
@@ -4016,7 +4019,8 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorFrenzyDesc',
         type: 'frenzy',
         weight: 180, // 18%
-        badge: 'x3 (3м)',
+        badgeKey: 'luckyWheel.sectorBadgeFrenzy',
+        badge: 'x3 (3m)',
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
             <path d="M16 8 L24 8 L26 16 L31 28 Q33 34 20 34 Q7 34 9 28 L14 16 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
             <rect x="14" y="4" width="12" height="4" rx="1.5" fill="#f97316"/>
@@ -4030,6 +4034,7 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorChestDesc',
         type: 'chest',
         weight: 140, // 14%
+        badgeKey: 'luckyWheel.sectorBadgeChest',
         badge: 'Сундук',
         chestType: 'alchemist',
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
@@ -4045,6 +4050,7 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorReagentsDesc',
         type: 'reagents',
         weight: 100, // 10%
+        badgeKey: 'luckyWheel.sectorBadgeReagents',
         badge: '+5 трав',
         amount: 5,
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
@@ -4060,6 +4066,7 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorTimeWarpDesc',
         type: 'timewarp',
         weight: 70, // 7%
+        badgeKey: 'luckyWheel.sectorBadgeTimeWarp',
         badge: '1 час',
         amount: 1,
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
@@ -4076,7 +4083,8 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorCrystals10Desc',
         type: 'crystals',
         weight: 45, // 4.5%
-        badge: '+10💎',
+        badgeKey: 'luckyWheel.sectorBadgeCrystals10',
+        badge: '+10 💎',
         amount: 10,
         iconSvg: `<svg viewBox="0 0 40 40" width="32" height="32" fill="none">
             <polygon points="12,18 20,4 28,18 20,36" fill="#a855f7" stroke="#7e22ce" stroke-width="1.8"/>
@@ -4092,6 +4100,7 @@ export const LUCKY_WHEEL_SECTORS: LuckyWheelSector[] = [
         descriptionKey: 'luckyWheel.sectorJackpotDesc',
         type: 'jackpot',
         weight: 15, // 1.5%
+        badgeKey: 'luckyWheel.sectorBadgeJackpot',
         badge: 'ДЖЕКПОТ',
         amount: 50,
         chestType: 'astral',

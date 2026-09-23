@@ -343,7 +343,6 @@
                     <svg 
                         viewBox="0 0 360 360" 
                         class="wheel-svg"
-                        style="transform: rotate({wheelRotation}deg);"
                     >
                         <defs>
                             <radialGradient id="jackpotAura" cx="50%" cy="50%" r="50%">
@@ -360,46 +359,49 @@
                             </filter>
                         </defs>
 
-                        <!-- Outer Runic Rim -->
-                        <circle cx="180" cy="180" r="176" fill="#0f0920" stroke="#f59e0b" stroke-width="5" filter="url(#goldRingGlow)"/>
-                        <circle cx="180" cy="180" r="172" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 3"/>
+                        <!-- Rotating Sector Disc Group -->
+                        <g class="wheel-rotator" transform="rotate({wheelRotation}, 180, 180)">
+                            <!-- Outer Runic Rim -->
+                            <circle cx="180" cy="180" r="176" fill="#0f0920" stroke="#f59e0b" stroke-width="5" filter="url(#goldRingGlow)"/>
+                            <circle cx="180" cy="180" r="172" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4 3"/>
 
-                        <!-- 8 Sectors -->
-                        {#each LUCKY_WHEEL_SECTORS as sector, i}
-                            <g class="sector-group">
-                                <path 
-                                    d={getSectorPath(i)} 
-                                    fill={SECTOR_FILLS[i]} 
-                                    stroke={SECTOR_STROKES[i]} 
-                                    stroke-width="1.8"
-                                />
+                            <!-- 8 Sectors -->
+                            {#each LUCKY_WHEEL_SECTORS as sector, i}
+                                <g class="sector-group">
+                                    <path 
+                                        d={getSectorPath(i)} 
+                                        fill={SECTOR_FILLS[i]} 
+                                        stroke={SECTOR_STROKES[i]} 
+                                        stroke-width="1.8"
+                                    />
 
-                                <!-- Sector Content Group (Transformed to Sector Angle) -->
-                                <g transform="rotate({i * 45}, 180, 180)">
-                                    <!-- Badge / Reward text near outer rim (kept upright) -->
-                                    <text 
-                                        x="180" 
-                                        y="46" 
-                                        text-anchor="middle" 
-                                        fill="#fff" 
-                                        font-size="12" 
-                                        font-weight="bold" 
-                                        letter-spacing="0.5"
-                                        class="sector-badge-text"
-                                        transform="rotate({-(wheelRotation + i * 45)}, 180, 42)"
-                                    >
-                                        {sector.badge}
-                                    </text>
+                                    <!-- Sector Content Group (Transformed to Sector Angle) -->
+                                    <g transform="rotate({i * 45}, 180, 180)">
+                                        <!-- Badge / Reward text near outer rim (kept upright and localized) -->
+                                        <text 
+                                            x="180" 
+                                            y="46" 
+                                            text-anchor="middle" 
+                                            fill="#fff" 
+                                            font-size="12" 
+                                            font-weight="bold" 
+                                            letter-spacing="0.5"
+                                            class="sector-badge-text"
+                                            transform="rotate({-(wheelRotation + i * 45)}, 180, 42)"
+                                        >
+                                            {$t(sector.badgeKey || '') || sector.badge}
+                                        </text>
 
-                                    <!-- Embedded Pure SVG Sector Icon (kept upright) -->
-                                    <g transform="rotate({-(wheelRotation + i * 45)}, 180, 74)">
-                                        <g transform="translate(164, 58)">
-                                            {@html sector.iconSvg}
+                                        <!-- Embedded Pure SVG Sector Icon (kept upright) -->
+                                        <g transform="rotate({-(wheelRotation + i * 45)}, 180, 74)">
+                                            <g transform="translate(164, 58)">
+                                                {@html sector.iconSvg}
+                                            </g>
                                         </g>
                                     </g>
                                 </g>
-                            </g>
-                        {/each}
+                            {/each}
+                        </g>
 
                         <!-- Center Archmage Orb & Spin Trigger Seal -->
                         <circle cx="180" cy="180" r="38" fill="#18132e" stroke="#f59e0b" stroke-width="3" filter="url(#goldRingGlow)"/>
@@ -583,6 +585,7 @@
         max-width: 480px;
         max-height: 94vh;
         overflow-y: auto;
+        overflow-x: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -749,11 +752,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
+        border-radius: 50%;
     }
 
     .wheel-svg {
         width: 100%;
         height: 100%;
+        display: block;
+    }
+
+    .wheel-rotator {
         will-change: transform;
     }
 

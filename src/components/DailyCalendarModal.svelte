@@ -246,6 +246,7 @@
                                 {@const isCurrentReady = reward.day === currentDay && isReady}
                                 {@const isUpcoming = reward.day === currentDay && !isReady}
                                 {@const isFuture = reward.day > currentDay}
+                                <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
                                 <div 
                                     class="day-card"
                                     class:past={isClaimed}
@@ -254,6 +255,10 @@
                                     class:upcoming={isUpcoming}
                                     class:future={isFuture}
                                     class:milestone={reward.isMilestone}
+                                    role={isCurrentReady ? "button" : undefined}
+                                    tabindex={isCurrentReady ? 0 : undefined}
+                                    on:click={() => { if (isCurrentReady) handleClaim(); }}
+                                    on:keydown={(e) => { if (isCurrentReady && (e.key === 'Enter' || e.key === ' ')) handleClaim(); }}
                                 >
                                     <!-- Grand Milestone Banner on 7th card of week -->
                                     {#if reward.isMilestone}
@@ -295,9 +300,12 @@
                                             <span>{$t('calendar.claimed')}</span>
                                         </div>
                                     {:else if isCurrentReady}
-                                        <button class="claim-mini-btn" on:click={handleClaim}>
-                                            {$t('calendar.claim')}
-                                        </button>
+                                        <div class="ready-cta-pill">
+                                            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
+                                                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                            </svg>
+                                            <span>{$t('calendar.claim')}</span>
+                                        </div>
                                     {:else if isUpcoming}
                                         <div class="stamp-upcoming">
                                             <svg viewBox="0 0 24 24" width="13" height="13" stroke="#ffd32a" stroke-width="2.2" fill="none">
@@ -664,13 +672,30 @@
     @media (max-width: 768px) {
         .days-grid {
             grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+        }
+        .day-card.milestone {
+            grid-column: span 2;
         }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 500px) {
         .days-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+        .day-card.milestone {
+            grid-column: span 2;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .days-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        .day-card.milestone {
+            grid-column: span 2;
         }
     }
 
@@ -825,21 +850,25 @@
         margin-top: 4px;
     }
 
-    .claim-mini-btn {
+    .ready-cta-pill {
         margin-top: 4px;
         background: linear-gradient(135deg, #ffd32a 0%, #ff9f43 100%);
         color: #2c3e50;
-        border: none;
         border-radius: 6px;
         font-size: 0.68rem;
         font-weight: 800;
         padding: 3px 8px;
-        cursor: pointer;
         box-shadow: 0 2px 8px rgba(241, 196, 15, 0.4);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        animation: pulseReadyPill 1.8s infinite ease-in-out;
     }
 
-    .claim-mini-btn:hover {
-        transform: scale(1.05);
+    @keyframes pulseReadyPill {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.04); filter: brightness(1.15); }
     }
 
     .modal-footer {

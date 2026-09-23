@@ -241,100 +241,176 @@
             <div class="vip-card" class:vip-active={$isVip}>
                 <div class="vip-glow"></div>
                 <div class="vip-content">
-                    <div class="vip-visual">
-                        <svg viewBox="0 0 70 60" width="60" height="52" class="crown-svg">
-                            <defs>
-                                <radialGradient id="vipGoldAura" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#ffeaa7"/>
-                                    <stop offset="70%" stop-color="#f39c12"/>
-                                    <stop offset="100%" stop-color="#d35400"/>
-                                </radialGradient>
-                                <filter id="vipGoldGlow" x="-20%" y="-20%" width="140%" height="140%">
-                                    <feGaussianBlur stdDeviation="3" result="blur"/>
-                                    <feMerge>
-                                        <feMergeNode in="blur"/>
-                                        <feMergeNode in="SourceGraphic"/>
-                                    </feMerge>
-                                </filter>
-                            </defs>
-                            <circle cx="35" cy="30" r="26" fill="rgba(241, 196, 15, 0.15)"/>
-                            <!-- Crown base & peaks -->
-                            <path d="M10 46 L60 46 L58 52 L12 52 Z" fill="#b7791f"/>
-                            <path d="M10 46 L60 46 L64 24 L48 36 L35 12 L22 36 L6 24 Z" 
-                                  fill="url(#vipGoldAura)" stroke="#ffeaa7" stroke-width="1.5" filter="url(#vipGoldGlow)"/>
-                            <!-- Gems on peaks -->
-                            <circle cx="35" cy="12" r="4.5" fill="#e74c3c" stroke="#fff" stroke-width="1"/>
-                            <circle cx="6" cy="24" r="3" fill="#3498db" stroke="#fff" stroke-width="1"/>
-                            <circle cx="64" cy="24" r="3" fill="#3498db" stroke="#fff" stroke-width="1"/>
-                            <circle cx="22" cy="36" r="3" fill="#2ecc71" stroke="#fff" stroke-width="1"/>
-                            <circle cx="48" cy="36" r="3" fill="#2ecc71" stroke="#fff" stroke-width="1"/>
-                        </svg>
-                    </div>
+                    
+                    <!-- VIP Master Header (Brand + Status Pill) -->
+                    <div class="vip-top-header">
+                        <div class="vip-brand-group">
+                            <div class="vip-crown-badge">
+                                <svg viewBox="0 0 70 60" width="36" height="30" class="crown-svg">
+                                    <defs>
+                                        <radialGradient id="vipGoldAura" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#ffeaa7"/>
+                                            <stop offset="70%" stop-color="#f39c12"/>
+                                            <stop offset="100%" stop-color="#d35400"/>
+                                        </radialGradient>
+                                        <filter id="vipGoldGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                                            <feMerge>
+                                                <feMergeNode in="blur"/>
+                                                <feMergeNode in="SourceGraphic"/>
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+                                    <circle cx="35" cy="30" r="26" fill="rgba(241, 196, 15, 0.15)"/>
+                                    <!-- Crown base & peaks -->
+                                    <path d="M10 46 L60 46 L58 52 L12 52 Z" fill="#b7791f"/>
+                                    <path d="M10 46 L60 46 L64 24 L48 36 L35 12 L22 36 L6 24 Z" 
+                                          fill="url(#vipGoldAura)" stroke="#ffeaa7" stroke-width="1.5" filter="url(#vipGoldGlow)"/>
+                                    <!-- Gems on peaks -->
+                                    <circle cx="35" cy="12" r="4.5" fill="#e74c3c" stroke="#fff" stroke-width="1"/>
+                                    <circle cx="6" cy="24" r="3" fill="#3498db" stroke="#fff" stroke-width="1"/>
+                                    <circle cx="64" cy="24" r="3" fill="#3498db" stroke="#fff" stroke-width="1"/>
+                                    <circle cx="22" cy="36" r="3" fill="#2ecc71" stroke="#fff" stroke-width="1"/>
+                                    <circle cx="48" cy="36" r="3" fill="#2ecc71" stroke="#fff" stroke-width="1"/>
+                                </svg>
+                            </div>
+                            <div class="vip-titles">
+                                <h3 class="vip-title">{$t('treasury.vipTitle')}</h3>
+                                <span class="vip-subtitle">{$t('treasury.perk7')}</span>
+                            </div>
+                        </div>
 
-                    <div class="vip-info">
-                        <div class="vip-header-row">
-                            <h3 class="vip-title">{$t('treasury.vipTitle')}</h3>
+                        <div class="vip-status-box">
                             {#if $isVip}
-                                <span class="vip-badge-tag vip-active-tag">{$t('treasury.vipActiveDays', { days: $vipDaysLeft })}</span>
+                                <span class="vip-badge-tag vip-active-tag">
+                                    <ResourceIcon type="vip" size={13} />
+                                    <span class="status-days-text">{$t('treasury.vipActiveDays', { days: $vipDaysLeft })}</span>
+                                </span>
                             {:else}
-                                <span class="vip-badge-tag">{$t('treasury.vipDays30')}</span>
+                                <span class="vip-badge-tag">
+                                    <span>{$t('treasury.vipDays30')}</span>
+                                </span>
                             {/if}
                         </div>
-                        <ul class="vip-perks">
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{@html $t('treasury.perk1')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{@html $t('treasury.perk2')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{$t('treasury.perk3')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{@html $t('treasury.perk4')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{@html $t('treasury.perk5')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{@html $t('treasury.perk6')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{$t('treasury.perk7')}</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 16 16" width="13" height="13" fill="none" class="perk-icon">
-                                    <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span>{@html $t('treasury.perkCalendar')}</span>
-                            </li>
-                        </ul>
                     </div>
 
-                    <div class="vip-action">
+                    <!-- 2-Column Structured Benefits Matrix -->
+                    <div class="vip-perks-grid">
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-gem">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <polygon points="10,2 17,7 14,17 6,17 3,7" fill="#74b9ff" stroke="#0984e3" stroke-width="1.2"/>
+                                    <polygon points="10,2 17,7 10,9" fill="#a29bfe" opacity="0.8"/>
+                                    <polygon points="10,2 3,7 10,9" fill="#dff9fb" opacity="0.9"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                {@html $t('treasury.perk1')}
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item highlight-altar">
+                            <div class="perk-icon-wrap icon-daily">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <rect x="3" y="4" width="14" height="13" rx="2.5" fill="#2d134d" stroke="#f1c40f" stroke-width="1.2"/>
+                                    <path d="M3 8 L17 8" stroke="#f1c40f" stroke-width="1.2"/>
+                                    <line x1="7" y1="2" x2="7" y2="5" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round"/>
+                                    <line x1="13" y1="2" x2="13" y2="5" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round"/>
+                                    <polygon points="10,10 12,14 8,14" fill="#00d2d3"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                {@html $t('treasury.perk2')}
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-noads">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <path d="M10 2 L17 5 V11 C17 15 13 18 10 19 C7 18 3 15 3 11 V5 Z" fill="#1b2a47" stroke="#00cec9" stroke-width="1.2"/>
+                                    <polygon points="8,7 14,10.5 8,14" fill="#00cec9"/>
+                                    <line x1="5" y1="5" x2="15" y2="15" stroke="#ff7675" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                <span>{$t('treasury.perk3')}</span>
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-income">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <circle cx="10" cy="10" r="8" fill="#2d2008" stroke="#f1c40f" stroke-width="1.2"/>
+                                    <polyline points="5,13 8.5,9.5 11,12 15,7" stroke="#2ecc71" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="12,7 15,7 15,10" stroke="#2ecc71" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                {@html $t('treasury.perk4')}
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-calendar">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <rect x="3" y="3" width="14" height="14" rx="3" fill="#25143a" stroke="#e056fd" stroke-width="1.2"/>
+                                    <path d="M6 10 L8 8 L10 12 L12 10" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <text x="10" y="14.5" fill="#ffeaa7" font-size="7" font-weight="900" text-anchor="middle" font-family="sans-serif">2×</text>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                {@html $t('treasury.perkCalendar')}
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-offline">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <circle cx="10" cy="10" r="8" fill="#1b1633" stroke="#a29bfe" stroke-width="1.2"/>
+                                    <polyline points="10,6 10,10 13,12" stroke="#ffeaa7" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M14 4 L17 7" stroke="#2ecc71" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                {@html $t('treasury.perk5')}
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-cauldron">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <ellipse cx="10" cy="14" rx="7" ry="4" fill="#1e272e" stroke="#2ed573" stroke-width="1.2"/>
+                                    <path d="M4 14 C4 8 7 6 10 6 C13 6 16 8 16 14" fill="#1e272e" stroke="#2ed573" stroke-width="1.2"/>
+                                    <circle cx="8" cy="10" r="1.2" fill="#55efc4"/>
+                                    <circle cx="12" cy="9" r="1.5" fill="#2ed573"/>
+                                    <line x1="8" y1="3" x2="12" y2="3" stroke="#ffd32a" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                {@html $t('treasury.perk6')}
+                            </div>
+                        </div>
+
+                        <div class="vip-perk-item">
+                            <div class="perk-icon-wrap icon-crown">
+                                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                                    <path d="M3 14 L17 14 L16 16 L4 16 Z" fill="#b7791f"/>
+                                    <path d="M3 14 L17 14 L18 7 L13 11 L10 4 L7 11 L2 7 Z" fill="#f1c40f" stroke="#ffeaa7" stroke-width="1"/>
+                                    <circle cx="10" cy="4" r="1.2" fill="#e74c3c"/>
+                                    <circle cx="2" cy="7" r="1" fill="#3498db"/>
+                                    <circle cx="18" cy="7" r="1" fill="#3498db"/>
+                                </svg>
+                            </div>
+                            <div class="perk-text-wrap">
+                                <span>{$t('treasury.perk7')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VIP Ergonomic Action Bar -->
+                    <div class="vip-action-bar">
                         {#if $isVip}
-                            <div class="vip-active-actions">
+                            <div class="vip-active-grid">
                                 {#if $isVipDailyRewardAvailable}
                                     <button 
                                         type="button" 
@@ -342,15 +418,16 @@
                                         on:click={handleClaimVipDaily}
                                         title={$t('treasury.claimVipDailyTitle')}
                                     >
-                                        <ResourceIcon type="crystals" size={16} class="claim-gem-icon" />
-                                        <span>{$t('treasury.claimVipDailyBtn')}</span>
+                                        <ResourceIcon type="crystals" size={18} class="claim-gem-icon" />
+                                        <span class="claim-btn-text">{$t('treasury.claimVipDailyBtn')}</span>
                                     </button>
                                 {:else}
                                     <div class="vip-daily-collected-pill">
-                                        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
-                                            <path d="M3 8 L6 11 L13 4" stroke="#2ecc71" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <svg viewBox="0 0 16 16" width="15" height="15" fill="none">
+                                            <circle cx="8" cy="8" r="7" fill="rgba(46, 204, 113, 0.2)" stroke="#2ecc71" stroke-width="1.2"/>
+                                            <path d="M5 8 L7 10 L11 6" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
-                                        <span>{$t('treasury.vipDayClaimed')}</span>
+                                        <span class="collected-label">{$t('treasury.vipDayClaimed')}</span>
                                     </div>
                                 {/if}
 
@@ -364,8 +441,8 @@
                                     {#if isPurchasing}
                                         <span class="btn-spinner-sm"></span>
                                     {:else}
-                                        <span class="btn-yan-small">{getProductDisplayPrice('vip_status', `249 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
-                                        <span class="btn-cta-small">{$t('treasury.extendVipCta')}</span>
+                                        <span class="extend-price">{getProductDisplayPrice('vip_status', `249 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
+                                        <span class="extend-cta">{$t('treasury.extendVipCta')}</span>
                                     {/if}
                                 </button>
                             </div>
@@ -379,12 +456,21 @@
                                 {#if isPurchasing}
                                     <span class="btn-spinner"></span>
                                 {:else}
-                                    <span class="btn-yan">{getProductDisplayPrice('vip_status', `249 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
-                                    <span class="btn-cta">{$t('treasury.buyVipCta')}</span>
+                                    <div class="buy-vip-btn-inner">
+                                        <div class="buy-vip-price-wrap">
+                                            <span class="btn-yan">{getProductDisplayPrice('vip_status', `249 ${$t('bank.yanSuffix') || 'YAN'}`)}</span>
+                                            <span class="btn-yan-sub">/ 30 {$t('common.dayShort') || 'дн.'}</span>
+                                        </div>
+                                        <div class="buy-vip-text-wrap">
+                                            <span class="btn-cta">{$t('treasury.buyVipCta')}</span>
+                                            <span class="btn-bonus-tag">+50 💎 сразу</span>
+                                        </div>
+                                    </div>
                                 {/if}
                             </button>
                         {/if}
                     </div>
+
                 </div>
             </div>
 
@@ -685,34 +771,30 @@
 
     .starter-ribbon-badge {
         position: absolute;
-        top: 16px;
-        right: -35px;
-        width: 140px;
-        background: linear-gradient(135deg, #e74c3c, #d63031);
+        top: 12px;
+        right: 14px;
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border: 1px solid #ff7675;
+        border-radius: 8px;
         color: #ffffff;
-        padding: 4px 0;
-        font-size: 0.62rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transform: rotate(45deg);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        padding: 4px 10px;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        line-height: 1.1;
+        gap: 6px;
+        box-shadow: 0 2px 10px rgba(231, 76, 60, 0.4);
         z-index: 5;
         pointer-events: none;
     }
 
     .ribbon-disc {
-        font-size: 0.74rem;
+        font-size: 0.72rem;
+        font-weight: 900;
         color: #ffeaa7;
     }
 
     .ribbon-val {
-        font-size: 0.58rem;
+        font-size: 0.65rem;
+        font-weight: 800;
         opacity: 0.95;
     }
 
@@ -741,10 +823,10 @@
     }
 
     .starter-desc {
-        margin: 0 0 8px;
-        font-size: 0.78rem;
+        margin: 0 0 6px;
+        font-size: 0.76rem;
         color: #dcdde1;
-        line-height: 1.25;
+        line-height: 1.2;
     }
 
     .starter-perks-list {
@@ -752,16 +834,21 @@
         padding: 0;
         margin: 0;
         display: flex;
-        flex-direction: column;
-        gap: 4px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px 8px;
     }
 
     .starter-perks-list li {
         display: flex;
         align-items: center;
-        gap: 7px;
-        font-size: 0.78rem;
+        gap: 6px;
+        font-size: 0.74rem;
         color: #f1f2f6;
+        background: rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 2px 7px;
     }
 
     .starter-action-box {
@@ -769,8 +856,8 @@
     }
 
     .buy-starter-btn {
-        min-height: 48px;
-        padding: 10px 18px;
+        min-height: 44px;
+        padding: 8px 16px;
         background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
         border: 1.5px solid #fffbeb;
         border-radius: 12px;
@@ -811,139 +898,190 @@
     /* 1. VIP Card */
     .vip-card {
         position: relative;
-        background: linear-gradient(135deg, rgba(45, 27, 78, 0.9) 0%, rgba(30, 15, 55, 0.95) 100%);
-        border: 1.5px solid rgba(241, 196, 15, 0.6);
+        background: linear-gradient(145deg, rgba(46, 26, 80, 0.95) 0%, rgba(26, 12, 48, 0.98) 100%);
+        border: 1.5px solid rgba(241, 196, 15, 0.55);
         border-radius: 16px;
-        padding: 16px;
+        padding: 12px 14px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(241, 196, 15, 0.15);
-        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(241, 196, 15, 0.12);
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
 
     .vip-card.vip-active {
         border-color: #2ecc71;
-        box-shadow: 0 4px 20px rgba(46, 204, 113, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(46, 204, 113, 0.2);
     }
 
     .vip-content {
-        display: flex;
-        align-items: center;
-        gap: 16px;
         position: relative;
         z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
-    .vip-visual {
-        flex-shrink: 0;
+    /* VIP Top Header */
+    .vip-top-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .vip-info {
-        flex: 1;
+    .vip-brand-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         min-width: 0;
     }
 
-    .vip-header-row {
+    .vip-crown-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.2) 0%, rgba(230, 126, 34, 0.12) 100%);
+        border: 1px solid rgba(241, 196, 15, 0.45);
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 0 10px rgba(241, 196, 15, 0.2);
+    }
+
+    .vip-titles {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
     }
 
     .vip-title {
         margin: 0;
-        font-size: 1.15rem;
+        font-size: 1.05rem;
+        font-weight: 800;
         color: #f1c40f;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        letter-spacing: 0.2px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .vip-subtitle {
+        font-size: 0.70rem;
+        color: #b2bec3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .vip-status-box {
+        flex-shrink: 0;
     }
 
     .vip-badge-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         background: linear-gradient(90deg, #f39c12, #d35400);
-        color: #fff;
+        color: #ffffff;
         font-size: 0.68rem;
         font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 6px;
+        padding: 3px 8px;
+        border-radius: 16px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
 
     .vip-badge-tag.vip-active-tag {
-        background: linear-gradient(90deg, #27ae60, #2ecc71);
-        box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: 1px solid #34d399;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
     }
 
-    .vip-perks {
-        list-style: none;
-        padding: 0;
+    .status-days-text {
+        white-space: nowrap;
+    }
+
+    /* 2-Column Structured Benefits Matrix */
+    .vip-perks-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px 10px;
         margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
     }
 
-    .vip-perks li {
+    .vip-perk-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.82rem;
+        gap: 8px;
+        padding: 5px 8px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 8px;
+        transition: background 0.15s, border-color 0.15s;
+    }
+
+    .vip-perk-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(241, 196, 15, 0.25);
+    }
+
+    .vip-perk-item.highlight-altar {
+        background: rgba(0, 206, 201, 0.08);
+        border-color: rgba(0, 206, 201, 0.25);
+    }
+
+    .perk-icon-wrap {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .perk-text-wrap {
+        font-size: 0.74rem;
         color: #dfe6e9;
+        line-height: 1.2;
+        min-width: 0;
     }
 
-    .perk-icon {
-        flex-shrink: 0;
-    }
-
-    .vip-action {
-        flex-shrink: 0;
-    }
-
-    .buy-vip-btn {
-        background: linear-gradient(135deg, #f1c40f, #e67e22);
-        border: none;
-        border-radius: 12px;
-        padding: 10px 16px;
-        color: #1a0a2e;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-shadow: 0 4px 15px rgba(241, 196, 15, 0.4);
-        transition: transform 0.15s, filter 0.15s;
-    }
-
-    .buy-vip-btn:hover:not(:disabled) {
-        transform: translateY(-2px);
-        filter: brightness(1.1);
-    }
-
-    .btn-yan {
-        font-size: 1.1rem;
-        font-weight: 900;
-        line-height: 1.1;
-    }
-
-    .btn-cta {
-        font-size: 0.72rem;
+    .perk-text-wrap :global(strong) {
+        color: #ffeaa7;
         font-weight: 700;
-        text-transform: uppercase;
     }
 
-    .vip-active-actions {
-        display: flex;
-        flex-direction: column;
+    /* VIP Action Bar */
+    .vip-action-bar {
+        margin-top: 2px;
+        width: 100%;
+    }
+
+    .vip-active-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
         align-items: stretch;
-        min-width: 140px;
     }
 
     .claim-vip-daily-btn {
-        background: linear-gradient(135deg, #0984e3, #00cec9);
-        border: 1px solid #74b9ff;
+        height: 42px;
+        background: linear-gradient(135deg, #0984e3 0%, #00cec9 100%);
+        border: 1.5px solid #74b9ff;
         border-radius: 10px;
-        padding: 9px 12px;
+        padding: 0 12px;
         color: #ffffff;
         font-weight: 800;
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -957,41 +1095,39 @@
     .claim-vip-daily-btn:hover {
         transform: translateY(-2px);
         filter: brightness(1.15);
+        box-shadow: 0 6px 18px rgba(0, 206, 201, 0.55);
     }
 
-    @keyframes pulseVipBtn {
-        0%, 100% {
-            box-shadow: 0 4px 14px rgba(9, 132, 227, 0.4);
-        }
-        50% {
-            box-shadow: 0 4px 20px rgba(0, 206, 201, 0.7);
-        }
+    .claim-vip-daily-btn:active {
+        transform: scale(0.98);
     }
 
-    :global(.claim-gem-icon) {
-        flex-shrink: 0;
-        filter: drop-shadow(0 0 4px rgba(255,255,255,0.7));
+    .claim-btn-text {
+        letter-spacing: 0.2px;
     }
 
     .vip-daily-collected-pill {
+        height: 42px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        background: rgba(46, 204, 113, 0.15);
-        border: 1px solid rgba(46, 204, 113, 0.45);
-        padding: 7px 10px;
-        border-radius: 8px;
+        background: rgba(46, 204, 113, 0.12);
+        border: 1.5px solid rgba(46, 204, 113, 0.4);
+        border-radius: 10px;
+        padding: 0 10px;
         color: #2ecc71;
-        font-size: 0.78rem;
+        font-size: 0.82rem;
         font-weight: 800;
+        box-sizing: border-box;
     }
 
     .extend-vip-btn {
-        background: rgba(241, 196, 15, 0.12);
-        border: 1px solid rgba(241, 196, 15, 0.45);
-        border-radius: 8px;
-        padding: 6px 10px;
+        height: 42px;
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.16) 0%, rgba(230, 126, 34, 0.12) 100%);
+        border: 1.5px solid rgba(241, 196, 15, 0.55);
+        border-radius: 10px;
+        padding: 0 10px;
         color: #f1c40f;
         cursor: pointer;
         display: flex;
@@ -1002,22 +1138,102 @@
     }
 
     .extend-vip-btn:hover:not(:disabled) {
-        background: rgba(241, 196, 15, 0.22);
+        background: rgba(241, 196, 15, 0.28);
         border-color: #f1c40f;
         transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(241, 196, 15, 0.22);
     }
 
-    .btn-yan-small {
-        font-size: 0.88rem;
+    .extend-vip-btn:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .extend-price {
+        font-size: 0.90rem;
         font-weight: 900;
         line-height: 1.1;
     }
 
-    .btn-cta-small {
-        font-size: 0.65rem;
-        font-weight: 700;
+    .extend-cta {
+        font-size: 0.62rem;
+        font-weight: 800;
         text-transform: uppercase;
         opacity: 0.9;
+        letter-spacing: 0.3px;
+    }
+
+    .buy-vip-btn {
+        width: 100%;
+        min-height: 44px;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+        border: 1.5px solid #fde68a;
+        border-radius: 12px;
+        padding: 6px 14px;
+        color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+        transition: transform 0.15s, filter 0.15s, box-shadow 0.15s;
+    }
+
+    .buy-vip-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.55);
+    }
+
+    .buy-vip-btn:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .buy-vip-btn-inner {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .buy-vip-price-wrap {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .buy-vip-price-wrap .btn-yan {
+        font-size: 1.18rem;
+        font-weight: 900;
+        color: #ffffff;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    .buy-vip-price-wrap .btn-yan-sub {
+        font-size: 0.72rem;
+        color: #fef3c7;
+        font-weight: 700;
+    }
+
+    .buy-vip-text-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1px;
+    }
+
+    .buy-vip-text-wrap .btn-cta {
+        font-size: 0.84rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #ffffff;
+    }
+
+    .buy-vip-text-wrap .btn-bonus-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: #fef08a;
     }
 
     .btn-spinner-sm {
@@ -1259,28 +1475,42 @@
         .starter-perks-list li {
             justify-content: center;
         }
-        .vip-content {
-            flex-direction: column;
-            text-align: center;
+        .vip-top-header {
+            flex-wrap: wrap;
+            gap: 8px;
         }
-        .vip-header-row {
-            justify-content: center;
+        .vip-perks-grid {
+            grid-template-columns: 1fr;
+            gap: 6px;
         }
-        .vip-perks li {
-            justify-content: flex-start;
-            text-align: left;
+        .vip-active-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
-        .vip-action {
-            width: 100%;
-        }
-        .vip-active-actions {
-            width: 100%;
-        }
-        .buy-vip-btn {
-            width: 100%;
+        .buy-vip-btn-inner {
+            flex-direction: row;
+            gap: 8px;
         }
         .crystal-packs-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .pack-card {
+            padding: 8px 4px;
+        }
+        .pack-visual svg {
+            width: 38px;
+            height: 38px;
+        }
+        .pack-name {
+            font-size: 0.66rem;
+        }
+        .pack-amount {
+            font-size: 0.74rem;
+        }
+        .buy-pack-btn {
+            font-size: 0.70rem;
+            padding: 6px 2px;
         }
         .dragon-gift-card {
             flex-direction: column;

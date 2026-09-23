@@ -376,7 +376,7 @@
 
                                 <!-- Sector Content Group (Transformed to Sector Angle) -->
                                 <g transform="rotate({i * 45}, 180, 180)">
-                                    <!-- Badge / Reward text near outer rim -->
+                                    <!-- Badge / Reward text near outer rim (kept upright) -->
                                     <text 
                                         x="180" 
                                         y="46" 
@@ -386,13 +386,16 @@
                                         font-weight="bold" 
                                         letter-spacing="0.5"
                                         class="sector-badge-text"
+                                        transform="rotate({-(wheelRotation + i * 45)}, 180, 42)"
                                     >
                                         {sector.badge}
                                     </text>
 
-                                    <!-- Embedded Pure SVG Sector Icon -->
-                                    <g transform="translate(164, 58)">
-                                        {@html sector.iconSvg}
+                                    <!-- Embedded Pure SVG Sector Icon (kept upright) -->
+                                    <g transform="rotate({-(wheelRotation + i * 45)}, 180, 74)">
+                                        <g transform="translate(164, 58)">
+                                            {@html sector.iconSvg}
+                                        </g>
                                     </g>
                                 </g>
                             </g>

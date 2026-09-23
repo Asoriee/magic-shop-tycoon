@@ -586,6 +586,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        padding-right: 30px;
     }
 
     .customer-avatar {
@@ -941,5 +942,45 @@
 
     .summon-ad-btn:active {
         transform: translateY(1px);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 600px) {
+        .orders-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .caravan-bar {
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .caravan-title {
+            font-size: 0.82rem;
+        }
+
+        .order-card {
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .customer-avatar {
+            width: 38px;
+            height: 38px;
+        }
+
+        .customer-name {
+            font-size: 0.88rem;
+        }
+
+        .requirements-box {
+            padding: 6px 10px;
+        }
+
+        .fulfill-btn {
+            height: 40px;
+            font-size: 0.82rem;
+        }
     }
 </style>

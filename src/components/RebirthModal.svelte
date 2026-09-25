@@ -2,7 +2,7 @@
     import { tick } from 'svelte';
     import { gameStore, formatNumber, calculateEarnedStardust, getRawStardust, getStardustThreshold } from '../store';
     import { saveGame } from '../yandex-sdk';
-    import { playLevelUpSound } from '../audio';
+    import { playLevelUpSound, playStardustSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
     import { t } from '../i18n';
@@ -51,6 +51,7 @@
     function confirmRebirth() {
         if (earnedStardust > 0) {
             playLevelUpSound();
+            playStardustSound();
             gameStore.performRebirth();
             saveGame();
             showConfirm = false;

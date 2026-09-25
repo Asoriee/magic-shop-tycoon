@@ -19,6 +19,7 @@
     import { showInterstitialAd } from '../yandex-sdk';
     import ResourceIcon from './ResourceIcon.svelte';
     import MechanicHelpButton from './MechanicHelpButton.svelte';
+    import { playPageTurnSound } from '../audio';
     import { t } from '../i18n';
 
     export let isOpen = false;
@@ -67,6 +68,7 @@
 
     function switchTab(tab: 'inventory' | 'alchemy' | 'pets' | 'collections') {
         if (activeTab === tab) return;
+        playPageTurnSound();
         activeTab = tab;
         if (contentEl) {
             gsap.fromTo(contentEl, { opacity: 0.4, y: 10 }, { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' });

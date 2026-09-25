@@ -2,7 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { gameStore, formatNumber } from '../store';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
-    import { playSuccessSound, playLevelUpSound } from '../audio';
+    import { playSuccessSound, playLevelUpSound, playStardustSound } from '../audio';
     import gsap from 'gsap';
     import ResourceIcon from './ResourceIcon.svelte';
     import { t, currentLang, getSecretUpgradeName, getSecretUpgradeDesc } from '../i18n';
@@ -32,7 +32,7 @@
 
     function buySecret(id: string, cost: number) {
         if ($gameStore.stardust >= cost) {
-            playSuccessSound();
+            playStardustSound();
             gameStore.buySecretUpgrade(id);
             saveGame();
             const btn = buttons[id];

@@ -13,7 +13,7 @@
     } from '../store';
     import { t, currentLang, getIngredientName, getPotionName } from '../i18n';
     import { saveGame, showRewardedAd } from '../yandex-sdk';
-    import { playSuccessSound, playOverheatSizzle, playCoinSound } from '../audio';
+    import { playSuccessSound, playOverheatSizzle, playCoinSound, playPageTurnSound } from '../audio';
     import ResourceIcon from './ResourceIcon.svelte';
 
     export let isOpen = false;
@@ -314,7 +314,7 @@
             type="button"
             class="subtab-btn" 
             class:active={mobileSubTab === 'cauldron'}
-            on:click={() => mobileSubTab = 'cauldron'}
+            on:click={() => { if (mobileSubTab !== 'cauldron') { playPageTurnSound(); mobileSubTab = 'cauldron'; } }}
         >
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/>
@@ -325,7 +325,7 @@
             type="button"
             class="subtab-btn" 
             class:active={mobileSubTab === 'book'}
-            on:click={() => mobileSubTab = 'book'}
+            on:click={() => { if (mobileSubTab !== 'book') { playPageTurnSound(); mobileSubTab = 'book'; } }}
         >
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
                 <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
@@ -508,7 +508,7 @@
             </button>
 
             <!-- Mobile quick-open Recipe Book banner -->
-            <button type="button" class="mobile-book-banner" on:click={() => mobileSubTab = 'book'}>
+            <button type="button" class="mobile-book-banner" on:click={() => { playPageTurnSound(); mobileSubTab = 'book'; }}>
                 <div class="mbb-left">
                     <svg viewBox="0 0 24 24" width="17" height="17" fill="#f1c40f">
                         <path d="M6,2H18C19.1,2 20,2.9 20,4V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2ZM8,6V8H16V6H8ZM8,10V12H16V10H8ZM8,14V16H12V14H8Z"/>
@@ -530,11 +530,11 @@
                 </div>
 
                 <div class="rarity-filter-tabs">
-                    <button type="button" class="rf-tab" class:active={selectedRarity === 'all'} on:click={() => selectedRarity = 'all'}>{$t('rarity.all')}</button>
-                    <button type="button" class="rf-tab common" class:active={selectedRarity === 'common'} on:click={() => selectedRarity = 'common'}>{$t('rarity.common')}</button>
-                    <button type="button" class="rf-tab rare" class:active={selectedRarity === 'rare'} on:click={() => selectedRarity = 'rare'}>{$t('rarity.rare')}</button>
-                    <button type="button" class="rf-tab epic" class:active={selectedRarity === 'epic'} on:click={() => selectedRarity = 'epic'}>{$t('rarity.epic')}</button>
-                    <button type="button" class="rf-tab legendary" class:active={selectedRarity === 'legendary'} on:click={() => selectedRarity = 'legendary'}>{$t('rarity.legendary')}</button>
+                    <button type="button" class="rf-tab" class:active={selectedRarity === 'all'} on:click={() => { playPageTurnSound(); selectedRarity = 'all'; }}>{$t('rarity.all')}</button>
+                    <button type="button" class="rf-tab common" class:active={selectedRarity === 'common'} on:click={() => { playPageTurnSound(); selectedRarity = 'common'; }}>{$t('rarity.common')}</button>
+                    <button type="button" class="rf-tab rare" class:active={selectedRarity === 'rare'} on:click={() => { playPageTurnSound(); selectedRarity = 'rare'; }}>{$t('rarity.rare')}</button>
+                    <button type="button" class="rf-tab epic" class:active={selectedRarity === 'epic'} on:click={() => { playPageTurnSound(); selectedRarity = 'epic'; }}>{$t('rarity.epic')}</button>
+                    <button type="button" class="rf-tab legendary" class:active={selectedRarity === 'legendary'} on:click={() => { playPageTurnSound(); selectedRarity = 'legendary'; }}>{$t('rarity.legendary')}</button>
                 </div>
 
                 {#if filteredIngredients.length === 0}
@@ -571,7 +571,7 @@
                 </div>
                 <div class="book-header-actions">
                     <span class="book-sub">{$t('alchemy.recipesUnlocked', { current: Object.values($unlockedRecipes).filter(l => l === 3).length, total: RECIPES.length })}</span>
-                    <button type="button" class="mobile-to-cauldron-btn" on:click={() => mobileSubTab = 'cauldron'}>
+                    <button type="button" class="mobile-to-cauldron-btn" on:click={() => { playPageTurnSound(); mobileSubTab = 'cauldron'; }}>
                         {$t('alchemy.toCauldron')} →
                     </button>
                 </div>

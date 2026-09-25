@@ -49,6 +49,7 @@
     import LuckyWheelModal from './components/LuckyWheelModal.svelte';
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
+    import SettingsModal from './components/SettingsModal.svelte';
     import { isSoundMuted, toggleSound } from './audio';
     import { t, currentLang, setLanguage, getRankTitle } from './i18n';
     import { isCalendarRewardReady } from './calendar';
@@ -58,6 +59,7 @@
     let isCityOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'city';
     let isPremiumOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'premium';
     let isDailyCalendarOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'calendar';
+    let isSettingsOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'settings';
     let isLuckyWheelOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'wheel';
 
     $: isCalendarReady = isCalendarRewardReady($gameStore);
@@ -656,6 +658,20 @@
                     </svg>
                 {/if}
             </button>
+
+            <!-- Settings Button -->
+            <button 
+                type="button" 
+                class="hud-icon-btn settings-btn" 
+                title="{$t('header.settingsTooltip')}" 
+                on:click={() => isSettingsOpen = true}
+                aria-label="{$t('header.settingsTooltip')}"
+            >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" fill="rgba(241,196,15,0.2)"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -847,6 +863,11 @@
     />
 
     <MechanicGuideModal />
+
+    <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => { isSettingsOpen = false; }} 
+    />
 
     <!-- Wait, CustomerOrders is embedded in CityModal now! But we must remove it from App.svelte -->
     <FlyingBonus />
@@ -1189,6 +1210,11 @@
         color: #e74c3c;
         border-color: rgba(231, 76, 60, 0.45);
         background: rgba(231, 76, 60, 0.12);
+    }
+    .hud-icon-btn.settings-btn:hover {
+        border-color: #f1c40f;
+        box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+        color: #f1c40f;
     }
 
     /* ============================================================ */

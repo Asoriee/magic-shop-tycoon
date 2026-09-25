@@ -50,7 +50,6 @@
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import SettingsModal from './components/SettingsModal.svelte';
-    import { isSoundMuted, toggleSound } from './audio';
     import { t, currentLang, setLanguage, getRankTitle } from './i18n';
     import { isCalendarRewardReady } from './calendar';
 
@@ -64,10 +63,6 @@
 
     $: isCalendarReady = isCalendarRewardReady($gameStore);
 
-    function cycleLanguage() {
-        const next = $currentLang === 'ru' ? 'en' : ($currentLang === 'en' ? 'tr' : 'ru');
-        setLanguage(next);
-    }
     let isShopOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'shop';
     let isLeaderboardOpen = false;
     let canAddShortcut = false;
@@ -408,10 +403,6 @@
         notifyGameplayStop();
     });
 
-    function handleToggleSound() {
-        toggleSound();
-    }
-
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === 'Escape') {
             const wasAnyOpen = isGrimoireOpen || isCityOpen || isPremiumOpen || isShopOpen || isLeaderboardOpen;
@@ -543,17 +534,6 @@
 
         <!-- HUD Control Actions -->
         <div class="hud-controls-cluster">
-            <!-- Language Switcher Button -->
-            <button 
-                type="button" 
-                class="hud-icon-btn lang-btn" 
-                title="{$t('header.language')}: {$currentLang.toUpperCase()}" 
-                on:click={cycleLanguage}
-                aria-label="{$t('header.language')}"
-            >
-                <span class="lang-label">{$currentLang.toUpperCase()}</span>
-            </button>
-
             <!-- Daily Calendar Button -->
             <button 
                 type="button" 
@@ -635,28 +615,6 @@
                     <path d="M12 15 L12 19" stroke="#f1c40f" stroke-width="2"/>
                     <path d="M8 19 L16 19 L17 21 L7 21 Z" fill="#e67e22"/>
                 </svg>
-            </button>
-
-            <!-- Sound Toggle Button -->
-            <button 
-                type="button" 
-                class="hud-icon-btn sound-btn" 
-                class:muted={$isSoundMuted} 
-                title={$isSoundMuted ? $t('header.soundOn') : $t('header.soundOff')} 
-                on:click={handleToggleSound}
-            >
-                {#if $isSoundMuted}
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
-                        <line x1="23" y1="9" x2="17" y2="15"/>
-                        <line x1="17" y1="9" x2="23" y2="15"/>
-                    </svg>
-                {:else}
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                    </svg>
-                {/if}
             </button>
 
             <!-- Settings Button -->
@@ -1206,11 +1164,6 @@
         border-color: #f1c40f;
         box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
     }
-    .hud-icon-btn.sound-btn.muted {
-        color: #e74c3c;
-        border-color: rgba(231, 76, 60, 0.45);
-        background: rgba(231, 76, 60, 0.12);
-    }
     .hud-icon-btn.settings-btn:hover {
         border-color: #f1c40f;
         box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
@@ -1531,11 +1484,6 @@
             height: 15px;
         }
 
-        .lang-label {
-            font-size: 0.65rem;
-            font-weight: 800;
-        }
-
         .hud-chips-row {
             width: 100%;
             order: 3;
@@ -1686,10 +1634,6 @@
         .hud-icon-btn svg {
             width: 13.5px;
             height: 13.5px;
-        }
-
-        .lang-label {
-            font-size: 0.58rem;
         }
 
         .hud-chips-row {

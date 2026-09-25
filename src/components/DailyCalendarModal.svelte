@@ -34,6 +34,12 @@
                     { y: 35, opacity: 0, scale: 0.94 },
                     { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.2)' }
                 );
+                if (currentDay > 7) {
+                    const activeWeekEl = modalEl.querySelector('.week-section.week-active');
+                    if (activeWeekEl) {
+                        activeWeekEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
             }
         });
     }
@@ -240,7 +246,7 @@
                             <div class="week-progress-fill" style="width: {stats.percent}%"></div>
                         </div>
 
-                        <div class="days-grid">
+                        <div class="days-grid" class:days-grid-9={week.days.length === 9}>
                             {#each week.days as reward}
                                 {@const isClaimed = reward.day < currentDay}
                                 {@const isCurrentReady = reward.day === currentDay && isReady}
@@ -356,6 +362,8 @@
     .modal-overlay {
         position: fixed;
         inset: 0;
+        width: 100vw;
+        height: 100vh;
         z-index: 9999;
         background: rgba(10, 8, 20, 0.82);
         backdrop-filter: blur(8px);
@@ -363,6 +371,8 @@
         align-items: center;
         justify-content: center;
         padding: 12px;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .calendar-modal {
@@ -376,8 +386,10 @@
         flex-direction: column;
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 35px rgba(155, 89, 182, 0.2);
         overflow: hidden;
+        overflow-x: hidden;
         color: #ecf0f1;
         font-family: inherit;
+        box-sizing: border-box;
     }
 
     .modal-header {
@@ -387,12 +399,15 @@
         padding: 16px 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(0, 0, 0, 0.2);
+        gap: 10px;
     }
 
     .header-left {
         display: flex;
         align-items: center;
         gap: 14px;
+        flex: 1;
+        min-width: 0;
     }
 
     .header-icon {
@@ -460,6 +475,7 @@
         color: #bdc3c7;
         width: 44px;
         height: 44px;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -480,6 +496,8 @@
         margin: 12px 18px 4px;
         padding: 10px 14px;
         border-radius: 12px;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     .vip-banner.vip-active {
@@ -494,6 +512,8 @@
 
     .vip-content {
         flex: 1;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .vip-title {
@@ -505,6 +525,9 @@
     .vip-desc {
         font-size: 0.78rem;
         color: rgba(255, 255, 255, 0.75);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .vip-activate-btn {
@@ -550,10 +573,12 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+        box-sizing: border-box;
+        min-width: 0;
     }
 
     .calendar-scroll-area::-webkit-scrollbar {
-        width: 6px;
+        width: 4px;
     }
 
     .calendar-scroll-area::-webkit-scrollbar-thumb {
@@ -567,6 +592,9 @@
         border-radius: 16px;
         padding: 12px 14px;
         transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+        min-width: 0;
+        flex-shrink: 0;
     }
 
     .week-section.week-active {
@@ -665,38 +693,10 @@
 
     .days-grid {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 8px;
-    }
-
-    @media (max-width: 768px) {
-        .days-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 7px;
-        }
-        .day-card.milestone {
-            grid-column: span 2;
-        }
-    }
-
-    @media (max-width: 500px) {
-        .days-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 5px;
-        }
-        .day-card.milestone {
-            grid-column: span 2;
-        }
-    }
-
-    @media (max-width: 360px) {
-        .days-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
-        }
-        .day-card.milestone {
-            grid-column: span 2;
-        }
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .day-card {
@@ -710,6 +710,9 @@
         align-items: center;
         text-align: center;
         min-height: 98px;
+        min-width: 0;
+        box-sizing: border-box;
+        overflow: hidden;
         transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
@@ -910,4 +913,371 @@
         background: rgba(255, 255, 255, 0.03);
         border-radius: 10px;
     }
+
+    @media (max-width: 768px) {
+        .days-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 7px;
+        }
+        .day-card.milestone {
+            grid-column: span 2;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .modal-overlay {
+            padding: 8px 6px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        .calendar-modal {
+            max-height: 94vh;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        .modal-header {
+            padding: 10px 12px;
+            gap: 8px;
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+        .header-left {
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .header-icon {
+            padding: 4px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .header-icon svg {
+            width: 26px;
+            height: 26px;
+        }
+        .title {
+            font-size: 1.05rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .title-with-badge {
+            gap: 6px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+        .season-badge-pill {
+            font-size: 0.62rem;
+            padding: 1px 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .subtitle {
+            font-size: 0.7rem;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .vip-banner {
+            margin: 6px 8px 2px;
+            padding: 8px 10px;
+            gap: 8px;
+            box-sizing: border-box;
+            max-width: calc(100% - 16px);
+        }
+        .vip-icon {
+            flex-shrink: 0;
+        }
+        .vip-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .vip-title {
+            font-size: 0.78rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .vip-desc {
+            font-size: 0.68rem;
+            line-height: 1.2;
+        }
+        .vip-activate-btn {
+            padding: 5px 8px;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+        .calendar-scroll-area {
+            padding: 6px 8px;
+            gap: 10px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            scrollbar-width: none; /* Firefox */
+        }
+        .calendar-scroll-area::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+        .week-section {
+            padding: 8px;
+            border-radius: 14px;
+            box-sizing: border-box;
+            max-width: 100%;
+            flex-shrink: 0;
+        }
+        .week-header {
+            gap: 4px;
+            margin-bottom: 5px;
+            flex-wrap: wrap;
+        }
+        .week-header-left {
+            gap: 6px;
+            flex: 1;
+            min-width: 0;
+        }
+        .week-title {
+            font-size: 0.78rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .active-week-badge {
+            font-size: 0.62rem;
+            padding: 1px 5px;
+            flex-shrink: 0;
+        }
+        .week-header-right {
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .week-milestone-hint {
+            display: none;
+        }
+        .week-progress-pill {
+            font-size: 0.64rem;
+            padding: 1px 6px;
+            flex-shrink: 0;
+        }
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .day-card {
+            grid-column: span 2;
+            min-height: 86px;
+            padding: 5px 3px;
+            border-radius: 10px;
+            min-width: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .days-grid-9 .day-card:nth-child(7),
+        .days-grid-9 .day-card:nth-child(8) {
+            grid-column: span 3;
+            min-width: 0;
+        }
+        .day-card.milestone {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto auto;
+            align-items: center;
+            gap: 2px 8px;
+            padding: 8px 10px;
+            min-height: 58px;
+            text-align: left;
+            min-width: 0;
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .day-card.milestone .reward-icon-wrap {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            margin: 0;
+            height: 36px;
+            flex-shrink: 0;
+        }
+        .day-card.milestone .day-card-header {
+            grid-column: 2;
+            grid-row: 1;
+            justify-content: flex-start;
+            gap: 6px;
+            margin-bottom: 0;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .day-card.milestone .reward-label {
+            grid-column: 2;
+            grid-row: 2;
+            margin-top: 0;
+            font-size: 0.74rem;
+            line-height: 1.2;
+            text-align: left;
+            min-width: 0;
+            word-break: break-word;
+        }
+        .day-card.milestone .stamp-claimed,
+        .day-card.milestone .ready-cta-pill,
+        .day-card.milestone .stamp-upcoming,
+        .day-card.milestone .stamp-locked {
+            grid-column: 3;
+            grid-row: 1 / span 2;
+            margin-top: 0;
+            align-self: center;
+            flex-shrink: 0;
+        }
+        .day-card.milestone .milestone-ribbon-tag {
+            top: -6px;
+            left: 10px;
+            transform: none;
+            font-size: 0.52rem;
+            padding: 1px 5px;
+        }
+        .day-card-header {
+            font-size: 0.66rem;
+            margin-bottom: 2px;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .reward-icon-wrap {
+            height: 30px;
+            margin: 1px 0 2px;
+        }
+        .reward-icon-wrap :global(svg) {
+            width: 26px;
+            height: 26px;
+        }
+        .reward-label {
+            font-size: 0.66rem;
+            line-height: 1.15;
+            word-break: break-word;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .ready-cta-pill {
+            font-size: 0.6rem;
+            padding: 2px 5px;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+        .stamp-claimed {
+            font-size: 0.58rem;
+        }
+        .stamp-upcoming {
+            font-size: 0.58rem;
+            padding: 1px 4px;
+        }
+        .modal-footer {
+            padding: 8px 10px;
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+        .main-claim-btn {
+            width: 100%;
+            max-width: 100%;
+            padding: 10px 14px;
+            font-size: 0.84rem;
+            border-radius: 11px;
+            justify-content: center;
+            box-sizing: border-box;
+            gap: 6px;
+        }
+        .main-claim-btn svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+        }
+        .main-claim-btn span {
+            white-space: normal;
+            text-align: center;
+            line-height: 1.2;
+            flex: 1;
+            min-width: 0;
+        }
+        .already-claimed-notice {
+            width: 100%;
+            justify-content: center;
+            font-size: 0.78rem;
+            padding: 8px 10px;
+            box-sizing: border-box;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .modal-overlay {
+            padding: 4px 3px;
+        }
+        .calendar-scroll-area {
+            padding: 5px 4px;
+        }
+        .week-section {
+            padding: 6px 4px;
+            flex-shrink: 0;
+        }
+        .week-header-right {
+            display: none;
+        }
+        .days-grid {
+            gap: 4px;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .modal-overlay {
+            padding: 4px 2px;
+        }
+        .title {
+            font-size: 1.0rem;
+        }
+        .calendar-scroll-area {
+            padding: 4px 4px;
+        }
+        .week-section {
+            padding: 5px 3px;
+            flex-shrink: 0;
+        }
+        .days-grid {
+            gap: 4px;
+        }
+        .day-card {
+            min-height: 80px;
+            padding: 4px 2px;
+        }
+        .reward-icon-wrap :global(svg) {
+            width: 24px;
+            height: 24px;
+        }
+        .reward-label {
+            font-size: 0.64rem;
+        }
+        .day-card-header {
+            font-size: 0.64rem;
+        }
+        .day-card.milestone {
+            padding: 8px 10px;
+            gap: 2px 8px;
+        }
+        .day-card.milestone .reward-label {
+            font-size: 0.74rem;
+        }
+    }
 </style>
+
+

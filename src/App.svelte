@@ -859,6 +859,10 @@
 {/if}
 
 <style>
+    :global(html) {
+        overflow-x: hidden;
+    }
+
     :global(body) {
         margin: 0;
         padding: 0;
@@ -866,7 +870,9 @@
         color: #fff;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         overflow: hidden; /* No scroll */
+        overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
+        max-width: 100vw;
     }
 
     main {

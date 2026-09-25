@@ -2,7 +2,7 @@ import type { Translations } from '../types';
 
 export const en: Translations = {
     meta: {
-        gameTitle: 'Magic Shop',
+        gameTitle: 'Magic Shop Tycoon',
     },
     common: {
         gold: 'Gold',

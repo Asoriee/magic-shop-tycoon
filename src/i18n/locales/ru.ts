@@ -84,7 +84,7 @@ export const ru: Translations = {
         off: 'Выкл',
         langSection: 'Язык игры',
         aboutSection: 'Об игре',
-        gameTitle: 'Magic Shop Tycoon',
+        gameTitle: 'Магический магазин',
         version: 'Версия 1.2.0',
         platform: 'Яндекс Игры',
         storageHint: 'Прогресс автоматически сохраняется в облаке',

@@ -84,7 +84,7 @@ export const tr: Translations = {
         off: 'Kapalı',
         langSection: 'Oyun Dili',
         aboutSection: 'Oyun Hakkında',
-        gameTitle: 'Magic Shop Tycoon',
+        gameTitle: 'Büyü Dükkânı',
         version: 'Sürüm 1.2.0',
         platform: 'Yandex Oyunlar',
         storageHint: 'İlerleme buluta otomatik kaydedilir',

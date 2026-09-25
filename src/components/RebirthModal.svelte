@@ -99,21 +99,13 @@
                                 <stop offset="60%" stop-color="#8e44ad" stop-opacity="0.3"/>
                                 <stop offset="100%" stop-color="#1b0a33" stop-opacity="0"/>
                             </radialGradient>
-                            <filter id="sealGlow" x="-30%" y="-30%" width="160%" height="160%">
-                                <feGaussianBlur stdDeviation="4" result="blur"/>
-                                <feMerge>
-                                    <feMergeNode in="blur"/>
-                                    <feMergeNode in="SourceGraphic"/>
-                                </feMerge>
-                            </filter>
                         </defs>
 
                         <!-- Outer Aura -->
                         <circle cx="80" cy="80" r="76" fill="url(#sealCoreGlow)"/>
 
                         <!-- Rotating Ring 1 (Clockwise) -->
-                        <g>
-                            <animateTransform attributeName="transform" type="rotate" from="0 80 80" to="360 80 80" dur="20s" repeatCount="indefinite"/>
+                        <g class="seal-ring-cw">
                             <circle cx="80" cy="80" r="70" fill="none" stroke="#9b59b6" stroke-width="2" stroke-dasharray="8 6"/>
                             <circle cx="80" cy="10" r="3" fill="#f1c40f"/>
                             <circle cx="80" cy="150" r="3" fill="#f1c40f"/>
@@ -122,8 +114,7 @@
                         </g>
 
                         <!-- Rotating Ring 2 (Counter-Clockwise) -->
-                        <g>
-                            <animateTransform attributeName="transform" type="rotate" from="360 80 80" to="0 80 80" dur="12s" repeatCount="indefinite"/>
+                        <g class="seal-ring-ccw">
                             <circle cx="80" cy="80" r="54" fill="none" stroke="#e74c3c" stroke-width="1.8" stroke-dasharray="14 4"/>
                             <!-- Inscribed hexagram/triangles -->
                             <polygon points="80,30 120,105 40,105" fill="none" stroke="#f1c40f" stroke-width="1.5"/>
@@ -131,11 +122,8 @@
                         </g>
 
                         <!-- Center Core Rune -->
-                        <circle cx="80" cy="80" r="18" fill="#1b0a33" stroke="#e74c3c" stroke-width="2" filter="url(#sealGlow)"/>
-                        <circle cx="80" cy="80" r="10" fill="#e74c3c">
-                            <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
-                        </circle>
+                        <circle cx="80" cy="80" r="18" fill="#1b0a33" stroke="#e74c3c" stroke-width="2" class="seal-core-bg"/>
+                        <circle cx="80" cy="80" r="10" fill="#e74c3c" class="seal-pulsar" />
                     </svg>
                 </div>
 
@@ -352,6 +340,11 @@
         display: flex;
         flex-direction: column;
         gap: 14px;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     /* Seal & Stardust Showcase */
@@ -521,6 +514,11 @@
     /* Buttons */
     .perform-ritual-btn {
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        white-space: normal;
+        text-align: center;
         background: linear-gradient(135deg, #c0392b, #8e44ad);
         border: 1.5px solid rgba(241, 196, 15, 0.4);
         border-radius: 14px;
@@ -611,18 +609,96 @@
         cursor: pointer;
     }
 
+    .seal-ring-cw {
+        transform-origin: 80px 80px;
+        animation: spinSealCW 20s linear infinite;
+        will-change: transform;
+    }
+
+    .seal-ring-ccw {
+        transform-origin: 80px 80px;
+        animation: spinSealCCW 12s linear infinite;
+        will-change: transform;
+    }
+
+    .seal-pulsar {
+        transform-origin: 80px 80px;
+        animation: pulseSealCore 2s ease-in-out infinite;
+        will-change: transform, opacity;
+    }
+
+    @keyframes spinSealCW {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes spinSealCCW {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(-360deg); }
+    }
+
+    @keyframes pulseSealCore {
+        0%, 100% { transform: scale(0.85); opacity: 0.7; }
+        50% { transform: scale(1.15); opacity: 1; }
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; transform: scale(0.96); }
         to { opacity: 1; transform: scale(1); }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 680px) {
         .seal-section {
             flex-direction: column;
             text-align: center;
+            padding: 12px;
+            gap: 12px;
         }
+
+        .seal-visual svg {
+            width: 110px;
+            height: 110px;
+        }
+
+        .reward-highlight {
+            width: 100%;
+        }
+
+        .stardust-gain {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
         .comparison-grid {
             grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .comparison-card {
+            padding: 12px 14px;
+        }
+
+        .perform-ritual-btn {
+            font-size: 0.92rem;
+            padding: 12px 10px;
+            min-height: 48px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .seal-visual svg {
+            width: 90px;
+            height: 90px;
+        }
+
+        .gain-value {
+            font-size: 1.4rem;
+        }
+
+        .perform-ritual-btn {
+            font-size: 0.86rem;
+            padding: 10px 8px;
+            min-height: 44px;
         }
     }
 </style>

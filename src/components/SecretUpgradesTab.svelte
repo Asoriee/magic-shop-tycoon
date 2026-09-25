@@ -601,23 +601,60 @@
         gap: 5px;
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 680px) {
         .card {
-            flex-wrap: wrap;
+            padding: 9px 10px;
             gap: 10px;
         }
-        .action-wrap {
-            width: 100%;
+        .icon-wrap {
+            width: 38px;
+            height: 38px;
+        }
+        .card-name {
+            font-size: 0.86rem;
+        }
+        .desc {
+            font-size: 0.72rem;
+            margin-bottom: 4px;
         }
         .buy-btn {
-            width: 100%;
+            min-width: 72px;
+            min-height: 44px;
+            padding: 8px 10px;
+            font-size: 0.78rem;
         }
         .insight-banner {
             flex-direction: column;
             align-items: stretch;
+            padding: 12px;
+            gap: 10px;
         }
         .insight-btn {
+            width: 100%;
             justify-content: center;
+            min-height: 44px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .card {
+            padding: 8px 8px;
+            gap: 8px;
+        }
+        .icon-wrap {
+            width: 34px;
+            height: 34px;
+        }
+        .card-name {
+            font-size: 0.82rem;
+        }
+        .category-chip {
+            display: none;
+        }
+        .buy-btn {
+            min-width: 64px;
+            padding: 7px 6px;
+            font-size: 0.74rem;
         }
     }
 </style>

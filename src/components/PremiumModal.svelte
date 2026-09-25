@@ -193,7 +193,8 @@
                         <circle cx="12" cy="15" r="2" fill="#f1c40f"/>
                     </svg>
                 </div>
-                <span class="tab-label">{$t('premium.tabTreasury')}</span>
+                <span class="tab-label tab-label-full">{$t('premium.tabTreasury')}</span>
+                <span class="tab-label tab-label-short">{$t('premium.tabTreasuryShort')}</span>
                 {#if $isVipDailyRewardAvailable}
                     <span class="tab-badge badge-ready">+10 {$t('common.vip')}</span>
                 {:else if isDragonGiftReady}
@@ -219,7 +220,8 @@
                         <circle cx="12" cy="12" r="1.5" fill="#f1c40f"/>
                     </svg>
                 </div>
-                <span class="tab-label">{$t('premium.tabChronomancy')}</span>
+                <span class="tab-label tab-label-full">{$t('premium.tabChronomancy')}</span>
+                <span class="tab-label tab-label-short">{$t('premium.tabChronomancyShort')}</span>
                 {#if isFreeSkipReady}
                     <span class="tab-badge badge-ready">{$t('premium.freeHour')}</span>
                 {/if}
@@ -240,7 +242,8 @@
                         <polygon points="12,5 14,10 19,12 14,14 12,19 10,14 5,12 10,10" fill="#a29bfe"/>
                     </svg>
                 </div>
-                <span class="tab-label">{$t('premium.tabSecret')}</span>
+                <span class="tab-label tab-label-full">{$t('premium.tabSecret')}</span>
+                <span class="tab-label tab-label-short">{$t('premium.tabSecretShort')}</span>
             </button>
 
             <!-- 4. Rebirth / Prestige -->
@@ -259,7 +262,8 @@
                         <circle cx="12" cy="12" r="2" fill="#e74c3c"/>
                     </svg>
                 </div>
-                <span class="tab-label">{$t('premium.tabRitual')}</span>
+                <span class="tab-label tab-label-full">{$t('premium.tabRitual')}</span>
+                <span class="tab-label tab-label-short">{$t('premium.tabRitualShort')}</span>
                 {#if earnedStardust > 0}
                     <span class="tab-badge badge-rebirth">
                         +{formatNumber(earnedStardust)}
@@ -317,8 +321,10 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        overflow-x: hidden;
         color: white;
         box-sizing: border-box;
+        min-width: 0;
     }
 
     /* Master Header */
@@ -330,12 +336,17 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .close-btn {
         position: absolute;
         top: 12px;
         right: 14px;
+        z-index: 10;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 12px;
@@ -361,6 +372,8 @@
         align-items: center;
         gap: 14px;
         padding-right: 50px;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .master-icon-wrap {
@@ -372,12 +385,16 @@
         display: flex;
         flex-direction: column;
         gap: 2px;
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
     }
 
     .title-with-guide {
         display: flex;
         align-items: center;
         gap: 10px;
+        min-width: 0;
     }
 
     .title-text {
@@ -387,12 +404,20 @@
         letter-spacing: 1px;
         color: #f1c40f;
         text-shadow: 0 0 16px rgba(241, 196, 15, 0.4);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .subtitle-text {
         font-size: 0.78rem;
         color: #b2bec3;
         line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 100%;
     }
 
     /* Multi-currency panel */
@@ -447,7 +472,7 @@
     /* Master Tab Navigation Bar */
     .arcanum-tabs-bar {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         background: rgba(8, 3, 16, 0.85);
         border-bottom: 2px solid rgba(241, 196, 15, 0.25);
         padding: 4px 6px 0;
@@ -474,6 +499,7 @@
         min-width: 0;
         width: 100%;
         box-sizing: border-box;
+        overflow: hidden;
     }
 
     .arcanum-tab:hover {
@@ -506,18 +532,18 @@
     }
 
     .tab-label {
-        font-size: 0.76rem;
+        font-size: 0.74rem;
         font-weight: 700;
         text-align: center;
         line-height: 1.15;
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        word-break: normal;
+        white-space: nowrap;
+    }
+
+    .tab-label-short {
+        display: none;
     }
 
     .tab-badge {
@@ -587,6 +613,7 @@
     @media (max-width: 680px) {
         .overlay {
             padding: 0;
+            background: rgba(7, 3, 16, 0.98);
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
         }
@@ -620,20 +647,31 @@
             padding: 12px 10px;
         }
         .arcanum-tabs-bar {
-            padding: 3px 4px 0;
+            padding: 3px 3px 0;
             gap: 2px;
         }
         .arcanum-tab {
-            padding: 6px 2px 5px;
+            padding: 6px 1px 5px;
+            min-height: 48px;
             gap: 2px;
         }
         .tab-svg {
             width: 17px;
             height: 17px;
         }
+        .tab-label-full {
+            display: none;
+        }
+        .tab-label-short {
+            display: block;
+        }
         .tab-label {
-            font-size: 0.68rem;
+            font-size: 0.72rem;
             line-height: 1.1;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .tab-badge {
             top: 1px;
@@ -649,13 +687,18 @@
             gap: 1px;
         }
         .arcanum-tab {
-            padding: 5px 1px 4px;
+            padding: 4px 1px 4px;
+            min-height: 44px;
+        }
+        .tab-svg {
+            width: 15px;
+            height: 15px;
         }
         .tab-label {
-            font-size: 0.62rem;
+            font-size: 0.58rem;
         }
         .tab-badge {
-            font-size: 0.46rem;
+            font-size: 0.44rem;
             padding: 1px 2px;
         }
     }

@@ -520,6 +520,19 @@ export async function loadGame(): Promise<void> {
                     totalSpins: 0
                 };
             }
+
+            if (!merged.achievements || typeof merged.achievements !== 'object') {
+                merged.achievements = {};
+            }
+            if (merged.totalGoldEarned === undefined) {
+                merged.totalGoldEarned = merged.gold || 10;
+            }
+            if (merged.rebirthCount === undefined) {
+                merged.rebirthCount = (merged.totalStardustEarned && merged.totalStardustEarned > 0) ? 1 : 0;
+            }
+            if (merged.ordersCompletedCount === undefined) {
+                merged.ordersCompletedCount = 0;
+            }
             
             // Restore missing upgrades from default state
             // Restore missing upgrades from default state with dynamic reactive getters

@@ -48,6 +48,7 @@ export const ru: Translations = {
         city: 'Город',
         grimoire: 'Гримуар',
         premium: 'Арканум',
+        hall: 'Слава',
     },
     numberUnits: {
         thousand: 'К',
@@ -1190,5 +1191,69 @@ export const ru: Translations = {
         freeCooldownWait: 'Бесплатное вращение ещё восстанавливается.',
         adCooldownWait: 'Смотреть рекламу можно раз в 30 минут.',
         spinsLimitReached: 'Суточный лимит рекламы исчерпан (5/5).',
+    },
+    achievements: {
+        title: 'Зал Славы Архимага',
+        sub: 'Достижения',
+        subtitle: 'Вечные вехи, звёздные награды и постоянные благословения',
+        archmageTitle: 'Титул Архимага',
+        rankProgress: 'Звёзд до следующего титула',
+        maxRank: 'Высший титул достигнут!',
+        totalStars: 'Звёзды Славы',
+        tier: 'Уровень',
+        claim: 'Забрать',
+        claimAll: 'Забрать всё',
+        completed: 'Завершено',
+        maxTier: 'МАКСИМУМ',
+        unlockedToast: 'Достижение открыто!',
+        toastRewardReady: 'Награда готова в Зале Славы!',
+        passivePerksTitle: 'Постоянные Пассивные Благословения',
+        perkGold: 'Доход золота',
+        perkStardust: 'Звёздная Пыль за ритуалы',
+        perkDoubleBrew: 'Шанс двойного зелья',
+        perkOrdersGold: 'Золото за заказы горожан',
+        perkClickPower: 'Сила клика котла',
+        titles: {
+            apprentice: 'Ученик Зельевара',
+            adept: 'Адепт Арканума',
+            master: 'Магистр Стихий',
+            high_alchemist: 'Верховный Алхимик',
+            dimension_keeper: 'Хранитель Измерений',
+            grand_archmage: 'Великий Архимаг Вечности'
+        },
+        items: {
+            brew_master: {
+                name: 'Мастер Котла',
+                desc: 'Сварите {target} алхимических зелий'
+            },
+            gold_hoarder: {
+                name: 'Златой Алхимик',
+                desc: 'Заработайте {target} золота за всё время'
+            },
+            relic_seeker: {
+                name: 'Хранитель Древностей',
+                desc: 'Откройте {target} реликвий за Звёздную Пыль'
+            },
+            grand_ritual: {
+                name: 'Вечный Архимаг',
+                desc: 'Совершите {target} ритуалов возрождения'
+            },
+            order_supplier: {
+                name: 'Купец Арканума',
+                desc: 'Выполните {target} заказов горожан'
+            },
+            beast_whisperer: {
+                name: 'Повелитель Зверей',
+                desc: 'Откройте {target} фамильяров и спутников'
+            },
+            wheel_of_fate: {
+                name: 'Любимец Судьбы',
+                desc: 'Вращайте Колесо Фортуны {target} раз'
+            },
+            upgrade_master: {
+                name: 'Техно-Маг',
+                desc: 'Купите {target} уровней улучшений лавки'
+            }
+        }
     }
 };

@@ -20,6 +20,7 @@
         potionsCount,
         unlockedRecipes,
         isLuckyWheelReady,
+        unclaimedAchievementsCount,
         type Potion
     } from './store';
     import { 
@@ -50,7 +51,10 @@
     import FlyingBonus from './components/FlyingBonus.svelte';
     import ResourceIcon from './components/ResourceIcon.svelte';
     import SettingsModal from './components/SettingsModal.svelte';
-    import { t, currentLang, setLanguage, getRankTitle } from './i18n';
+    import HallOfFameModal from './components/HallOfFameModal.svelte';
+    import AchievementToast from './components/AchievementToast.svelte';
+    import { ACHIEVEMENTS, getAchievementCurrentProgress } from './achievements';
+    import { t, translate, currentLang, setLanguage, getRankTitle } from './i18n';
     import { isCalendarRewardReady } from './calendar';
 
     let isOfflinePopupOpen = false;
@@ -60,6 +64,77 @@
     let isDailyCalendarOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'calendar';
     let isSettingsOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'settings';
     let isLuckyWheelOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'wheel';
+    let isHallOfFameOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'hall';
+
+    interface ToastQueueItem {
+        id: string;
+        title: string;
+        tierNum: number;
+        iconSvg: string;
+    }
+    let activeToast: ToastQueueItem | null = null;
+    let toastQueue: ToastQueueItem[] = [];
+    let knownUnlockedTiers: Record<string, number> = {};
+    let hasInitializedAchievementsTracking = false;
+
+    function checkAchievementUnlocks(state: any) {
+        if (!state) return;
+        if (!hasInitializedAchievementsTracking) {
+            ACHIEVEMENTS.forEach(def => {
+                const currentProg = getAchievementCurrentProgress(def.id, state);
+                let reached = 0;
+                def.tiers.forEach(t => {
+                    if (currentProg >= t.target) reached = t.tier;
+                });
+                knownUnlockedTiers[def.id] = reached;
+            });
+            hasInitializedAchievementsTracking = true;
+            return;
+        }
+
+        ACHIEVEMENTS.forEach(def => {
+            const currentProg = getAchievementCurrentProgress(def.id, state);
+            const prevReached = knownUnlockedTiers[def.id] || 0;
+            let newReached = prevReached;
+
+            def.tiers.forEach(t => {
+                if (t.tier > prevReached && currentProg >= t.target) {
+                    newReached = Math.max(newReached, t.tier);
+                    const item: ToastQueueItem = {
+                        id: `${def.id}_${t.tier}`,
+                        title: translate(`achievements.items.${def.id}.name`),
+                        tierNum: t.tier,
+                        iconSvg: def.iconSvg
+                    };
+                    queueAchievementToast(item);
+                }
+            });
+            knownUnlockedTiers[def.id] = newReached;
+        });
+    }
+
+    function queueAchievementToast(item: ToastQueueItem) {
+        import('./audio').then(a => a.playAchievementSound()).catch(() => {});
+        if (!activeToast) {
+            activeToast = item;
+        } else {
+            toastQueue = [...toastQueue, item];
+        }
+    }
+
+    function handleDismissToast() {
+        if (toastQueue.length > 0) {
+            const [next, ...rest] = toastQueue;
+            activeToast = next;
+            toastQueue = rest;
+        } else {
+            activeToast = null;
+        }
+    }
+
+    $: if ($gameStore) {
+        checkAchievementUnlocks($gameStore);
+    }
 
     $: isCalendarReady = isCalendarRewardReady($gameStore);
 
@@ -719,7 +794,35 @@
             </div>
         </button>
 
-        <!-- 3. Grimoire Portal -->
+        <!-- 3. Hall of Fame Portal -->
+        <button 
+            type="button" 
+            class="hub-portal-btn hall-portal" 
+            on:click={() => isHallOfFameOpen = true} 
+            title="{$t('achievements.title')}"
+        >
+            {#if $unclaimedAchievementsCount > 0}
+                <div class="portal-badge pulse">
+                    {$unclaimedAchievementsCount}
+                </div>
+            {/if}
+            <div class="portal-icon-box">
+                <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+                    <path d="M8 6 H24 V14 C24 19 16 22 16 22 C16 22 8 19 8 14 Z" fill="#f1c40f" stroke="#d4ac0d" stroke-width="1.5"/>
+                    <path d="M8 9 H4 C4 13 8 14 8 14" stroke="#f1c40f" stroke-width="1.3" fill="none"/>
+                    <path d="M24 9 H28 C28 13 24 14 24 14" stroke="#f1c40f" stroke-width="1.3" fill="none"/>
+                    <path d="M16 22 V26 M11 26 H21" stroke="#e67e22" stroke-width="1.8" stroke-linecap="round"/>
+                    <polygon points="16,9 17,12 20,12 17.5,14 18.5,17 16,15 13.5,17 14.5,14 12,12 15,12" fill="#fff"/>
+                </svg>
+            </div>
+            <div class="portal-texts">
+                <span class="portal-name portal-name-full">{$t('achievements.title')}</span>
+                <span class="portal-name portal-name-short">{$t('nav.hall')}</span>
+                <span class="portal-sub">{$t('achievements.sub')}</span>
+            </div>
+        </button>
+
+        <!-- 4. Grimoire Portal -->
         <button 
             type="button" 
             class="hub-portal-btn grimoire-portal" 
@@ -746,7 +849,7 @@
             </div>
         </button>
 
-        <!-- 4. Premium Portal -->
+        <!-- 5. Premium Portal -->
         <button 
             type="button" 
             class="hub-portal-btn premium-portal" 
@@ -826,6 +929,21 @@
         isOpen={isSettingsOpen} 
         onClose={() => { isSettingsOpen = false; }} 
     />
+
+    <HallOfFameModal 
+        isOpen={isHallOfFameOpen} 
+        onClose={() => { isHallOfFameOpen = false; }} 
+    />
+
+    {#if activeToast}
+        <AchievementToast 
+            title={activeToast.title} 
+            tierNum={activeToast.tierNum} 
+            iconSvg={activeToast.iconSvg} 
+            onOpenHall={() => { isHallOfFameOpen = true; }} 
+            onDismiss={handleDismissToast} 
+        />
+    {/if}
 
     <!-- Wait, CustomerOrders is embedded in CityModal now! But we must remove it from App.svelte -->
     <FlyingBonus />
@@ -1264,14 +1382,14 @@
         left: 50%;
         transform: translateX(-50%);
         width: calc(100% - 28px);
-        max-width: 480px;
+        max-width: 540px;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
         background: linear-gradient(165deg, rgba(24, 11, 48, 0.92) 0%, rgba(13, 5, 28, 0.96) 100%);
         border: 1.5px solid rgba(241, 196, 15, 0.4);
         border-radius: 20px;
-        padding: 7px 10px;
+        padding: 7px 8px;
         box-shadow: 
             0 12px 35px rgba(0, 0, 0, 0.75), 
             0 0 25px rgba(241, 196, 15, 0.12),
@@ -1306,6 +1424,12 @@
         background: rgba(255, 255, 255, 0.08);
         border-color: rgba(241, 196, 15, 0.35);
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .hall-portal:hover {
+        background: rgba(241, 196, 15, 0.12);
+        border-color: rgba(241, 196, 15, 0.5);
+        box-shadow: 0 0 16px rgba(241, 196, 15, 0.25);
     }
 
     .hub-portal-btn:active {
@@ -1418,6 +1542,54 @@
 
     @keyframes spin {
         to { transform: rotate(360deg); }
+    }
+
+    .shortcut-btn {
+        position: relative;
+        border-color: rgba(46, 213, 115, 0.4);
+        background: rgba(46, 213, 115, 0.08);
+    }
+    .shortcut-btn:hover {
+        border-color: #2ed573;
+        background: rgba(46, 213, 115, 0.2);
+        box-shadow: 0 0 10px rgba(46, 213, 115, 0.35);
+    }
+    .shortcut-gift-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #1e272e;
+        border: 1px solid #2ed573;
+        color: #2ed573;
+        font-size: 0.6rem;
+        font-weight: 800;
+        border-radius: 8px;
+        padding: 0px 4px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .shortcut-toast-notification {
+        position: fixed;
+        bottom: 85px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #1e272e 0%, #2d3436 100%);
+        border: 1.5px solid #2ed573;
+        border-radius: 12px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ffffff;
+        font-size: 0.88rem;
+        font-weight: 700;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 15px rgba(46, 213, 115, 0.4);
+        z-index: 9999;
     }
 
     /* ============================================================ */
@@ -1547,6 +1719,8 @@
             bottom: max(10px, env(safe-area-inset-bottom));
             width: calc(100% - 12px);
             max-width: 420px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             padding: 4px 3px;
             gap: 2px;
             border-radius: 16px;
@@ -1669,52 +1843,5 @@
         .portal-name-short {
             font-size: 0.60rem;
         }
-    }
-    .shortcut-btn {
-        position: relative;
-        border-color: rgba(46, 213, 115, 0.4);
-        background: rgba(46, 213, 115, 0.08);
-    }
-    .shortcut-btn:hover {
-        border-color: #2ed573;
-        background: rgba(46, 213, 115, 0.2);
-        box-shadow: 0 0 10px rgba(46, 213, 115, 0.35);
-    }
-    .shortcut-gift-badge {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #1e272e;
-        border: 1px solid #2ed573;
-        color: #2ed573;
-        font-size: 0.6rem;
-        font-weight: 800;
-        border-radius: 8px;
-        padding: 0px 4px;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        white-space: nowrap;
-        pointer-events: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-    }
-
-    .shortcut-toast-notification {
-        position: fixed;
-        bottom: 85px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(135deg, #1e272e 0%, #2d3436 100%);
-        border: 1.5px solid #2ed573;
-        border-radius: 12px;
-        padding: 10px 18px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #ffffff;
-        font-size: 0.88rem;
-        font-weight: 700;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.6), 0 0 15px rgba(46, 213, 115, 0.4);
-        z-index: 9999;
     }
 </style>

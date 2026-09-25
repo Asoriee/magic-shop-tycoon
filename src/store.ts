@@ -21,6 +21,15 @@ import {
 import { type PetBonusData, getPetBonusValues } from './petBonuses';
 export type { PetBonusData };
 export { getPetBonusValues };
+import { 
+    ACHIEVEMENTS, 
+    calculateAchievementPerks, 
+    getAchievementStatus, 
+    getAchievementCurrentProgress,
+    type AchievementId 
+} from './achievements';
+export { ACHIEVEMENTS, calculateAchievementPerks, getAchievementStatus, getAchievementCurrentProgress };
+export type { AchievementId };
 
 // ============================================================
 // UTILS
@@ -253,6 +262,10 @@ export interface GameState {
     hasNoAds?: boolean;
     hasBoughtStarterPack?: boolean;
     luckyWheel?: LuckyWheelState;
+    achievements?: Record<string, number>;
+    totalGoldEarned?: number;
+    rebirthCount?: number;
+    ordersCompletedCount?: number;
 }
 
 export interface LuckyWheelState {
@@ -2095,7 +2108,11 @@ const defaultState: GameState = {
         adSpinsDate: '',
         pityProgress: 0,
         totalSpins: 0
-    }
+    },
+    achievements: {},
+    totalGoldEarned: 10,
+    rebirthCount: 0,
+    ordersCompletedCount: 0
 };
 
 // --- Premium stores ---
@@ -2343,6 +2360,10 @@ export function calculateEarnedStardust(state: GameState): number {
     const astralMastery = state.potionMastery?.['potion_astral'] || 0;
     if (astralMastery > 0) stardustMultiplier += astralMastery * 0.005;
 
+    // Hall of Fame achievement perk: stardust_mult
+    const achPerks = calculateAchievementPerks(state);
+    stardustMultiplier += achPerks.stardust_mult;
+
     const rawStardust = getRawStardust(state.gold);
     return Math.floor(rawStardust * stardustMultiplier);
 }
@@ -2384,7 +2405,14 @@ function createGameStore() {
         subscribe,
         set,
         update,
-        addGold:        (amount: number) => update(state => ({ ...state, gold: state.gold + amount })),
+        addGold: (amount: number) => update(state => {
+            const added = Math.max(0, amount);
+            return {
+                ...state,
+                gold: state.gold + added,
+                totalGoldEarned: (state.totalGoldEarned || state.gold || 0) + added
+            };
+        }),
         setLastSaveTime:(time: number)   => update(state => ({ ...state, lastSaveTime: time })),
         recordFreeChest:() => update(state => ({ ...state, lastFreeChestTime: Date.now() })),
         checkDailyQuests: () => update(state => {
@@ -2482,6 +2510,7 @@ function createGameStore() {
                 // Тайные знания не сбрасываются!
                 stardust: state.stardust + earnedStardust,
                 totalStardustEarned: newTotalStardustEarned,
+                rebirthCount: (state.rebirthCount || 0) + 1,
                 // Сброс квестов и заказов после ритуала
                 quests: generateQuests(),
                 dailyBonusClaimed: false,
@@ -2743,6 +2772,12 @@ function createGameStore() {
                 }
             }
 
+            // Hall of Fame achievement perk: orders_gold
+            const achPerks = calculateAchievementPerks(state);
+            if (achPerks.orders_gold > 0) {
+                goldMultiplier += achPerks.orders_gold;
+            }
+
             const finalGold = Math.floor(baseGold * goldMultiplier);
 
             const newQuests = state.quests.map(q => {
@@ -2787,6 +2822,8 @@ function createGameStore() {
             return {
                 ...state,
                 gold: state.gold + finalGold,
+                totalGoldEarned: (state.totalGoldEarned || state.gold || 0) + finalGold,
+                ordersCompletedCount: (state.ordersCompletedCount || 0) + 1,
                 quests: newQuests,
                 activeOrders: remainingOrders,
                 lastOrderSpawnTime: lastSpawn
@@ -2838,7 +2875,8 @@ function createGameStore() {
 
             return {
                 ...state,
-                gold: state.gold + totalGold
+                gold: state.gold + totalGold,
+                totalGoldEarned: (state.totalGoldEarned || state.gold || 0) + totalGold
             };
         }),
         usePotion: (potionId: string) => update(state => {
@@ -2943,11 +2981,94 @@ function createGameStore() {
             const existing = state.viewedGuides || [];
             if (existing.includes(guideId)) return state;
             return { ...state, viewedGuides: [...existing, guideId] };
-        })
+        }),
+        claimAchievement: (achievementId: AchievementId) => {
+            const def = ACHIEVEMENTS.find(a => a.id === achievementId);
+            if (!def) return;
+            let claimed = false;
+            update(state => {
+                const status = getAchievementStatus(def, state);
+                if (!status.canClaim) return state;
+
+                const nextTier = status.nextTier;
+                const nextTierNum = status.claimedTier + 1;
+                const newAchievements = { ...(state.achievements || {}) };
+                newAchievements[achievementId] = nextTierNum;
+
+                crystals.update(c => c + nextTier.crystalsReward);
+                claimed = true;
+
+                return {
+                    ...state,
+                    stardust: state.stardust + nextTier.stardustReward,
+                    achievements: newAchievements
+                };
+            });
+            if (claimed) {
+                import('./audio').then(a => a.playAchievementSound()).catch(() => {});
+                import('./yandex-sdk').then(sdk => sdk.saveGame()).catch(() => {});
+            }
+        },
+        claimAllAchievements: () => {
+            let totalCrystals = 0;
+            let totalStardust = 0;
+            let anyClaimed = false;
+
+            update(state => {
+                const newAchievements = { ...(state.achievements || {}) };
+
+                ACHIEVEMENTS.forEach(def => {
+                    let currentTier = newAchievements[def.id] || 0;
+                    const currentProg = getAchievementCurrentProgress(def.id, state);
+
+                    while (currentTier < def.tiers.length) {
+                        const target = def.tiers[currentTier].target;
+                        if (currentProg >= target) {
+                            totalCrystals += def.tiers[currentTier].crystalsReward;
+                            totalStardust += def.tiers[currentTier].stardustReward;
+                            currentTier++;
+                            anyClaimed = true;
+                        } else {
+                            break;
+                        }
+                    }
+                    newAchievements[def.id] = currentTier;
+                });
+
+                if (!anyClaimed) return state;
+
+                if (totalCrystals > 0) {
+                    crystals.update(c => c + totalCrystals);
+                }
+
+                return {
+                    ...state,
+                    stardust: state.stardust + totalStardust,
+                    achievements: newAchievements
+                };
+            });
+
+            if (anyClaimed) {
+                import('./audio').then(a => a.playAchievementSound()).catch(() => {});
+                import('./yandex-sdk').then(sdk => sdk.saveGame()).catch(() => {});
+            }
+        }
     };
 }
 
 export const gameStore = createGameStore();
+
+export const unclaimedAchievementsCount = derived(gameStore, $state => {
+    if (!$state) return 0;
+    let count = 0;
+    ACHIEVEMENTS.forEach(def => {
+        const status = getAchievementStatus(def, $state);
+        if (status.canClaim) {
+            count++;
+        }
+    });
+    return count;
+});
 
 // --- Active Guide Modal Store & Handlers ---
 export const activeGuideModalId = writable<string | null>(null);
@@ -3129,6 +3250,10 @@ export const stableIdleMultiplier = derived([gameStore, isVip, milestoneInfo], (
     
     // Apply stardust prestige multiplier (+1% per stardust)
     multiplier += ($gameStore?.stardust || 0) * 0.01;
+
+    // Hall of Fame achievement perk: gold_mult
+    const achPerks = calculateAchievementPerks($gameStore);
+    multiplier += achPerks.gold_mult;
     
     return Math.max(1, multiplier);
 });
@@ -3219,6 +3344,10 @@ export const globalClickMultiplier = derived([gameStore, isVip, milestoneInfo], 
 
     // Apply stardust prestige multiplier (+1% per stardust)
     multiplier += ($gameStore?.stardust || 0) * 0.01;
+
+    // Hall of Fame achievement perks: gold_mult and click_power
+    const achPerks = calculateAchievementPerks($gameStore);
+    multiplier += achPerks.gold_mult + achPerks.click_power;
 
     return Math.max(1, multiplier);
 });
@@ -3711,6 +3840,12 @@ export function brewPotion(slots: [string, string, string]): BrewResult {
                 doubleChance += compBonus.doubleBrewBonus;
             }
         }
+
+        // Hall of Fame achievement perk: double_brew
+        const achPerks = calculateAchievementPerks(state);
+        if (achPerks.double_brew > 0) {
+            doubleChance += achPerks.double_brew;
+        }
         doubleChance = Math.min(0.85, doubleChance);
 
         const isDouble = Math.random() < doubleChance;
@@ -3860,6 +3995,12 @@ export function quickBrewRecipe(recipeId: string): { success: boolean; reason?: 
         if (compBonus.doubleBrewBonus > 0) {
             doubleChance += compBonus.doubleBrewBonus;
         }
+    }
+
+    // Hall of Fame achievement perk: double_brew
+    const achPerks = calculateAchievementPerks(state);
+    if (achPerks.double_brew > 0) {
+        doubleChance += achPerks.double_brew;
     }
     doubleChance = Math.min(0.85, doubleChance);
 

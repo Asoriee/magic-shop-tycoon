@@ -631,3 +631,55 @@ export function playStardustSound(): void {
         });
     } catch (e) {}
 }
+
+/**
+ * Procedural triumphant Archmage Achievement Fanfare & Celestial Sparkle
+ */
+export function playAchievementSound(): void {
+    if (get(isSfxMuted)) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    try {
+        const now = ctx.currentTime;
+        // 1. Triumphant major chord arpeggio (C5 -> E5 -> G5 -> C6)
+        const chordNotes = [523.25, 659.25, 783.99, 1046.50];
+        chordNotes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const start = now + (idx * 0.06);
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, start);
+
+            gain.gain.setValueAtTime(0.20, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.65);
+
+            osc.connect(gain);
+            gain.connect(getSfxDestination(ctx));
+
+            osc.start(start);
+            osc.stop(start + 0.70);
+        });
+
+        // 2. Celestial crystal shimmer sparkle
+        const shimmerFreqs = [1760.00, 2093.00, 2637.02, 3135.96];
+        shimmerFreqs.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const start = now + 0.24 + (idx * 0.05);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, start);
+
+            gain.gain.setValueAtTime(0.12, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.50);
+
+            osc.connect(gain);
+            gain.connect(getSfxDestination(ctx));
+
+            osc.start(start);
+            osc.stop(start + 0.52);
+        });
+    } catch (e) {}
+}

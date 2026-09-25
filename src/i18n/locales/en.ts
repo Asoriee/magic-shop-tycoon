@@ -48,6 +48,7 @@ export const en: Translations = {
         city: 'City',
         grimoire: 'Grimoire',
         premium: 'Arcanum',
+        hall: 'Hall',
     },
     numberUnits: {
         thousand: 'K',
@@ -1190,5 +1191,69 @@ export const en: Translations = {
         freeCooldownWait: 'Free spin is still recharging.',
         adCooldownWait: 'Rewarded ads available once every 30 minutes.',
         spinsLimitReached: 'Daily ad spin limit reached (5/5).',
+    },
+    achievements: {
+        title: 'Archmage Hall of Fame',
+        sub: 'Achievements',
+        subtitle: 'Eternal milestones, astral rewards, and permanent blessings',
+        archmageTitle: 'Archmage Title',
+        rankProgress: 'Stars until next title',
+        maxRank: 'Supreme title attained!',
+        totalStars: 'Glory Stars',
+        tier: 'Tier',
+        claim: 'Claim',
+        claimAll: 'Claim All',
+        completed: 'Completed',
+        maxTier: 'MAXIMUM',
+        unlockedToast: 'Achievement Unlocked!',
+        toastRewardReady: 'Reward is ready in the Hall of Fame!',
+        passivePerksTitle: 'Permanent Passive Blessings',
+        perkGold: 'Gold income',
+        perkStardust: 'Stardust from rituals',
+        perkDoubleBrew: 'Double potion chance',
+        perkOrdersGold: 'Townspeople orders gold',
+        perkClickPower: 'Cauldron click power',
+        titles: {
+            apprentice: 'Apprentice Brewer',
+            adept: 'Arcanum Adept',
+            master: 'Master of Elements',
+            high_alchemist: 'High Alchemist',
+            dimension_keeper: 'Dimension Keeper',
+            grand_archmage: 'Grand Archmage of Eternity'
+        },
+        items: {
+            brew_master: {
+                name: 'Cauldron Master',
+                desc: 'Brew {target} alchemical potions'
+            },
+            gold_hoarder: {
+                name: 'Golden Alchemist',
+                desc: 'Earn {target} gold in total'
+            },
+            relic_seeker: {
+                name: 'Relic Keeper',
+                desc: 'Unlock {target} ancient relics with Stardust'
+            },
+            grand_ritual: {
+                name: 'Eternal Archmage',
+                desc: 'Perform {target} ascension rituals'
+            },
+            order_supplier: {
+                name: 'Arcanum Merchant',
+                desc: 'Fulfill {target} townspeople orders'
+            },
+            beast_whisperer: {
+                name: 'Beastmaster',
+                desc: 'Unlock {target} familiars and pets'
+            },
+            wheel_of_fate: {
+                name: 'Favored by Fate',
+                desc: 'Spin the Lucky Wheel {target} times'
+            },
+            upgrade_master: {
+                name: 'Technomage',
+                desc: 'Purchase {target} shop upgrade levels'
+            }
+        }
     }
 };

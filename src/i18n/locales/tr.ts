@@ -48,6 +48,7 @@ export const tr: Translations = {
         city: 'Şehir',
         grimoire: 'Grimuar',
         premium: 'Arkanum',
+        hall: 'Zafer',
     },
     numberUnits: {
         thousand: 'B',
@@ -1190,5 +1191,69 @@ export const tr: Translations = {
         freeCooldownWait: 'Ücretsiz çevirme henüz dolmadı.',
         adCooldownWait: 'Reklamla çevirme 30 dakikada bir kullanılabilir.',
         spinsLimitReached: 'Günlük reklam çevirme sınırına ulaşıldı (5/5).',
+    },
+    achievements: {
+        title: 'Başbüyücü Zafer Salonu',
+        sub: 'Başarılar',
+        subtitle: 'Ebedi dönüm noktaları, yıldız ödülleri ve kalıcı lütuflar',
+        archmageTitle: 'Başbüyücü Unvanı',
+        rankProgress: 'Sonraki unvana kalan yıldız',
+        maxRank: 'En yüksek unvana ulaşıldı!',
+        totalStars: 'Zafer Yıldızları',
+        tier: 'Kademe',
+        claim: 'Al',
+        claimAll: 'Tümünü Al',
+        completed: 'Tamamlandı',
+        maxTier: 'MAKSİMUM',
+        unlockedToast: 'Başarım Açıldı!',
+        toastRewardReady: 'Ödül Zafer Salonunda hazır!',
+        passivePerksTitle: 'Kalıcı Pasif Kutsamalar',
+        perkGold: 'Altın geliri',
+        perkStardust: 'Ritüellerden Yıldız Tozu',
+        perkDoubleBrew: 'Çift iksir şansı',
+        perkOrdersGold: 'Şehir siparişleri altını',
+        perkClickPower: 'Kazan tıklama gücü',
+        titles: {
+            apprentice: 'Çırak İksirci',
+            adept: 'Arcanum Müptelası',
+            master: 'Elementler Ustası',
+            high_alchemist: 'Yüce Simyacı',
+            dimension_keeper: 'Boyut Koruyucusu',
+            grand_archmage: 'Sonsuzluğun Başbüyücüsü'
+        },
+        items: {
+            brew_master: {
+                name: 'Kazan Ustası',
+                desc: '{target} simya iksiri kaynatın'
+            },
+            gold_hoarder: {
+                name: 'Altın Simyacı',
+                desc: 'Toplamda {target} altın kazanın'
+            },
+            relic_seeker: {
+                name: 'Eski Eser Koruyucusu',
+                desc: 'Yıldız Tozu ile {target} kadim eser açın'
+            },
+            grand_ritual: {
+                name: 'Ebedi Başbüyücü',
+                desc: '{target} yükseliş ritüeli gerçekleştirin'
+            },
+            order_supplier: {
+                name: 'Arcanum Tüccarı',
+                desc: '{target} kasaba sakini siparişi tamamlayın'
+            },
+            beast_whisperer: {
+                name: 'Canavar Terbiyecisi',
+                desc: '{target} evcil hayvan ve yoldaş açın'
+            },
+            wheel_of_fate: {
+                name: 'Kaderin Gözdesi',
+                desc: 'Çarkıfeleği {target} kez çevirin'
+            },
+            upgrade_master: {
+                name: 'Teknobüyücü',
+                desc: '{target} dükkân yükseltme seviyesi satın alın'
+            }
+        }
     }
 };

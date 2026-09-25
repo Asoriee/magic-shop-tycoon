@@ -260,56 +260,59 @@
                                 {@const count = $potionsCount[potion.id] || 0}
                                 {@const sellGold = getPotionSellGold(potion.id)}
                                 <div class="potion-card">
-                                    <div class="potion-icon">{@html potion.icon}</div>
-                                    <div class="potion-info">
-                                        <div class="potion-name-row">
-                                            <span class="potion-name">{getPotionName(potion.id, $currentLang)}</span>
-                                            <span class="potion-count-pill">×{count}</span>
+                                    <!-- Top Row: Icon + Title/Desc + Drink CTA -->
+                                    <div class="potion-top-row">
+                                        <div class="potion-icon">{@html potion.icon}</div>
+                                        <div class="potion-title-wrap">
+                                            <div class="potion-name-row">
+                                                <span class="potion-name">{getPotionName(potion.id, $currentLang)}</span>
+                                                <span class="potion-count-pill">×{count}</span>
+                                            </div>
+                                            <div class="potion-desc">{getPotionDesc(potion.id, $currentLang)}</div>
                                         </div>
-                                        <div class="potion-desc">{getPotionDesc(potion.id, $currentLang)}</div>
-
-                                        <!-- Mastery Bar -->
-                                        <div class="mastery-box">
-                                            <div class="mastery-header">
-                                                <span class="mastery-badge">
-                                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="#ffd700" style="vertical-align: -1px; margin-right: 3px; display: inline-block;">
-                                                        <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
-                                                    </svg>
-                                                    {$t('inventory.masteryBadge', { level: masteryLvl })}
-                                                </span>
-                                                <span class="mastery-xp">{masteryLvl >= 10 ? $t('inventory.masteryMax') : $t('inventory.masteryXp', { current: xp, next: nextThreshold })}</span>
-                                            </div>
-                                            <div class="mastery-bar-bg">
-                                                <div class="mastery-bar-fill" style="width: {masteryLvl >= 10 ? 100 : Math.round(progressInTier * 100)}%"></div>
-                                            </div>
-                                            <div class="mastery-bonus-text">
-                                                <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd700" style="vertical-align: -1px; margin-right: 3px;">
-                                                    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
-                                                </svg>
-                                                {getMasteryBonusText(potion.id, masteryLvl)}
-                                                {#if masteryLvl > 0}
-                                                    <span class="mastery-duration-hint"> (+{masteryLvl * 10}% {$t('inventory.masteryDurationShort')})</span>
-                                                {/if}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="potion-actions">
                                         <button class="use-potion-btn" on:click={() => handleUsePotion(potion.id)} title="{$t('inventory.drinkTooltip')}">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                                 <polyline points="20 6 9 17 4 12"></polyline>
                                             </svg>
                                             <span>{$t('inventory.drink')}</span>
                                         </button>
-                                        <div class="sell-buttons">
-                                            <button class="sell-btn sell-one" on:click={() => handleSellPotion(potion.id, 1)} title="{$t('inventory.sellOneTooltip')}">
-                                                {$t('inventory.sellOneBtn', { gold: formatNumber(sellGold) })}
-                                            </button>
-                                            {#if count > 1}
-                                                <button class="sell-btn sell-all" on:click={() => handleSellPotion(potion.id, count)} title="{$t('inventory.sellAllTooltip')}">
-                                                    {$t('inventory.sellAllBtn', { gold: formatNumber(sellGold * count) })}
-                                                </button>
+                                    </div>
+
+                                    <!-- Mastery Bar (Full Card Width) -->
+                                    <div class="mastery-box">
+                                        <div class="mastery-header">
+                                            <span class="mastery-badge">
+                                                <svg viewBox="0 0 24 24" width="12" height="12" fill="#ffd700" class="mastery-star-svg">
+                                                    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                                </svg>
+                                                {$t('inventory.masteryBadge', { level: masteryLvl })}
+                                            </span>
+                                            <span class="mastery-xp">{masteryLvl >= 10 ? $t('inventory.masteryMax') : $t('inventory.masteryXp', { current: xp, next: nextThreshold })}</span>
+                                        </div>
+                                        <div class="mastery-bar-bg">
+                                            <div class="mastery-bar-fill" style="width: {masteryLvl >= 10 ? 100 : Math.round(progressInTier * 100)}%"></div>
+                                        </div>
+                                        <div class="mastery-bonus-text">
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd700" style="vertical-align: -1px; margin-right: 3px;">
+                                                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                            </svg>
+                                            {getMasteryBonusText(potion.id, masteryLvl)}
+                                            {#if masteryLvl > 0}
+                                                <span class="mastery-duration-hint"> (+{masteryLvl * 10}% {$t('inventory.masteryDurationShort')})</span>
                                             {/if}
                                         </div>
+                                    </div>
+
+                                    <!-- Bottom Row: Sell Actions Row -->
+                                    <div class="sell-actions-row">
+                                        <button class="sell-btn sell-one" on:click={() => handleSellPotion(potion.id, 1)} title="{$t('inventory.sellOneTooltip')}">
+                                            {$t('inventory.sellOneBtn', { gold: formatNumber(sellGold) })}
+                                        </button>
+                                        {#if count > 1}
+                                            <button class="sell-btn sell-all" on:click={() => handleSellPotion(potion.id, count)} title="{$t('inventory.sellAllTooltip')}">
+                                                {$t('inventory.sellAllBtn', { gold: formatNumber(sellGold * count) })}
+                                            </button>
+                                        {/if}
                                     </div>
                                 </div>
                             {/each}
@@ -646,8 +649,8 @@
         border-radius: 16px;
         padding: 12px 14px;
         display: flex;
-        align-items: center;
-        gap: 14px;
+        flex-direction: column;
+        gap: 10px;
         position: relative;
         transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
@@ -658,9 +661,17 @@
         box-shadow: 0 6px 20px rgba(0,0,0,0.6), 0 0 15px rgba(162, 155, 254, 0.2);
     }
 
+    .potion-top-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+    }
+
     .potion-icon {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -668,7 +679,7 @@
         flex-shrink: 0;
     }
 
-    .potion-info {
+    .potion-title-wrap {
         flex: 1;
         min-width: 0;
     }
@@ -683,6 +694,7 @@
         font-weight: 800;
         color: #ffeaa7;
         font-size: 0.95rem;
+        line-height: 1.2;
     }
 
     .potion-count-pill {
@@ -693,52 +705,94 @@
         border: 1px solid rgba(241, 196, 15, 0.35);
         padding: 1px 6px;
         border-radius: 10px;
+        flex-shrink: 0;
     }
 
     .potion-desc {
         font-size: 0.78rem;
         color: #a4b0be;
-        margin-top: 4px;
+        margin-top: 2px;
         line-height: 1.3;
     }
 
+    .use-potion-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: linear-gradient(135deg, #2ed573, #10ac84);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        color: #042410;
+        font-weight: 800;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3);
+        flex-shrink: 0;
+        min-height: 38px;
+        white-space: nowrap;
+    }
+
+    .use-potion-btn:hover {
+        transform: scale(1.04);
+        box-shadow: 0 6px 16px rgba(46, 213, 115, 0.5);
+    }
+
+    .use-potion-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Mastery Box */
     .mastery-box {
-        margin-top: 8px;
-        background: rgba(0, 0, 0, 0.4);
+        width: 100%;
+        background: rgba(0, 0, 0, 0.45);
         border: 1px solid rgba(241, 196, 15, 0.25);
-        border-radius: 8px;
-        padding: 6px 8px;
+        border-radius: 10px;
+        padding: 7px 10px;
+        box-sizing: border-box;
     }
 
     .mastery-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
         font-size: 0.72rem;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
     }
 
     .mastery-badge {
         font-weight: 700;
         color: #ffd32a;
         white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 3px;
         flex-shrink: 0;
+    }
+
+    .mastery-star-svg {
+        flex-shrink: 0;
+        vertical-align: -1px;
     }
 
     .mastery-xp {
         color: #a4b0be;
         font-size: 0.68rem;
         white-space: nowrap;
-        flex-shrink: 0;
+        margin-left: auto;
     }
 
     .mastery-bar-bg {
         width: 100%;
-        height: 5px;
+        height: 6px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 3px;
         overflow: hidden;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
     }
 
     .mastery-bar-fill {
@@ -752,7 +806,7 @@
         font-size: 0.72rem;
         color: #55efc4;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1.25;
     }
 
     .mastery-duration-hint {
@@ -760,32 +814,33 @@
         font-size: 0.68rem;
     }
 
-    .potion-actions {
+    /* Sell Actions Row */
+    .sell-actions-row {
         display: flex;
-        flex-direction: column;
-        gap: 6px;
-        flex-shrink: 0;
-        align-items: stretch;
-    }
-
-    .sell-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
     }
 
     .sell-btn {
+        flex: 1;
+        min-width: 0;
         background: rgba(241, 196, 15, 0.12);
         border: 1px solid rgba(241, 196, 15, 0.3);
         border-radius: 8px;
         color: #ffd32a;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
-        padding: 4px 6px;
+        padding: 6px 8px;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
         transition: all 0.15s;
         white-space: nowrap;
         text-align: center;
+        box-sizing: border-box;
     }
 
     .sell-btn:hover {
@@ -804,32 +859,6 @@
         background: rgba(230, 126, 34, 0.3);
     }
 
-    .use-potion-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 12px;
-        background: linear-gradient(135deg, #2ed573, #10ac84);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 10px;
-        color: #042410;
-        font-weight: 800;
-        font-size: 0.82rem;
-        cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s;
-        box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3);
-    }
-
-    .use-potion-btn:hover {
-        transform: scale(1.04);
-        box-shadow: 0 6px 16px rgba(46, 213, 115, 0.5);
-    }
-
-    .use-potion-btn:active {
-        transform: scale(0.95);
-    }
-
     @media (max-width: 480px) {
         .items-grid {
             grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
@@ -843,12 +872,24 @@
             height: 36px;
         }
         .potion-card {
-            padding: 10px 12px;
-            gap: 10px;
+            padding: 10px 10px 8px;
+            gap: 8px;
+        }
+        .potion-top-row {
+            gap: 8px;
         }
         .potion-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
+        }
+        .use-potion-btn {
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            min-height: 36px;
+        }
+        .sell-btn {
+            font-size: 0.68rem;
+            padding: 5px 4px;
         }
     }
 </style>

@@ -614,6 +614,7 @@ export const en: Translations = {
         tabRitual: 'Ritual',
         tabRitualShort: 'Ritual',
         freeHour: '1 H FREE',
+        freeHourShort: '1H',
         vipTag: 'VIP',
         giftTag: 'GIFT',
         vipTitle: 'Royal VIP Status',

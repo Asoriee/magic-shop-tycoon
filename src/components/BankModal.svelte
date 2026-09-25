@@ -679,6 +679,9 @@
         max-height: none;
         background: transparent;
         padding: 4px 0 16px;
+        overflow: visible;
+        overflow-y: visible;
+        height: auto;
     }
 
     .tab-header {

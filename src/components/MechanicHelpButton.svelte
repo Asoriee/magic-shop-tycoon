@@ -128,8 +128,8 @@
 
     .unread-spark-dot {
         position: absolute;
-        top: -2px;
-        right: -2px;
+        top: -1px;
+        right: -1px;
         width: 8px;
         height: 8px;
         background: #e74c3c;

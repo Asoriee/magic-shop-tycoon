@@ -196,7 +196,10 @@
                 <span class="tab-label tab-label-full">{$t('premium.tabTreasury')}</span>
                 <span class="tab-label tab-label-short">{$t('premium.tabTreasuryShort')}</span>
                 {#if $isVipDailyRewardAvailable}
-                    <span class="tab-badge badge-ready">+10 {$t('common.vip')}</span>
+                    <span class="tab-badge badge-ready">
+                        <span class="tab-label-full">+10 {$t('common.vip')}</span>
+                        <span class="tab-label-short">+10</span>
+                    </span>
                 {:else if isDragonGiftReady}
                     <span class="tab-badge badge-free">{$t('premium.giftTag')}</span>
                 {/if}
@@ -223,7 +226,10 @@
                 <span class="tab-label tab-label-full">{$t('premium.tabChronomancy')}</span>
                 <span class="tab-label tab-label-short">{$t('premium.tabChronomancyShort')}</span>
                 {#if isFreeSkipReady}
-                    <span class="tab-badge badge-ready">{$t('premium.freeHour')}</span>
+                    <span class="tab-badge badge-ready">
+                        <span class="tab-label-full">{$t('premium.freeHour')}</span>
+                        <span class="tab-label-short">{$t('premium.freeHourShort')}</span>
+                    </span>
                 {/if}
             </button>
 
@@ -340,6 +346,7 @@
         max-width: 100%;
         box-sizing: border-box;
         overflow: hidden;
+        flex-shrink: 0;
     }
 
     .close-btn {
@@ -475,7 +482,7 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
         background: rgba(8, 3, 16, 0.85);
         border-bottom: 2px solid rgba(241, 196, 15, 0.25);
-        padding: 4px 6px 0;
+        padding: 6px 6px 0;
         gap: 4px;
         flex-shrink: 0;
         z-index: 2;
@@ -499,7 +506,6 @@
         min-width: 0;
         width: 100%;
         box-sizing: border-box;
-        overflow: hidden;
     }
 
     .arcanum-tab:hover {
@@ -548,8 +554,9 @@
 
     .tab-badge {
         position: absolute;
-        top: 2px;
-        right: 3px;
+        top: -4px;
+        right: 2px;
+        z-index: 3;
         font-size: 0.56rem;
         font-weight: 900;
         padding: 1px 4px;
@@ -587,7 +594,8 @@
 
     /* Content Area */
     .tab-content-area {
-        flex: 1;
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
         padding: 16px 20px;
@@ -596,17 +604,17 @@
     }
 
     .tab-content-area::-webkit-scrollbar {
-        width: 6px;
+        width: 5px;
     }
     .tab-content-area::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.2);
+        background: transparent;
     }
     .tab-content-area::-webkit-scrollbar-thumb {
-        background: rgba(241, 196, 15, 0.3);
-        border-radius: 3px;
+        background: rgba(162, 155, 254, 0.25);
+        border-radius: 10px;
     }
     .tab-content-area::-webkit-scrollbar-thumb:hover {
-        background: rgba(241, 196, 15, 0.5);
+        background: rgba(241, 196, 15, 0.4);
     }
 
     /* Responsive adjustments: Mobile Fullscreen at max-width 680px matching other hub modals */
@@ -631,6 +639,7 @@
         }
 
         .master-header {
+            flex-shrink: 0;
             padding: 14px 14px 10px;
         }
         .title-text {
@@ -647,7 +656,7 @@
             padding: 12px 10px;
         }
         .arcanum-tabs-bar {
-            padding: 3px 3px 0;
+            padding: 5px 3px 0;
             gap: 2px;
         }
         .arcanum-tab {
@@ -674,8 +683,8 @@
             text-overflow: ellipsis;
         }
         .tab-badge {
-            top: 1px;
-            right: 2px;
+            top: -3px;
+            right: 1px;
             font-size: 0.52rem;
             padding: 1px 3px;
         }
@@ -683,7 +692,7 @@
 
     @media (max-width: 380px) {
         .arcanum-tabs-bar {
-            padding: 2px 2px 0;
+            padding: 4px 2px 0;
             gap: 1px;
         }
         .arcanum-tab {
@@ -698,6 +707,8 @@
             font-size: 0.58rem;
         }
         .tab-badge {
+            top: -3px;
+            right: 0;
             font-size: 0.44rem;
             padding: 1px 2px;
         }

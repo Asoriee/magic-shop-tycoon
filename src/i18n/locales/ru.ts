@@ -614,6 +614,7 @@ export const ru: Translations = {
         tabRitual: 'Ритуал',
         tabRitualShort: 'Ритуал',
         freeHour: '1 Ч БЕСП',
+        freeHourShort: '1 Ч',
         vipTag: 'ВИП',
         giftTag: 'ДАР',
         vipTitle: 'Королевский ВИП Статус',

@@ -614,6 +614,7 @@ export const tr: Translations = {
         tabRitual: 'Ritüel',
         tabRitualShort: 'Ritüel',
         freeHour: '1 S ÜCRETSİZ',
+        freeHourShort: '1S',
         vipTag: 'VIP',
         giftTag: 'HEDİYE',
         vipTitle: 'Kraliyet VIP Statüsü',

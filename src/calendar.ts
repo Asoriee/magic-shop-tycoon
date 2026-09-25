@@ -243,8 +243,6 @@ export const CALENDAR_REWARDS: CalendarRewardItem[] = [
         titleKey: 'calendar.d28Title',
         type: 'stardust',
         amount: 100,
-        isMilestone: true,
-        milestoneLabelKey: 'calendar.week4Milestone',
         iconSvg: `<svg viewBox="0 0 40 40" width="36" height="36"><polygon points="20,4 23,15 34,12 25,20 30,30 20,24 10,30 15,20 6,12 17,15" fill="#a29bfe" stroke="#6c5ce7" stroke-width="1.8"/><circle cx="20" cy="19" r="3" fill="#fff"/></svg>`
     },
     {
@@ -337,7 +335,8 @@ export function claimCalendarReward(): { success: boolean; rewardDesc?: string }
             }
             const cryAmt = Math.round((vipActive ? 40 : 20) * seasonMultiplier);
             crystals.update(c => c + cryAmt);
-            desc = translate('calendar.rewardOwlDesc', { crystals: cryAmt });
+            const petDescKey = reward.petId === 'pet_pegasus' ? 'calendar.rewardPegasusDesc' : 'calendar.rewardOwlDesc';
+            desc = translate(petDescKey, { crystals: cryAmt });
         } else if (reward.type === 'relic') {
             nextHasRelic = true;
             const relicDust = Math.round(150 * mult * seasonMultiplier);

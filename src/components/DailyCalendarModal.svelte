@@ -96,6 +96,9 @@
             return $t('calendar.rewardDust', { amount: (reward.amount || 10) * mult });
         }
         if (reward.type === 'pet') {
+            if (reward.petId === 'pet_pegasus') {
+                return $t('calendar.rewardPegasus', { crystals: vipActive ? 40 : 20 });
+            }
             return $t('calendar.rewardOwl', { crystals: vipActive ? 40 : 20 });
         }
         if (reward.type === 'relic') {
@@ -222,12 +225,6 @@
                                 {/if}
                             </div>
                             <div class="week-header-right">
-                                <span class="week-milestone-hint">
-                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffd32a" style="vertical-align: -1px; margin-right: 2px;">
-                                        <path d="M6 3h12v4c0 3.3-2.7 6-6 6s-6-2.7-6-6V3zm0 2H4c0 2.2 1.8 4 4 4h.4C7.5 8.2 6.8 6.7 6.5 5H6zm12 0h.5c-.3 1.7-1 3.2-1.9 4H17c2.2 0 4-1.8 4-4h-2zm-7 10.9V18H8v2h8v-2h-3v-2.1c3.5-.5 6-3.4 6-6.9V3H5v6c0 3.5 2.5 6.4 6 6.9z"/>
-                                    </svg>
-                                    {$t(week.milestoneKey)}
-                                </span>
                                 <span class="week-progress-pill" class:pill-done={stats.isCompleted}>
                                     {#if stats.isCompleted}
                                         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2ed573" stroke-width="3">
@@ -261,41 +258,50 @@
                                     class:upcoming={isUpcoming}
                                     class:future={isFuture}
                                     class:milestone={reward.isMilestone}
+                                    class:grand-finale={reward.day === 30}
                                     role={isCurrentReady ? "button" : undefined}
                                     tabindex={isCurrentReady ? 0 : undefined}
                                     on:click={() => { if (isCurrentReady) handleClaim(); }}
                                     on:keydown={(e) => { if (isCurrentReady && (e.key === 'Enter' || e.key === ' ')) handleClaim(); }}
                                 >
-                                    <!-- Grand Milestone Banner on 7th card of week -->
-                                    {#if reward.isMilestone}
-                                        <div class="milestone-ribbon-tag">
-                                            <svg viewBox="0 0 24 24" width="9" height="9" fill="#ffd700">
-                                                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
-                                            </svg>
-                                            <span>{$t('calendar.superReward')}</span>
-                                        </div>
-                                    {/if}
-
                                     <!-- Day Header -->
                                     <div class="day-card-header">
                                         <span class="day-num">{$t('calendar.dayNum', { day: reward.day })}</span>
+                                        {#if reward.day === 30}
+                                            <div class="milestone-ribbon-tag grand-ribbon">
+                                                <svg viewBox="0 0 24 24" width="10" height="10" fill="#ffd700">
+                                                    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                                </svg>
+                                                <span>{$t('calendar.grandFinaleTitle')}</span>
+                                            </div>
+                                        {:else if reward.isMilestone}
+                                            <div class="milestone-ribbon-tag">
+                                                <svg viewBox="0 0 24 24" width="9" height="9" fill="#ffd700">
+                                                    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                                                </svg>
+                                                <span>{$t('calendar.superReward')}</span>
+                                            </div>
+                                        {/if}
                                         {#if $isVip}
                                             <span class="vip-badge-pill">2x</span>
                                         {/if}
                                     </div>
 
                                     <!-- Icon -->
-                                    <div class="reward-icon-wrap" class:icon-milestone={reward.isMilestone}>
-                                        {#if reward.isMilestone}
+                                    <div class="reward-icon-wrap" class:icon-milestone={reward.isMilestone || reward.day === 30}>
+                                        {#if reward.isMilestone || reward.day === 30}
                                             <div class="milestone-aura"></div>
                                         {/if}
                                         {@html reward.iconSvg}
                                     </div>
 
                                     <!-- Label -->
-                                    <div class="reward-label" class:label-milestone={reward.isMilestone}>
+                                    <div class="reward-label" class:label-milestone={reward.isMilestone} class:label-grand={reward.day === 30}>
                                         {getRewardLabel(reward, $isVip)}
                                     </div>
+                                    {#if reward.day === 30}
+                                        <div class="grand-finale-bonus">{$t('calendar.grandFinaleBonus')}</div>
+                                    {/if}
 
                                     <!-- Status Overlay / Stamp -->
                                     {#if isClaimed}
@@ -306,11 +312,11 @@
                                             <span>{$t('calendar.claimed')}</span>
                                         </div>
                                     {:else if isCurrentReady}
-                                        <div class="ready-cta-pill">
+                                        <div class="ready-badge-pill">
                                             <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
                                                 <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
                                             </svg>
-                                            <span>{$t('calendar.claim')}</span>
+                                            <span>{$t('calendar.ready')}</span>
                                         </div>
                                     {:else if isUpcoming}
                                         <div class="stamp-upcoming">
@@ -336,24 +342,25 @@
             </div>
 
             <!-- Footer Action -->
-            <div class="modal-footer">
-                {#if isReady}
+            {#if isReady}
+                <div class="modal-footer">
                     <button class="main-claim-btn" on:click={handleClaim}>
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffd32a">
                             <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
                         </svg>
                         <span>{$t('calendar.claimToday', { day: currentDay, reward: getRewardLabel(currentReward, $isVip) })}</span>
                     </button>
-                {:else}
+                </div>
+            {:else}
+                <div class="modal-footer footer-claimed">
                     <div class="already-claimed-notice">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#2ed573" stroke-width="2" fill="none">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 6 12 12 16 14"/>
+                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="#2ed573" stroke-width="2.5" fill="none">
+                            <polyline points="20 6 9 17 4 12"/>
                         </svg>
-                        <span>{$t('calendar.alreadyClaimedToday')}</span>
+                        <span>{$t('calendar.nextRewardTomorrow')}</span>
                     </div>
-                {/if}
-            </div>
+                </div>
+            {/if}
         </div>
     </div>
 {/if}
@@ -648,12 +655,6 @@
         flex-wrap: wrap;
     }
 
-    .week-milestone-hint {
-        color: #ffd32a;
-        font-size: 0.74rem;
-        font-weight: 600;
-    }
-
     .week-progress-pill {
         display: inline-flex;
         align-items: center;
@@ -720,16 +721,24 @@
         background: linear-gradient(160deg, rgba(108, 92, 231, 0.22) 0%, rgba(241, 196, 15, 0.18) 100%);
         border: 1.5px solid rgba(241, 196, 15, 0.55);
         box-shadow: 0 0 16px rgba(241, 196, 15, 0.2);
+        padding-top: 14px;
+    }
+
+    .day-card.grand-finale {
+        background: linear-gradient(145deg, rgba(142, 68, 173, 0.35) 0%, rgba(241, 196, 15, 0.25) 50%, rgba(0, 206, 201, 0.22) 100%);
+        border: 1.5px solid #ffd700;
+        box-shadow: 0 0 22px rgba(255, 215, 0, 0.35);
+        padding-top: 14px;
     }
 
     .milestone-ribbon-tag {
         position: absolute;
-        top: -6px;
+        top: 2px;
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #d35400, #f1c40f);
         color: #1a0a2a;
-        font-size: 0.54rem;
+        font-size: 0.52rem;
         font-weight: 900;
         letter-spacing: 0.3px;
         padding: 1px 6px;
@@ -740,6 +749,13 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         white-space: nowrap;
         z-index: 4;
+    }
+
+    .milestone-ribbon-tag.grand-ribbon {
+        background: linear-gradient(135deg, #8e44ad 0%, #f1c40f 65%, #00cec9 100%);
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        border: 1px solid rgba(255, 215, 0, 0.6);
     }
 
     .reward-icon-wrap.icon-milestone {
@@ -819,6 +835,55 @@
         margin-top: auto;
     }
 
+    .label-grand {
+        color: #ffd700;
+        font-weight: 800;
+        font-size: 0.78rem;
+    }
+
+    .grand-finale-bonus {
+        font-size: 0.65rem;
+        color: #2ed573;
+        font-weight: 800;
+        white-space: nowrap;
+        margin-top: 2px;
+    }
+
+    .days-grid-9 .day-card:nth-child(8) {
+        grid-column: span 2;
+    }
+
+    .days-grid-9 .day-card:nth-child(9) {
+        grid-column: span 5;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        padding: 8px 18px;
+        text-align: left;
+    }
+
+    .days-grid-9 .day-card:nth-child(9) .day-card-header {
+        width: auto;
+        margin-bottom: 0;
+    }
+
+    .days-grid-9 .day-card:nth-child(9) .reward-icon-wrap {
+        margin: 0;
+        height: 48px;
+    }
+
+    .days-grid-9 .day-card:nth-child(9) .reward-label {
+        margin-top: 0;
+        font-size: 0.85rem;
+    }
+
+    .days-grid-9 .day-card:nth-child(9) .milestone-ribbon-tag {
+        position: static;
+        transform: none;
+        margin-left: 8px;
+    }
+
     .stamp-claimed {
         display: flex;
         align-items: center;
@@ -853,18 +918,18 @@
         margin-top: 4px;
     }
 
-    .ready-cta-pill {
+    .ready-badge-pill {
         margin-top: 4px;
         background: linear-gradient(135deg, #ffd32a 0%, #ff9f43 100%);
         color: #2c3e50;
         border-radius: 6px;
         font-size: 0.68rem;
         font-weight: 800;
-        padding: 3px 8px;
+        padding: 2px 7px;
         box-shadow: 0 2px 8px rgba(241, 196, 15, 0.4);
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         white-space: nowrap;
         animation: pulseReadyPill 1.8s infinite ease-in-out;
     }
@@ -880,6 +945,11 @@
         background: rgba(0, 0, 0, 0.25);
         display: flex;
         justify-content: center;
+    }
+
+    .modal-footer.footer-claimed {
+        padding: 6px 16px;
+        background: rgba(0, 0, 0, 0.15);
     }
 
     .main-claim-btn {
@@ -906,12 +976,13 @@
     .already-claimed-notice {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        color: rgba(236, 240, 241, 0.7);
-        padding: 8px 16px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
+        gap: 6px;
+        font-size: 0.78rem;
+        color: rgba(236, 240, 241, 0.8);
+        padding: 4px 12px;
+        background: rgba(46, 213, 115, 0.08);
+        border: 1px solid rgba(46, 213, 115, 0.25);
+        border-radius: 8px;
     }
 
     @media (max-width: 768px) {
@@ -1011,13 +1082,22 @@
             text-overflow: ellipsis;
         }
         .vip-desc {
-            font-size: 0.68rem;
-            line-height: 1.2;
+            font-size: 0.70rem;
+            line-height: 1.25;
+            white-space: normal;
+            overflow: visible;
         }
         .vip-activate-btn {
-            padding: 5px 8px;
-            font-size: 0.7rem;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+            box-sizing: border-box;
         }
         .calendar-scroll-area {
             padding: 6px 8px;
@@ -1061,9 +1141,6 @@
             gap: 4px;
             flex-shrink: 0;
         }
-        .week-milestone-hint {
-            display: none;
-        }
         .week-progress-pill {
             font-size: 0.64rem;
             padding: 1px 6px;
@@ -1089,6 +1166,7 @@
         .days-grid-9 .day-card:nth-child(8) {
             grid-column: span 3;
             min-width: 0;
+            min-height: 86px;
         }
         .day-card.milestone {
             grid-column: 1 / -1;
@@ -1134,7 +1212,7 @@
             word-break: break-word;
         }
         .day-card.milestone .stamp-claimed,
-        .day-card.milestone .ready-cta-pill,
+        .day-card.milestone .ready-badge-pill,
         .day-card.milestone .stamp-upcoming,
         .day-card.milestone .stamp-locked {
             grid-column: 3;
@@ -1143,12 +1221,70 @@
             align-self: center;
             flex-shrink: 0;
         }
-        .day-card.milestone .milestone-ribbon-tag {
-            top: -6px;
-            left: 10px;
+        .day-card.milestone .milestone-ribbon-tag,
+        .days-grid-9 .day-card:nth-child(9) .milestone-ribbon-tag {
+            position: static;
             transform: none;
-            font-size: 0.52rem;
+            font-size: 0.50rem;
             padding: 1px 5px;
+            margin-left: 4px;
+        }
+        .days-grid-9 .day-card:nth-child(9) {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto auto auto;
+            align-items: center;
+            gap: 2px 8px;
+            padding: 8px 10px;
+            min-height: 60px;
+            text-align: left;
+            min-width: 0;
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        .days-grid-9 .day-card:nth-child(9) .reward-icon-wrap {
+            grid-column: 1;
+            grid-row: 1 / span 3;
+            margin: 0;
+            height: 38px;
+            flex-shrink: 0;
+        }
+        .days-grid-9 .day-card:nth-child(9) .day-card-header {
+            grid-column: 2;
+            grid-row: 1;
+            justify-content: flex-start;
+            gap: 6px;
+            margin-bottom: 0;
+            min-width: 0;
+            white-space: nowrap;
+        }
+        .days-grid-9 .day-card:nth-child(9) .reward-label {
+            grid-column: 2;
+            grid-row: 2;
+            margin-top: 0;
+            font-size: 0.76rem;
+            line-height: 1.2;
+            text-align: left;
+            min-width: 0;
+        }
+        .days-grid-9 .day-card:nth-child(9) .grand-finale-bonus {
+            grid-column: 2;
+            grid-row: 3;
+            font-size: 0.65rem;
+            color: #2ed573;
+            font-weight: 800;
+        }
+        .days-grid-9 .day-card:nth-child(9) .stamp-claimed,
+        .days-grid-9 .day-card:nth-child(9) .ready-badge-pill,
+        .days-grid-9 .day-card:nth-child(9) .stamp-upcoming,
+        .days-grid-9 .day-card:nth-child(9) .stamp-locked {
+            grid-column: 3;
+            grid-row: 1 / span 3;
+            margin-top: 0;
+            align-self: center;
+            flex-shrink: 0;
         }
         .day-card-header {
             font-size: 0.66rem;
@@ -1171,7 +1307,7 @@
             max-width: 100%;
             overflow: hidden;
         }
-        .ready-cta-pill {
+        .ready-badge-pill {
             font-size: 0.6rem;
             padding: 2px 5px;
             max-width: 100%;
@@ -1188,6 +1324,9 @@
             padding: 8px 10px;
             box-sizing: border-box;
             max-width: 100%;
+        }
+        .modal-footer.footer-claimed {
+            padding: 4px 8px;
         }
         .main-claim-btn {
             width: 100%;
@@ -1214,8 +1353,8 @@
         .already-claimed-notice {
             width: 100%;
             justify-content: center;
-            font-size: 0.78rem;
-            padding: 8px 10px;
+            font-size: 0.72rem;
+            padding: 4px 8px;
             box-sizing: border-box;
         }
     }

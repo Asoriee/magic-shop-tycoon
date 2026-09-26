@@ -33,9 +33,16 @@ interface AmbientNodes {
     masterGain: GainNode;
     droneOsc1: OscillatorNode;
     droneOsc2: OscillatorNode;
+    droneSubGain1: GainNode;
+    droneSubGain2: GainNode;
     droneFilter: BiquadFilterNode;
     lfoOsc: OscillatorNode;
     lfoGain: GainNode;
+    emberSource: AudioBufferSourceNode;
+    emberFilter: BiquadFilterNode;
+    emberGain: GainNode;
+    emberLfo: OscillatorNode;
+    emberLfoGain: GainNode;
     shimmerOsc: OscillatorNode;
     shimmerFilter: BiquadFilterNode;
     shimmerGain: GainNode;
@@ -54,6 +61,11 @@ export function suspendAudio(): void {
 
 export function resumeAudio(): void {
     if (isAdAudioSuppressed || (typeof document !== 'undefined' && document.hidden)) return;
+    
+    // If all audio channels are muted, do NOT wake audio context hardware (prevents DAC click/pop)
+    const isAnyActive = !get(isSfxMuted) || !get(isAmbientMuted);
+    if (!isAnyActive) return;
+
     if (audioCtx && audioCtx.state === 'suspended') {
         try {
             audioCtx.resume();
@@ -88,10 +100,14 @@ if (typeof window !== 'undefined') {
         resumeAudio();
     });
 
-    // Auto-init audio & ambient on first user interaction
+    // Auto-init audio & ambient on first user interaction (only if audio is enabled)
     const initOnFirstGesture = () => {
-        ensureAudioContext();
-        startAmbientEngine();
+        if (!get(isSfxMuted) || !get(isAmbientMuted)) {
+            ensureAudioContext();
+        }
+        if (!get(isAmbientMuted)) {
+            startAmbientEngine();
+        }
         window.removeEventListener('pointerdown', initOnFirstGesture);
         window.removeEventListener('keydown', initOnFirstGesture);
     };
@@ -106,11 +122,13 @@ function ensureAudioContext(): AudioContext | null {
         if (AudioContextClass) {
             audioCtx = new AudioContextClass();
             sfxGainNode = audioCtx.createGain();
+            const initialGain = get(isSfxMuted) ? 0 : Math.max(0, Math.min(1, get(sfxVolume)));
+            sfxGainNode.gain.setValueAtTime(initialGain, audioCtx.currentTime);
             sfxGainNode.connect(audioCtx.destination);
-            updateSfxGain();
         }
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
+    const isAnyActive = !get(isSfxMuted) || !get(isAmbientMuted);
+    if (audioCtx && audioCtx.state === 'suspended' && isAnyActive) {
         audioCtx.resume().catch(() => {});
     }
     return audioCtx;
@@ -125,10 +143,10 @@ function updateSfxGain(): void {
     if (!sfxGainNode || !audioCtx) return;
     const muted = get(isSfxMuted);
     const vol = Math.max(0, Math.min(1, get(sfxVolume)));
-    const target = muted ? 0.0001 : vol;
+    const target = muted ? 0 : vol;
     try {
         sfxGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        sfxGainNode.gain.setTargetAtTime(target, audioCtx.currentTime, 0.04);
+        sfxGainNode.gain.setTargetAtTime(target, audioCtx.currentTime, 0.03);
     } catch (e) {}
 }
 
@@ -139,9 +157,15 @@ export function toggleSfx(): boolean {
         localStorage.setItem('mst_sfx_muted', next ? 'true' : 'false');
         localStorage.setItem('mst_sound_muted', next ? 'true' : 'false');
     }
-    updateSfxGain();
     if (!next) {
+        ensureAudioContext();
+        updateSfxGain();
         playCoinSound();
+    } else {
+        updateSfxGain();
+        if (get(isAmbientMuted)) {
+            suspendAudio();
+        }
     }
     return next;
 }
@@ -161,7 +185,16 @@ export function toggleAmbient(): boolean {
     if (typeof localStorage !== 'undefined') {
         localStorage.setItem('mst_ambient_muted', next ? 'true' : 'false');
     }
+    if (!next) {
+        ensureAudioContext();
+        if (!isAmbientStarted) {
+            startAmbientEngine();
+        }
+    }
     updateAmbientState();
+    if (next && get(isSfxMuted)) {
+        suspendAudio();
+    }
     return next;
 }
 
@@ -170,6 +203,12 @@ export function setAmbientVolume(vol: number): void {
     ambientVolume.set(clamped);
     if (typeof localStorage !== 'undefined') {
         localStorage.setItem('mst_ambient_volume', clamped.toFixed(2));
+    }
+    if (clamped > 0 && !get(isAmbientMuted)) {
+        ensureAudioContext();
+        if (!isAmbientStarted) {
+            startAmbientEngine();
+        }
     }
     updateAmbientState();
 }
@@ -180,61 +219,113 @@ export function toggleSound(): boolean {
 }
 
 // -------------------------------------------------------------
-// Procedural Ambient Engine: Cauldron Drone + Shimmer + Bubbles
+// Procedural Ambient Engine: Warm Cozy Hearth + Whisper of Embers
 // -------------------------------------------------------------
+
+function createEmberNoiseBuffer(ctx: AudioContext): AudioBuffer {
+    const bufferSize = Math.floor(ctx.sampleRate * 2.5);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99 * b0 + white * 0.05;
+        b1 = 0.96 * b1 + white * 0.08;
+        b2 = 0.86 * b2 + white * 0.14;
+        data[i] = (b0 + b1 + b2) * 0.25;
+    }
+    return buffer;
+}
+
 function startAmbientEngine(): void {
-    if (isAmbientStarted || typeof window === 'undefined') return;
+    if (isAmbientStarted || typeof window === 'undefined' || get(isAmbientMuted)) return;
     const ctx = ensureAudioContext();
     if (!ctx) return;
 
     try {
         const masterGain = ctx.createGain();
-        masterGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        masterGain.gain.setValueAtTime(0, ctx.currentTime);
         masterGain.connect(ctx.destination);
 
-        // 1. Warm Cauldron Drone (Low frequency warmth)
+        // 1. Velvet Sub-Bass Warmth (Pure gentle sines, no harsh triangle buzzing)
         const droneOsc1 = ctx.createOscillator();
         const droneOsc2 = ctx.createOscillator();
+        const droneSubGain1 = ctx.createGain();
+        const droneSubGain2 = ctx.createGain();
         const droneFilter = ctx.createBiquadFilter();
 
         droneOsc1.type = 'sine';
-        droneOsc1.frequency.setValueAtTime(65.4, ctx.currentTime); // C2
+        droneOsc1.frequency.setValueAtTime(55.0, ctx.currentTime); // A1 velvety sub-bass
 
-        droneOsc2.type = 'triangle';
-        droneOsc2.frequency.setValueAtTime(130.8, ctx.currentTime); // C3
-        droneOsc2.detune.setValueAtTime(4, ctx.currentTime); // Gentle organic chorus
+        droneOsc2.type = 'sine';
+        droneOsc2.frequency.setValueAtTime(110.0, ctx.currentTime); // A2 warm harmonic overtone
+        droneOsc2.detune.setValueAtTime(3.5, ctx.currentTime); // Soft acoustic chorus drift
 
+        droneSubGain1.gain.setValueAtTime(0.28, ctx.currentTime);
+        droneSubGain2.gain.setValueAtTime(0.12, ctx.currentTime);
+
+        droneOsc1.connect(droneSubGain1);
+        droneOsc2.connect(droneSubGain2);
+
+        // Lowpass filter at 115Hz with flat Butterworth Q (0.707) - NO resonant peak spike
         droneFilter.type = 'lowpass';
-        droneFilter.frequency.setValueAtTime(140, ctx.currentTime);
-        droneFilter.Q.setValueAtTime(2.2, ctx.currentTime);
+        droneFilter.frequency.setValueAtTime(115, ctx.currentTime);
+        droneFilter.Q.setValueAtTime(0.707, ctx.currentTime);
 
-        // Slow LFO for subtle "hearth flame breathing"
+        // Slow LFO for subtle "hearth embers breathing"
         const lfoOsc = ctx.createOscillator();
         const lfoGain = ctx.createGain();
         lfoOsc.type = 'sine';
-        lfoOsc.frequency.setValueAtTime(0.07, ctx.currentTime); // 14-second cycle
-        lfoGain.gain.setValueAtTime(35, ctx.currentTime); // Modulate cutoff by +-35Hz
+        lfoOsc.frequency.setValueAtTime(0.045, ctx.currentTime); // ~22-second cycle
+        lfoGain.gain.setValueAtTime(14, ctx.currentTime); // Gentle modulation +-14Hz
 
         lfoOsc.connect(lfoGain);
         lfoGain.connect(droneFilter.frequency);
 
-        droneOsc1.connect(droneFilter);
-        droneOsc2.connect(droneFilter);
+        droneSubGain1.connect(droneFilter);
+        droneSubGain2.connect(droneFilter);
         droneFilter.connect(masterGain);
 
-        // 2. Mystic Shimmer (Ethereal overtone)
+        // 2. Whisper of Hearth Fire & Embers (Gentle filtered pink noise)
+        const emberNoiseBuffer = createEmberNoiseBuffer(ctx);
+        const emberSource = ctx.createBufferSource();
+        emberSource.buffer = emberNoiseBuffer;
+        emberSource.loop = true;
+
+        const emberFilter = ctx.createBiquadFilter();
+        emberFilter.type = 'lowpass';
+        emberFilter.frequency.setValueAtTime(360, ctx.currentTime);
+        emberFilter.Q.setValueAtTime(0.6, ctx.currentTime);
+
+        const emberGain = ctx.createGain();
+        emberGain.gain.setValueAtTime(0.032, ctx.currentTime);
+
+        const emberLfo = ctx.createOscillator();
+        const emberLfoGain = ctx.createGain();
+        emberLfo.type = 'sine';
+        emberLfo.frequency.setValueAtTime(0.08, ctx.currentTime); // Natural gentle fire draft
+        emberLfoGain.gain.setValueAtTime(0.012, ctx.currentTime);
+
+        emberLfo.connect(emberLfoGain);
+        emberLfoGain.connect(emberGain.gain);
+
+        emberSource.connect(emberFilter);
+        emberFilter.connect(emberGain);
+        emberGain.connect(masterGain);
+
+        // 3. Mystic Ethereal Shimmer (Subtle magical air)
         const shimmerOsc = ctx.createOscillator();
         const shimmerFilter = ctx.createBiquadFilter();
         const shimmerGain = ctx.createGain();
 
         shimmerOsc.type = 'sine';
-        shimmerOsc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+        shimmerOsc.frequency.setValueAtTime(440.0, ctx.currentTime); // A4 consonance
 
         shimmerFilter.type = 'bandpass';
-        shimmerFilter.frequency.setValueAtTime(520, ctx.currentTime);
-        shimmerFilter.Q.setValueAtTime(4.0, ctx.currentTime);
+        shimmerFilter.frequency.setValueAtTime(440.0, ctx.currentTime);
+        shimmerFilter.Q.setValueAtTime(2.2, ctx.currentTime);
 
-        shimmerGain.gain.setValueAtTime(0.04, ctx.currentTime);
+        shimmerGain.gain.setValueAtTime(0.012, ctx.currentTime);
 
         shimmerOsc.connect(shimmerFilter);
         shimmerFilter.connect(shimmerGain);
@@ -245,14 +336,16 @@ function startAmbientEngine(): void {
         droneOsc1.start(now);
         droneOsc2.start(now);
         lfoOsc.start(now);
+        emberSource.start(now);
+        emberLfo.start(now);
         shimmerOsc.start(now);
 
-        // 3. Occasional subtle ambient cauldron bubbles
+        // 4. Subtle, infrequent cauldron simmering bubbles
         const scheduleBubble = () => {
-            const delay = 4000 + Math.random() * 6000;
+            const delay = 6000 + Math.random() * 8000;
             const timer = setTimeout(() => {
-                playMicroAmbientBubble(ctx, masterGain);
                 if (ambientNodes) {
+                    playMicroAmbientBubble(ctx, masterGain);
                     ambientNodes.bubbleTimer = scheduleBubble();
                 }
             }, delay);
@@ -263,9 +356,16 @@ function startAmbientEngine(): void {
             masterGain,
             droneOsc1,
             droneOsc2,
+            droneSubGain1,
+            droneSubGain2,
             droneFilter,
             lfoOsc,
             lfoGain,
+            emberSource,
+            emberFilter,
+            emberGain,
+            emberLfo,
+            emberLfoGain,
             shimmerOsc,
             shimmerFilter,
             shimmerGain,
@@ -286,19 +386,19 @@ function playMicroAmbientBubble(ctx: AudioContext, destination: GainNode): void 
         const gain = ctx.createGain();
         const now = ctx.currentTime;
 
-        const startFreq = 220 + Math.random() * 80;
+        const startFreq = 190 + Math.random() * 70;
         osc.type = 'sine';
         osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(startFreq * 1.5, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(startFreq * 1.45, now + 0.07);
 
-        gain.gain.setValueAtTime(0.08, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        gain.gain.setValueAtTime(0.035, now);
+        gain.gain.exponentialRampToValueAtTime(0.0005, now + 0.08);
 
         osc.connect(gain);
         gain.connect(destination);
 
         osc.start(now);
-        osc.stop(now + 0.1);
+        osc.stop(now + 0.09);
     } catch (e) {}
 }
 
@@ -312,12 +412,15 @@ function updateAmbientState(): void {
 
     const muted = get(isAmbientMuted) || isAdAudioSuppressed || (typeof document !== 'undefined' && document.hidden);
     const vol = Math.max(0, Math.min(1, get(ambientVolume)));
-    // Max ambient master gain is ~0.15 to remain non-intrusive and soothing
-    const target = muted ? 0.0001 : vol * 0.15;
+    // Max ambient master gain is ~0.13 to keep it soft, cozy, and non-intrusive
+    const target = muted ? 0 : vol * 0.13;
 
     try {
-        ambientNodes.masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-        ambientNodes.masterGain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.4);
+        const now = audioCtx.currentTime;
+        ambientNodes.masterGain.gain.cancelScheduledValues(now);
+        // Silky smooth 1.8s fade-in on start/unmute, gentle 0.1s fade to 0 on mute
+        const rampTime = muted ? 0.08 : 0.6;
+        ambientNodes.masterGain.gain.setTargetAtTime(target, now, rampTime);
     } catch (e) {}
 }
 
@@ -328,8 +431,9 @@ function updateAmbientState(): void {
 function getSfxDestination(ctx: AudioContext): AudioNode {
     if (!sfxGainNode) {
         sfxGainNode = ctx.createGain();
+        const initialGain = get(isSfxMuted) ? 0 : Math.max(0, Math.min(1, get(sfxVolume)));
+        sfxGainNode.gain.setValueAtTime(initialGain, ctx.currentTime);
         sfxGainNode.connect(ctx.destination);
-        updateSfxGain();
     }
     return sfxGainNode;
 }

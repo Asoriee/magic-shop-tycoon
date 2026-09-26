@@ -65,6 +65,7 @@
     let isSettingsOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'settings';
     let isLuckyWheelOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'wheel';
     let isHallOfFameOpen = typeof window !== 'undefined' && new URLSearchParams(window.location?.search).get('modal') === 'hall';
+    let isReady = false;
 
     interface ToastQueueItem {
         id: string;
@@ -78,7 +79,7 @@
     let hasInitializedAchievementsTracking = false;
 
     function checkAchievementUnlocks(state: any) {
-        if (!state) return;
+        if (!state || !isReady) return;
         if (!hasInitializedAchievementsTracking) {
             ACHIEVEMENTS.forEach(def => {
                 const currentProg = getAchievementCurrentProgress(def.id, state);
@@ -132,7 +133,7 @@
         }
     }
 
-    $: if ($gameStore) {
+    $: if (isReady && $gameStore) {
         checkAchievementUnlocks($gameStore);
     }
 
@@ -162,7 +163,6 @@
     let offlineSecondsCount = 0;
     let maxOfflineSecondsCount = 0;
     let offlineRatePerSec = 0;
-    let isReady = false;
     let gameLoop: number;
     let hiddenTimestamp = 0;
     let autoSaveCounter = 0;

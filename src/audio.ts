@@ -261,15 +261,15 @@ function startAmbientEngine(): void {
         droneOsc2.frequency.setValueAtTime(110.0, ctx.currentTime); // A2 warm harmonic overtone
         droneOsc2.detune.setValueAtTime(3.5, ctx.currentTime); // Soft acoustic chorus drift
 
-        droneSubGain1.gain.setValueAtTime(0.28, ctx.currentTime);
-        droneSubGain2.gain.setValueAtTime(0.12, ctx.currentTime);
+        droneSubGain1.gain.setValueAtTime(0.55, ctx.currentTime);
+        droneSubGain2.gain.setValueAtTime(0.40, ctx.currentTime);
 
         droneOsc1.connect(droneSubGain1);
         droneOsc2.connect(droneSubGain2);
 
-        // Lowpass filter at 115Hz with flat Butterworth Q (0.707) - NO resonant peak spike
+        // Lowpass filter at 145Hz with flat Butterworth Q (0.707) - warm, audible cauldron hum without harshness
         droneFilter.type = 'lowpass';
-        droneFilter.frequency.setValueAtTime(115, ctx.currentTime);
+        droneFilter.frequency.setValueAtTime(145, ctx.currentTime);
         droneFilter.Q.setValueAtTime(0.707, ctx.currentTime);
 
         // Slow LFO for subtle "hearth embers breathing"
@@ -277,7 +277,7 @@ function startAmbientEngine(): void {
         const lfoGain = ctx.createGain();
         lfoOsc.type = 'sine';
         lfoOsc.frequency.setValueAtTime(0.045, ctx.currentTime); // ~22-second cycle
-        lfoGain.gain.setValueAtTime(14, ctx.currentTime); // Gentle modulation +-14Hz
+        lfoGain.gain.setValueAtTime(18, ctx.currentTime); // Gentle modulation +-18Hz
 
         lfoOsc.connect(lfoGain);
         lfoGain.connect(droneFilter.frequency);
@@ -412,8 +412,8 @@ function updateAmbientState(): void {
 
     const muted = get(isAmbientMuted) || isAdAudioSuppressed || (typeof document !== 'undefined' && document.hidden);
     const vol = Math.max(0, Math.min(1, get(ambientVolume)));
-    // Max ambient master gain is ~0.13 to keep it soft, cozy, and non-intrusive
-    const target = muted ? 0 : vol * 0.13;
+    // Max ambient master gain is ~0.22 to keep it comfortably audible and cozy
+    const target = muted ? 0 : vol * 0.22;
 
     try {
         const now = audioCtx.currentTime;

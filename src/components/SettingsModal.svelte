@@ -1,6 +1,7 @@
 <script lang="ts">
     import { tick } from 'svelte';
     import gsap from 'gsap';
+    import { gameStore } from '../store';
     import { t, currentLang, setLanguage } from '../i18n';
     import { 
         isSfxMuted, 
@@ -24,11 +25,17 @@
     $: if (isOpen) {
         tick().then(() => {
             if (!overlayEl || !modalEl) return;
-            gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25 });
-            gsap.fromTo(modalEl,
-                { y: 35, opacity: 0, scale: 0.95 },
-                { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.2)' }
+            const isUrlDirect = typeof window !== 'undefined' && (
+                new URLSearchParams(window.location?.search).has('modal') || 
+                new URLSearchParams(window.location?.search).has('demo')
             );
+            if (!isUrlDirect) {
+                gsap.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25 });
+                gsap.fromTo(modalEl,
+                    { y: 35, opacity: 0, scale: 0.95 },
+                    { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.2)' }
+                );
+            }
         });
     }
 
@@ -69,6 +76,11 @@
         if ($currentLang === lang) return;
         playPageTurnSound();
         setLanguage(lang);
+    }
+
+    function handleFamiliarToggle() {
+        playPageTurnSound();
+        gameStore.toggleShowFamiliarOnMain();
     }
 </script>
 
@@ -198,7 +210,47 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Language Selection -->
+                <!-- Section 2: Interface Settings -->
+                <div class="settings-section">
+                    <div class="section-title-row">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffeaa7" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="4" fill="rgba(241,196,15,0.2)"/>
+                            <path d="M3 9h18M9 21V9"/>
+                        </svg>
+                        <span class="section-title">{$t('settings.interfaceSection')}</span>
+                    </div>
+
+                    <div class="cards-stack">
+                        <div class="control-card">
+                            <div class="card-main-row">
+                                <div class="card-icon interface-icon">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                        <circle cx="8" cy="8.5" r="2.2"/>
+                                        <circle cx="16" cy="8.5" r="2.2"/>
+                                        <circle cx="4.5" cy="13" r="1.8"/>
+                                        <circle cx="19.5" cy="13" r="1.8"/>
+                                        <path d="M12 11.5c-3.2 0-5.5 2.2-5.5 5 0 2 1.6 3.5 3.5 3.5.9 0 1.5-.4 2-.8.5.4 1.1.8 2 .8 1.9 0 3.5-1.5 3.5-3.5 0-2.8-2.3-5-5.5-5z"/>
+                                    </svg>
+                                </div>
+                                <div class="card-info">
+                                    <span class="card-name">{$t('settings.showFamiliarLabel')}</span>
+                                    <span class="card-desc">{$t('settings.showFamiliarDesc')}</span>
+                                </div>
+                                <button 
+                                    type="button" 
+                                    class="toggle-switch" 
+                                    class:active={$gameStore.showFamiliarOnMain !== false} 
+                                    on:click={handleFamiliarToggle}
+                                    aria-label={$t('settings.showFamiliarLabel')}
+                                >
+                                    <span class="toggle-knob"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Language Selection -->
                 <div class="settings-section">
                     <div class="section-title-row">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffeaa7" stroke-width="2">
@@ -251,7 +303,7 @@
                     </div>
                 </div>
 
-                <!-- Section 3: About & Cloud Status -->
+                <!-- Section 4: About & Cloud Status -->
                 <div class="settings-section about-section">
                     <div class="about-card">
                         <div class="about-top">
@@ -477,6 +529,12 @@
         color: #e056fd;
     }
 
+    .interface-icon {
+        background: rgba(241, 196, 15, 0.15);
+        border: 1px solid rgba(241, 196, 15, 0.35);
+        color: #f1c40f;
+    }
+
     .card-info {
         flex: 1;
         min-width: 0;
@@ -511,6 +569,15 @@
         transition: all 0.25s ease;
         flex-shrink: 0;
         touch-action: manipulation;
+    }
+
+    .toggle-switch::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        bottom: -8px;
+        left: -6px;
+        right: -6px;
     }
 
     .toggle-switch.active {

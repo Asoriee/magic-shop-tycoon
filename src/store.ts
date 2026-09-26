@@ -250,6 +250,7 @@ export interface GameState {
     petLevels?: Record<string, number>;
     totalStardustEarned?: number;
     activeCompanionId?: string;
+    showFamiliarOnMain?: boolean;
     viewedGuides?: string[];
     potionMastery?: Record<string, number>;
     potionMasteryXp?: Record<string, number>;
@@ -2090,6 +2091,7 @@ const defaultState: GameState = {
     totalStardustEarned: 0,
     petLevels: { 'pet_rat': 1 },
     activeCompanionId: 'pet_rat',
+    showFamiliarOnMain: true,
     viewedGuides: [],
     potionMastery: {},
     potionMasteryXp: {},
@@ -2997,6 +2999,8 @@ function createGameStore() {
         claimDragonGift: () => update(state => ({ ...state, lastDragonGiftTime: Date.now() })),
         claimFreeTimeSkip: () => update(state => ({ ...state, lastFreeTimeSkipTime: Date.now() })),
         setActiveCompanion: (petId: string) => update(state => ({ ...state, activeCompanionId: petId })),
+        setShowFamiliarOnMain: (show: boolean) => update(state => ({ ...state, showFamiliarOnMain: show })),
+        toggleShowFamiliarOnMain: () => update(state => ({ ...state, showFamiliarOnMain: state.showFamiliarOnMain === false })),
         markStarterPackBought: () => update(state => ({ ...state, hasBoughtStarterPack: true })),
         markGuideAsViewed: (guideId: string) => update(state => {
             const existing = state.viewedGuides || [];

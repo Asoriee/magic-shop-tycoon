@@ -736,7 +736,9 @@
 
     <!-- 3. Center Workshop Area: Familiar and Alchemist Cauldron -->
     <div class="center-area">
-        <PetCompanion />
+        {#if $gameStore.showFamiliarOnMain !== false}
+            <PetCompanion />
+        {/if}
         <Cauldron />
     </div>
 

@@ -476,6 +476,9 @@ export async function loadGame(): Promise<void> {
             if (!merged.activeCompanionId) {
                 merged.activeCompanionId = merged.unlockedPets?.[0] || 'pet_rat';
             }
+            if (merged.showFamiliarOnMain === undefined) {
+                merged.showFamiliarOnMain = true;
+            }
             if (!merged.potionMastery || typeof merged.potionMastery !== 'object') {
                 merged.potionMastery = {};
             }
